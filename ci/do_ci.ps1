@@ -32,6 +32,14 @@ switch ($action) {
     bazel_binary_build "opt"
     bazel_test "opt" "$test"
   }
+  "libuv" {
+    echo "libuv.."
+    bazel  $env:BAZEL_BASE_OPTIONS.Split(" ") build $env:BAZEL_BUILD_OPTIONS.Split(" ") '//source/common/event:uv_test'
+    $exit = $LASTEXITCODE
+    if ($exit -ne 0) {
+      exit $exit
+    }
+  }
   "bazel.release.server_only" {
     echo "bazel release build..."
     bazel_binary_build "opt"

@@ -29,6 +29,9 @@ envoy_cc_library(
         "//source/common/common:stack_array",
         "//source/common/event:libevent_lib",
     ],
+    external_deps = [
+        "event",
+    ],
 )
 
 envoy_cc_library(

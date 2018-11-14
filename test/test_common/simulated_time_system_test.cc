@@ -3,7 +3,7 @@
 
 #include "test/test_common/simulated_time_system.h"
 
-#include "event2/event.h"
+#include "uv.h"
 #include "gtest/gtest.h"
 
 namespace Envoy {

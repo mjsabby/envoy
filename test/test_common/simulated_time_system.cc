@@ -9,7 +9,7 @@
 #include "common/event/real_time_system.h"
 #include "common/event/timer_impl.h"
 
-#include "event2/event.h"
+#include "uv.h"
 
 namespace Envoy {
 namespace Event {

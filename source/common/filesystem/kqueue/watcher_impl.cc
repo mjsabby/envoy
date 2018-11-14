@@ -11,7 +11,7 @@
 #include "common/common/utility.h"
 #include "common/filesystem/watcher_impl.h"
 
-#include "event2/event.h"
+#include "uv.h"
 
 namespace Envoy {
 namespace Filesystem {

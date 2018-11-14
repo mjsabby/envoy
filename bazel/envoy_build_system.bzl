@@ -94,6 +94,10 @@ def envoy_linkopts():
                "@envoy//bazel:windows_x86_64": [
                    "-DEFAULTLIB:advapi32.lib",
                    "-DEFAULTLIB:ws2_32.lib",
+                   "-DEFAULTLIB:user32.lib",
+                   "-DEFAULTLIB:iphlpapi.lib",
+                   "-DEFAULTLIB:psapi.lib",
+                   "-DEFAULTLIB:userenv.lib",
                    "-WX",
                ],
                "//conditions:default": [

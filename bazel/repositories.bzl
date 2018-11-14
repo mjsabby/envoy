@@ -286,6 +286,7 @@ def envoy_dependencies(path = "@envoy_deps//", skip_targets = []):
     _com_google_protobuf()
     _com_github_google_benchmark()
     _com_github_libevent_libevent()
+    _com_github_libuv_libuv()
     _com_github_jbeder_yaml_cpp()
     _com_github_madler_zlib()
 
@@ -358,6 +359,20 @@ def _com_github_libevent_libevent():
     native.bind(
         name = "event",
         actual = "//bazel/foreign_cc:event",
+    )
+
+def _com_github_libuv_libuv():
+    location = REPOSITORY_LOCATIONS["com_github_libuv_libuv"]
+    http_archive(
+        name = "com_github_libuv_libuv",
+        build_file_content = BUILD_ALL_CONTENT,
+        patch_args = ["-p1"],
+        patches = ["//bazel/foreign_cc:libuv.patch"],
+        **location
+    )
+    native.bind(
+        name = "libuv",
+        actual = "//bazel/foreign_cc:libuv",
     )
 
 def _com_github_jbeder_yaml_cpp():

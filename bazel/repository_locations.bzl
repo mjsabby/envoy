@@ -94,6 +94,11 @@ REPOSITORY_LOCATIONS = dict(
         strip_prefix = "libevent-release-2.1.8-stable",
         urls = ["https://github.com/libevent/libevent/archive/release-2.1.8-stable.tar.gz"],
     ),
+    com_github_libuv_libuv = dict(
+        sha256 = "55587c525196a7a550fa7e5eb61794c377ec23b44adb435fdded86e8f7f31a16",
+        strip_prefix = "libuv-1.24.0",
+        urls = ["https://github.com/libuv/libuv/archive/v1.24.0.tar.gz"],
+    ),
     com_github_jbeder_yaml_cpp = dict(
         sha256 = "53dcffd55f3433b379fcc694f45c54898711c0e29159a7bd02e82a3e0253bac3",
         strip_prefix = "yaml-cpp-0f9a586ca1dc29c2ecb8dd715a315b93e3f40f79",

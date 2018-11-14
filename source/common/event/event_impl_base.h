@@ -1,6 +1,6 @@
 #pragma once
 
-#include "event2/event_struct.h"
+#include "uv.h"
 
 namespace Envoy {
 namespace Event {
@@ -13,7 +13,7 @@ class ImplBase {
 protected:
   ~ImplBase();
 
-  event raw_event_;
+  uv_any_handle raw_handle_;
 };
 
 } // namespace Event

@@ -112,6 +112,27 @@ cmake_external(
 )
 
 cmake_external(
+    name = "libuv",
+    cache_entries = {
+        "CMAKE_INSTALL_INCLUDEDIR": "include",
+        "CMAKE_INSTALL_LIBDIR": "lib",
+    },
+    cmake_options = ["-GNinja"],
+    generate_crosstool_file = select({
+        ":windows_x86_64": True,
+        "//conditions:default": False,
+    }),
+    lib_source = "@com_github_libuv_libuv//:all",
+    make_commands = [
+        "ninja",
+        "ninja install",
+    ],
+    static_libraries = select({
+        ":windows_x86_64": ["uv_a.lib"],
+        "//conditions:default": ["libuv_a.a"],
+    }),
+)
+cmake_external(
     name = "nghttp2",
     cache_entries = {
         "ENABLE_STATIC_LIB": "on",
@@ -152,10 +173,6 @@ cmake_external(
         "ninja",
         "ninja install",
     ],
-    postfix_script = select({
-        #":windows_dbg_build": "cp $BUILD_TMPDIR/CMakeFiles/yaml-cpp.dir/yaml-cpp.pdb $INSTALLDIR/lib/yaml-cpp.pdb",
-        "//conditions:default": "",
-    }),
     static_libraries = select({
         ":windows_dbg_build": ["libyaml-cppmdd.lib"],
         ":windows_fastbuild_build": ["libyaml-cppmd.lib"],

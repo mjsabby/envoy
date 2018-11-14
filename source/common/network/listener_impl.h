@@ -6,7 +6,7 @@
 #include "common/event/libevent.h"
 #include "common/network/listen_socket_impl.h"
 
-#include "event2/event.h"
+#include "uv.h"
 
 namespace Envoy {
 namespace Network {

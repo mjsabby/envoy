@@ -2,25 +2,29 @@
 
 #include "common/common/c_smart_ptr.h"
 
-struct event_base;
-extern "C" {
-void event_base_free(event_base*);
-}
+#include "uv.h"
 
-struct evbuffer;
-extern "C" {
-void evbuffer_free(evbuffer*);
-}
 
-struct bufferevent;
-extern "C" {
-void bufferevent_free(bufferevent*);
-}
+void uv_loop_deleter(uv_loop_t * l);
 
-struct evconnlistener;
-extern "C" {
-void evconnlistener_free(evconnlistener*);
-}
+//extern "C" {
+//void uv_loop_close(uv_loop_t*);
+//}
+
+//struct evbuffer;
+//extern "C" {
+//void evbuffer_free(evbuffer*);
+//}
+//
+//struct bufferevent;
+//extern "C" {
+//void bufferevent_free(bufferevent*);
+//}
+//
+//struct evconnlistener;
+//extern "C" {
+//void evconnlistener_free(evconnlistener*);
+//}
 
 namespace Envoy {
 namespace Event {
@@ -43,10 +47,10 @@ private:
   static bool initialized_;
 };
 
-typedef CSmartPtr<event_base, event_base_free> BasePtr;
-typedef CSmartPtr<evbuffer, evbuffer_free> BufferPtr;
-typedef CSmartPtr<bufferevent, bufferevent_free> BufferEventPtr;
-typedef CSmartPtr<evconnlistener, evconnlistener_free> ListenerPtr;
+typedef CSmartPtr<uv_loop_t, uv_loop_deleter> LoopPtr;
+//typedef CSmartPtr<evbuffer, evbuffer_free> BufferPtr;
+//typedef CSmartPtr<bufferevent, bufferevent_free> BufferEventPtr;
+//typedef CSmartPtr<evconnlistener, evconnlistener_free> ListenerPtr;
 
 } // namespace Libevent
 } // namespace Event
