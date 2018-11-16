@@ -152,7 +152,11 @@ public:
                   const std::vector<std::string>& application_protocols) {
     const int times = expect_destination_port_match ? 2 : 1;
     if (absl::StartsWith(destination_address, "/")) {
+#if !defined(WIN32)
       address_.reset(new Network::Address::PipeInstance(destination_address));
+#else
+      PANIC("unix domain sockets not supported on Windows");
+#endif
     } else {
       address_.reset(new Network::Address::Ipv4Instance(destination_address, destination_port));
     }
@@ -443,8 +447,14 @@ TEST_F(ListenerManagerImplTest, AddListenerOnIpv4OnlySetups) {
 
   ListenerHandle* listener_foo = expectListenerCreate(false);
 
-  EXPECT_CALL(os_sys_calls, socket(AF_INET, _, 0)).WillOnce(Return(Api::SysCallIntResult{5, 0}));
-  EXPECT_CALL(os_sys_calls, socket(AF_INET6, _, 0)).WillOnce(Return(Api::SysCallIntResult{-1, 0}));
+  EXPECT_CALL(os_sys_calls, socket(AF_INET, _, 0)).WillOnce(Return(Api::SysCallSocketResult{5, 0}));
+#if !defined(WIN32)
+  EXPECT_CALL(os_sys_calls, socket(AF_INET6, _, 0))
+      .WillOnce(Return(Api::SysCallSocketResult{-1, 0}));
+#else
+  EXPECT_CALL(os_sys_calls, socket(AF_INET6, _, 0))
+      .WillOnce(Return(Api::SysCallSocketResult{INVALID_SOCKET, 0}));
+#endif
 
   EXPECT_CALL(listener_factory_, createListenSocket(_, _, true));
 
@@ -473,8 +483,15 @@ TEST_F(ListenerManagerImplTest, AddListenerOnIpv6OnlySetups) {
 
   ListenerHandle* listener_foo = expectListenerCreate(false);
 
-  EXPECT_CALL(os_sys_calls, socket(AF_INET, _, 0)).WillOnce(Return(Api::SysCallIntResult{-1, 0}));
-  EXPECT_CALL(os_sys_calls, socket(AF_INET6, _, 0)).WillOnce(Return(Api::SysCallIntResult{5, 0}));
+#if !defined(WIN32)
+  EXPECT_CALL(os_sys_calls, socket(AF_INET, _, 0))
+      .WillOnce(Return(Api::SysCallSocketResult{-1, 0}));
+#else
+  EXPECT_CALL(os_sys_calls, socket(AF_INET, _, 0))
+      .WillOnce(Return(Api::SysCallSocketResult{INVALID_SOCKET, 0}));
+#endif
+  EXPECT_CALL(os_sys_calls, socket(AF_INET6, _, 0))
+      .WillOnce(Return(Api::SysCallSocketResult{5, 0}));
 
   EXPECT_CALL(listener_factory_, createListenSocket(_, _, true));
 
@@ -1160,9 +1177,11 @@ TEST_F(ListenerManagerImplWithRealFiltersTest, SingleFilterChainWithDestinationP
   EXPECT_EQ(server_names.size(), 1);
   EXPECT_EQ(server_names.front(), "server1.example.com");
 
+#if !defined(WIN32)
   // UDS client - no match.
   filter_chain = findFilterChain(0, false, "/tmp/test.sock", false, "", false, "tls", false, {});
   EXPECT_EQ(filter_chain, nullptr);
+#endif
 }
 
 TEST_F(ListenerManagerImplWithRealFiltersTest, SingleFilterChainWithDestinationIPMatch) {
@@ -1202,9 +1221,11 @@ TEST_F(ListenerManagerImplWithRealFiltersTest, SingleFilterChainWithDestinationI
   EXPECT_EQ(server_names.size(), 1);
   EXPECT_EQ(server_names.front(), "server1.example.com");
 
+#if !defined(WIN32)
   // UDS client - no match.
   filter_chain = findFilterChain(0, true, "/tmp/test.sock", false, "", false, "tls", false, {});
   EXPECT_EQ(filter_chain, nullptr);
+#endif
 }
 
 TEST_F(ListenerManagerImplWithRealFiltersTest, SingleFilterChainWithServerNamesMatch) {
@@ -1395,6 +1416,7 @@ TEST_F(ListenerManagerImplWithRealFiltersTest, MultipleFilterChainsWithDestinati
   EXPECT_EQ(server_names.size(), 2);
   EXPECT_EQ(server_names.front(), "*.example.com");
 
+#if !defined(WIN32)
   // UDS client - using 1st filter chain.
   filter_chain = findFilterChain(0, true, "/tmp/test.sock", true, "", true, "tls", true, {});
   ASSERT_NE(filter_chain, nullptr);
@@ -1403,6 +1425,7 @@ TEST_F(ListenerManagerImplWithRealFiltersTest, MultipleFilterChainsWithDestinati
   ssl_socket = dynamic_cast<Ssl::SslSocket*>(transport_socket.get());
   uri = ssl_socket->uriSanLocalCertificate();
   EXPECT_EQ(uri, "spiffe://lyft.com/test-team");
+#endif
 }
 
 TEST_F(ListenerManagerImplWithRealFiltersTest, MultipleFilterChainsWithDestinationIPMatch) {
@@ -1471,6 +1494,7 @@ TEST_F(ListenerManagerImplWithRealFiltersTest, MultipleFilterChainsWithDestinati
   EXPECT_EQ(server_names.size(), 2);
   EXPECT_EQ(server_names.front(), "*.example.com");
 
+#if !defined(WIN32)
   // UDS client - using 1st filter chain.
   filter_chain = findFilterChain(0, true, "/tmp/test.sock", true, "", true, "tls", true, {});
   ASSERT_NE(filter_chain, nullptr);
@@ -1479,6 +1503,7 @@ TEST_F(ListenerManagerImplWithRealFiltersTest, MultipleFilterChainsWithDestinati
   ssl_socket = dynamic_cast<Ssl::SslSocket*>(transport_socket.get());
   uri = ssl_socket->uriSanLocalCertificate();
   EXPECT_EQ(uri, "spiffe://lyft.com/test-team");
+#endif
 }
 
 TEST_F(ListenerManagerImplWithRealFiltersTest, MultipleFilterChainsWithServerNamesMatch) {

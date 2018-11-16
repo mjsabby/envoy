@@ -4,6 +4,12 @@
 
 #include "grpcpp/grpcpp.h"
 
+// grpcpp/grpcpp.h includes <windows.h>, so undef some interfering symbols
+#if defined(WIN32)
+#undef DELETE
+#undef GetMessage
+#endif
+
 namespace Envoy {
 namespace Grpc {
 

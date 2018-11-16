@@ -22,7 +22,13 @@ TEST(ApiImplTest, readFileToEnd) {
 TEST(ApiImplTest, fileExists) {
   Impl api(std::chrono::milliseconds(10000));
 
+#if !defined(WIN32)
   EXPECT_TRUE(api.fileExists("/dev/null"));
+#else
+  const std::string file_path =
+      TestEnvironment::writeStringToFileForTest("an_existing_file", "hello");
+  EXPECT_TRUE(api.fileExists(file_path));
+#endif
   EXPECT_FALSE(api.fileExists("/dev/blahblahblah"));
 }
 

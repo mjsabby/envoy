@@ -43,6 +43,7 @@ envoy_cc_fuzz_test(
 envoy_cc_test(
     name = "access_log_formatter_test",
     srcs = ["access_log_formatter_test.cc"],
+    test_on_windows = False,
     deps = [
         "//source/common/access_log:access_log_formatter_lib",
         "//source/common/common:utility_lib",

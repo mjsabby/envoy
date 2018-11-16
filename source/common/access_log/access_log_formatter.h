@@ -60,10 +60,17 @@ private:
                            std::vector<std::string>& sub_items, absl::optional<size_t>& max_length);
 
   // the indexes of where the parameters for each directive is expected to begin
+#if !defined(WIN32)
   static const size_t ReqParamStart{std::strlen("REQ(")};
   static const size_t RespParamStart{std::strlen("RESP(")};
   static const size_t TrailParamStart{std::strlen("TRAILER(")};
   static const size_t StartTimeParamStart{std::strlen("START_TIME(")};
+#else
+  static const size_t ReqParamStart{4};
+  static const size_t RespParamStart{5};
+  static const size_t TrailParamStart{8};
+  static const size_t StartTimeParamStart{11};
+#endif
 };
 
 /**

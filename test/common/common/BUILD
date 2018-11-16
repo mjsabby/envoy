@@ -22,6 +22,7 @@ envoy_cc_test(
 envoy_cc_test(
     name = "assert_test",
     srcs = ["assert_test.cc"],
+    test_on_windows = False,
     deps = [
         "//source/common/common:assert_lib",
     ],
@@ -121,6 +122,7 @@ envoy_cc_test(
     external_deps = [
         "abseil_strings",
     ],
+    test_on_windows = False,
     deps = [
         "//source/common/common:utility_lib",
         "//test/test_common:test_time_lib",

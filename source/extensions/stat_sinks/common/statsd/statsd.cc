@@ -5,10 +5,12 @@
 #include <string>
 
 #include "envoy/common/exception.h"
+#include "envoy/common/platform.h"
 #include "envoy/event/dispatcher.h"
 #include "envoy/stats/scope.h"
 #include "envoy/upstream/cluster_manager.h"
 
+#include "common/api/os_sys_calls_impl.h"
 #include "common/common/assert.h"
 #include "common/common/fmt.h"
 #include "common/common/utility.h"
@@ -20,22 +22,24 @@ namespace StatSinks {
 namespace Common {
 namespace Statsd {
 
-Writer::Writer(Network::Address::InstanceConstSharedPtr address) {
+Writer::Writer(Network::Address::InstanceConstSharedPtr address)
+    : os_sys_calls_(Api::OsSysCallsSingleton::get()) {
   fd_ = address->socket(Network::Address::SocketType::Datagram);
-  ASSERT(fd_ != -1);
+  ASSERT(!SOCKET_INVALID(fd_));
 
   const Api::SysCallIntResult result = address->connect(fd_);
-  ASSERT(result.rc_ != -1);
+  ASSERT(!SOCKET_FAILURE(result.rc_));
 }
 
 Writer::~Writer() {
-  if (fd_ != -1) {
-    RELEASE_ASSERT(close(fd_) == 0, "");
+  if (!SOCKET_INVALID(fd_)) {
+    RELEASE_ASSERT(os_sys_calls_.closeSocket(fd_).rc_ == 0, "");
   }
 }
 
 void Writer::write(const std::string& message) {
-  ::send(fd_, message.c_str(), message.size(), MSG_DONTWAIT);
+  // sockets returned from address->socket are already non-blocking
+  os_sys_calls_.writeSocket(fd_, message.c_str(), message.size());
 }
 
 UdpStatsdSink::UdpStatsdSink(ThreadLocal::SlotAllocator& tls,

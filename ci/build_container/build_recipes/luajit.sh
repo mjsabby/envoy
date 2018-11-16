@@ -2,6 +2,10 @@
 
 set -e
 
+if [[ "${OS}" == "Windows_NT" ]]; then
+  exit 0
+fi
+
 VERSION=2.0.5
 SHA256=8bb29d84f06eb23c7ea4aa4794dbb248ede9fcb23b6989cbef81dc79352afc97
 
@@ -59,20 +63,10 @@ index f7f81a4..e698517 100644
  ##############################################################################
 EOF
 
-if [[ "${OS}" == "Windows_NT" ]]; then
-  cd src
-  ./msvcbuild.bat debug
+patch -p1 < ../luajit_make.diff
 
-  mkdir -p "$THIRDPARTY_BUILD/include/luajit-2.0"
-  cp *.h* "$THIRDPARTY_BUILD/include/luajit-2.0"
-  cp luajit.lib "$THIRDPARTY_BUILD/lib"
-  cp *.pdb "$THIRDPARTY_BUILD/lib"
-else
-  patch -p1 < ../luajit_make.diff
-
-  # Default MACOSX_DEPLOYMENT_TARGET is 10.4, which will fail the build at link time on macOS 10.14:
-  # ld: library not found for -lgcc_s.10.4
-  # This doesn't affect other platforms
-  MACOSX_DEPLOYMENT_TARGET=10.6 DEFAULT_CC=${CC} TARGET_CFLAGS=${CFLAGS} TARGET_LDFLAGS=${CFLAGS} \
-    CFLAGS="" make V=1 PREFIX="$THIRDPARTY_BUILD" install
-fi
+# Default MACOSX_DEPLOYMENT_TARGET is 10.4, which will fail the build at link time on macOS 10.14:
+# ld: library not found for -lgcc_s.10.4
+# This doesn't affect other platforms
+MACOSX_DEPLOYMENT_TARGET=10.6 DEFAULT_CC=${CC} TARGET_CFLAGS=${CFLAGS} TARGET_LDFLAGS=${CFLAGS} \
+  CFLAGS="" make V=1 PREFIX="$THIRDPARTY_BUILD" install

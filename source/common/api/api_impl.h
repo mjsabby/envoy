@@ -13,7 +13,7 @@ namespace Api {
 /**
  * Implementation of Api::Api
  */
-class Impl : public Api::Api {
+class Impl : public Api {
 public:
   Impl(std::chrono::milliseconds file_flush_interval_msec = std::chrono::milliseconds(1000));
 

@@ -1,11 +1,14 @@
 #include "common/network/listen_socket_impl.h"
 
+#if !defined(WIN32)
 #include <sys/socket.h>
+#endif
 #include <sys/types.h>
 
 #include <string>
 
 #include "envoy/common/exception.h"
+#include "envoy/common/platform.h"
 
 #include "common/common/assert.h"
 #include "common/common/fmt.h"
@@ -17,7 +20,7 @@ namespace Network {
 
 void ListenSocketImpl::doBind() {
   const Api::SysCallIntResult result = local_address_->bind(fd_);
-  if (result.rc_ == -1) {
+  if (SOCKET_FAILURE(result.rc_)) {
     close();
     throw EnvoyException(
         fmt::format("cannot bind '{}': {}", local_address_->asString(), strerror(result.errno_)));
@@ -40,12 +43,20 @@ TcpListenSocket::TcpListenSocket(const Address::InstanceConstSharedPtr& address,
                                  const Network::Socket::OptionsSharedPtr& options,
                                  bool bind_to_port)
     : ListenSocketImpl(address->socket(Address::SocketType::Stream), address) {
-  RELEASE_ASSERT(fd_ != -1, "");
+  RELEASE_ASSERT(SOCKET_VALID(fd_), "");
 
   // TODO(htuch): This might benefit from moving to SocketOptionImpl.
+  // On Windows, setting SO_REUSEADDR will allow the socket to bind to an address
+  // in use by another socket regardless of whether that socket is actively listening.
+  // This is in contrast to Linux where the bind will fail if the socket is actively
+  // listening but succeed otherwise.
+#if !defined(WIN32)
   int on = 1;
-  int rc = setsockopt(fd_, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+
+  int rc =
+      setsockopt(fd_, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char*>(&on), sizeof(on));
   RELEASE_ASSERT(rc != -1, "");
+#endif
 
   setListenSocketOptions(options);
 
@@ -54,12 +65,13 @@ TcpListenSocket::TcpListenSocket(const Address::InstanceConstSharedPtr& address,
   }
 }
 
-TcpListenSocket::TcpListenSocket(int fd, const Address::InstanceConstSharedPtr& address,
+TcpListenSocket::TcpListenSocket(SOCKET_FD fd, const Address::InstanceConstSharedPtr& address,
                                  const Network::Socket::OptionsSharedPtr& options)
     : ListenSocketImpl(fd, address) {
   setListenSocketOptions(options);
 }
 
+#if !defined(WIN32)
 UdsListenSocket::UdsListenSocket(const Address::InstanceConstSharedPtr& address)
     : ListenSocketImpl(address->socket(Address::SocketType::Stream), address) {
   RELEASE_ASSERT(fd_ != -1, "");
@@ -68,6 +80,7 @@ UdsListenSocket::UdsListenSocket(const Address::InstanceConstSharedPtr& address)
 
 UdsListenSocket::UdsListenSocket(int fd, const Address::InstanceConstSharedPtr& address)
     : ListenSocketImpl(fd, address) {}
+#endif
 
 } // namespace Network
 } // namespace Envoy

@@ -93,6 +93,8 @@ def envoy_linkopts():
                ],
                "@envoy//bazel:windows_x86_64": [
                    "-DEFAULTLIB:advapi32.lib",
+                   "-DEFAULTLIB:ws2_32.lib",
+                   "-WX",
                ],
                "//conditions:default": [
                    "-pthread",
@@ -141,6 +143,11 @@ def envoy_test_linkopts():
             # See note here: http://luajit.org/install.html
             "-pagezero_size 10000",
             "-image_base 100000000",
+        ],
+        "@envoy//bazel:windows_x86_64": [
+            "-DEFAULTLIB:advapi32.lib",
+            "-DEFAULTLIB:ws2_32.lib",
+            "-WX",
         ],
 
         # TODO(mattklein123): It's not great that we universally link against the following libs.
@@ -331,6 +338,7 @@ def envoy_cc_fuzz_test(name, corpus, deps = [], tags = [], **kwargs):
         # No fuzzing on OS X.
         deps = select({
             "@bazel_tools//tools/osx:darwin": ["//test:dummy_main"],
+            "@envoy//bazel:windows_x86_64": ["//test:dummy_main"],
             "//conditions:default": [
                 ":" + test_lib_name,
                 "//test/fuzz:main",
@@ -360,7 +368,8 @@ def envoy_cc_test(
         tags = [],
         args = [],
         coverage = True,
-        local = False):
+        local = False,
+        test_on_windows = True):
     test_lib_tags = []
     if coverage:
         test_lib_tags.append("coverage_test_lib")
@@ -373,6 +382,8 @@ def envoy_cc_test(
         repository = repository,
         tags = test_lib_tags,
     )
+    if test_on_windows:
+        tags = tags + ["windows_test"]
     native.cc_test(
         name = name,
         copts = envoy_copts(repository, test = True),

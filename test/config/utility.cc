@@ -13,13 +13,20 @@
 #include "test/test_common/utility.h"
 
 #include "absl/strings/str_replace.h"
+#include "fmt/printf.h"
 #include "gtest/gtest.h"
 
 namespace Envoy {
 
-const std::string ConfigHelper::BASE_CONFIG = R"EOF(
+#if !defined(WIN32)
+const std::string devNull = "/dev/null";
+#else
+const std::string devNull = "NUL";
+#endif
+
+const std::string ConfigHelper::BASE_CONFIG = fmt::sprintf(R"EOF(
 admin:
-  access_log_path: /dev/null
+  access_log_path: %s
   address:
     socket_address:
       address: 127.0.0.1
@@ -37,7 +44,8 @@ static_resources:
       socket_address:
         address: 127.0.0.1
         port_value: 0
-)EOF";
+)EOF",
+                                                           devNull);
 
 const std::string ConfigHelper::TCP_PROXY_CONFIG = BASE_CONFIG + R"EOF(
     filter_chains:
@@ -398,9 +406,9 @@ void ConfigHelper::initializeTls(envoy::api::v2::auth::CommonTlsContext& common_
 
   auto* tls_certificate = common_tls_context.add_tls_certificates();
   tls_certificate->mutable_certificate_chain()->set_filename(
-      TestEnvironment::runfilesPath("/test/config/integration/certs/servercert.pem"));
+      TestEnvironment::runfilesPath("test/config/integration/certs/servercert.pem"));
   tls_certificate->mutable_private_key()->set_filename(
-      TestEnvironment::runfilesPath("/test/config/integration/certs/serverkey.pem"));
+      TestEnvironment::runfilesPath("test/config/integration/certs/serverkey.pem"));
 }
 
 void ConfigHelper::renameListener(const std::string& name) {

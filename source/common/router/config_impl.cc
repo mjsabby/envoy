@@ -730,8 +730,13 @@ RouteConstSharedPtr PathRouteEntryImpl::matches(const Http::HeaderMap& headers,
         return clusterEntry(headers, random_value);
       }
     } else {
+#if !defined(WIN32)
       if (0 == strncasecmp(path.c_str(), path_.c_str(), compare_length)) {
         return clusterEntry(headers, random_value);
+#else
+      if (0 == _strnicmp(path.c_str(), path_.c_str(), compare_length)) {
+        return clusterEntry(headers, random_value);
+#endif
       }
     }
   }

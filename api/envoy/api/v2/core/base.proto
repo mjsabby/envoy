@@ -202,14 +202,14 @@ message SocketOption {
   // Uniqueness is not required and no special meaning is assumed.
   string description = 1;
   // Corresponding to the level value passed to setsockopt, such as IPPROTO_TCP
-  int64 level = 2;
+  int32 level = 2;
   // The numeric name as passed to setsockopt
-  int64 name = 3;
+  int32 name = 3;
   oneof value {
     option (validate.required) = true;
 
     // Because many sockopts take an int value.
-    int64 int_value = 4;
+    int32 int_value = 4;
     // Otherwise it's a byte buffer.
     bytes buf_value = 5;
   }

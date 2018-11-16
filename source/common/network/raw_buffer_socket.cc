@@ -27,7 +27,11 @@ IoResult RawBufferSocket::doRead(Buffer::Instance& buffer) {
     } else if (result.rc_ == -1) {
       // Remote error (might be no data).
       ENVOY_CONN_LOG(trace, "read error: {}", callbacks_->connection(), result.errno_);
+#if !defined(WIN32)
       if (result.errno_ != EAGAIN) {
+#else
+      if (result.errno_ != WSAEWOULDBLOCK) {
+#endif
         action = PostIoAction::Close;
       }
       break;
@@ -52,7 +56,7 @@ IoResult RawBufferSocket::doWrite(Buffer::Instance& buffer, bool end_stream) {
       if (end_stream && !shutdown_) {
         // Ignore the result. This can only fail if the connection failed. In that case, the
         // error will be detected on the next read, and dealt with appropriately.
-        ::shutdown(callbacks_->fd(), SHUT_WR);
+        os_sys_calls_.shutdown(callbacks_->fd(), ENVOY_SHUT_WR);
         shutdown_ = true;
       }
       action = PostIoAction::KeepOpen;
@@ -64,7 +68,11 @@ IoResult RawBufferSocket::doWrite(Buffer::Instance& buffer, bool end_stream) {
     if (result.rc_ == -1) {
       ENVOY_CONN_LOG(trace, "write error: {} ({})", callbacks_->connection(), result.errno_,
                      strerror(result.errno_));
+#if !defined(WIN32)
       if (result.errno_ == EAGAIN) {
+#else
+      if (result.errno_ == WSAEWOULDBLOCK) {
+#endif
         action = PostIoAction::KeepOpen;
       } else {
         action = PostIoAction::Close;

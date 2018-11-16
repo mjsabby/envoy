@@ -15,6 +15,7 @@ envoy_extension_cc_test(
     name = "grpc_web_filter_test",
     srcs = ["grpc_web_filter_test.cc"],
     extension_name = "envoy.filters.http.grpc_web",
+    test_on_windows = False,
     deps = [
         "//source/extensions/filters/http/grpc_web:grpc_web_filter_lib",
         "//test/mocks/http:http_mocks",
@@ -27,6 +28,7 @@ envoy_extension_cc_test(
     name = "config_test",
     srcs = ["config_test.cc"],
     extension_name = "envoy.filters.http.grpc_web",
+    test_on_windows = False,
     deps = [
         "//source/extensions/filters/http/grpc_web:config",
         "//test/mocks/server:server_mocks",

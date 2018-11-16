@@ -33,6 +33,7 @@ envoy_cc_fuzz_test(
 envoy_cc_test(
     name = "codec_impl_test",
     srcs = ["codec_impl_test.cc"],
+    test_on_windows = False,
     deps = [
         "//source/common/event:dispatcher_lib",
         "//source/common/http:exception_lib",
@@ -73,6 +74,7 @@ envoy_cc_test(
     external_deps = [
         "nghttp2",
     ],
+    test_on_windows = False,
     deps = [
         "//source/common/buffer:buffer_lib",
         "//source/common/http/http2:metadata_decoder_lib",

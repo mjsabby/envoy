@@ -1,6 +1,12 @@
 #include "common/filesystem/filesystem_impl.h"
 
+#if !defined(WIN32)
 #include <dirent.h>
+#else
+#include <fcntl.h>
+#include <experimental/filesystem> // C++-standard header file name
+#include <filesystem>              // Microsoft-specific implementation header file name
+#endif
 #include <sys/stat.h>
 
 #include <chrono>
@@ -13,6 +19,7 @@
 
 #include "envoy/common/exception.h"
 #include "envoy/common/time.h"
+#include "envoy/common/platform.h"
 #include "envoy/event/dispatcher.h"
 #include "envoy/thread/thread.h"
 
@@ -28,11 +35,16 @@ namespace Envoy {
 namespace Filesystem {
 
 bool fileExists(const std::string& path) {
+#if !defined(WIN32)
   std::ifstream input_file(path);
   return input_file.is_open();
+#else
+  return std::experimental::filesystem::v1::exists(path);
+#endif
 }
 
 bool directoryExists(const std::string& path) {
+#if !defined(WIN32)
   DIR* const dir = opendir(path.c_str());
   const bool dir_exists = nullptr != dir;
   if (dir_exists) {
@@ -40,20 +52,30 @@ bool directoryExists(const std::string& path) {
   }
 
   return dir_exists;
+#else
+  return std::experimental::filesystem::v1::exists(path) &&
+         std::experimental::filesystem::v1::is_directory(path);
+#endif
 }
 
 ssize_t fileSize(const std::string& path) {
   struct stat info;
-  if (stat(path.c_str(), &info) != 0) {
+  auto& os_sys_calls = Api::OsSysCallsSingleton::get();
+  if (os_sys_calls.stat(path.c_str(), &info).rc_ != 0) {
     return -1;
   }
   return info.st_size;
 }
 
-std::string fileReadToEnd(const std::string& path) {
+std::string fileReadToEnd(const std::string& path, std::ios_base::openmode mode) {
   std::ios::sync_with_stdio(false);
 
-  std::ifstream file(path);
+#if defined(WIN32)
+  // On Windows, we need to explicitly set the file mode as binary. Otherwise,
+  // 0x1a will be treated as EOF
+  mode |= std::ios_base::binary;
+#endif
+  std::ifstream file(path, mode);
   if (!file) {
     throw EnvoyException(fmt::format("unable to read file: {}", path));
   }
@@ -65,7 +87,8 @@ std::string fileReadToEnd(const std::string& path) {
 }
 
 std::string canonicalPath(const std::string& path) {
-  // TODO(htuch): When we are using C++17, switch to std::filesystem::canonical.
+// TODO(htuch): When we are using C++17, switch to std::filesystem::canonical.
+#if !defined(WIN32)
   char* resolved_path = ::realpath(path.c_str(), nullptr);
   if (resolved_path == nullptr) {
     throw EnvoyException(fmt::format("Unable to determine canonical path for {}", path));
@@ -73,9 +96,17 @@ std::string canonicalPath(const std::string& path) {
   std::string resolved_path_string{resolved_path};
   free(resolved_path);
   return resolved_path_string;
+#else
+  auto canonical = std::experimental::filesystem::v1::canonical(path);
+  if (!std::experimental::filesystem::v1::exists(canonical)) {
+    throw EnvoyException(fmt::format("Unable to determine canonical path for {}", path));
+  }
+  return canonical.string();
+#endif
 }
 
 bool illegalPath(const std::string& path) {
+#if !defined(WIN32)
   try {
     const std::string canonical_path = canonicalPath(path);
     // Platform specific path sanity; we provide a convenience to avoid Envoy
@@ -92,6 +123,10 @@ bool illegalPath(const std::string& path) {
     ENVOY_LOG_MISC(debug, "Unable to determine canonical path for {}: {}", path, ex.what());
     return true;
   }
+#else
+  // Currently, we don't know of any obviously illegal paths on Windows
+  return false;
+#endif
 }
 
 FileImpl::FileImpl(const std::string& path, Event::Dispatcher& dispatcher,
@@ -110,9 +145,15 @@ FileImpl::FileImpl(const std::string& path, Event::Dispatcher& dispatcher,
 }
 
 void FileImpl::open() {
-  Api::SysCallIntResult result =
-      os_sys_calls_.open(path_, O_RDWR | O_APPEND | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+  const int flags = O_RDWR | O_APPEND | O_CREAT;
+#if !defined(WIN32)
+  const int mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+#else
+  const int mode = _S_IREAD | _S_IWRITE;
+#endif
+  const Api::SysCallIntResult result = os_sys_calls_.open(path_, flags, mode);
   fd_ = result.rc_;
+
   if (-1 == fd_) {
     throw EnvoyException(
         fmt::format("unable to open file '{}': {}", path_, strerror(result.errno_)));
@@ -138,7 +179,7 @@ FileImpl::~FileImpl() {
       doWrite(flush_buffer_);
     }
 
-    os_sys_calls_.close(fd_);
+    os_sys_calls_.closeFile(fd_);
   }
 }
 
@@ -158,7 +199,7 @@ void FileImpl::doWrite(Buffer::Instance& buffer) {
   {
     Thread::LockGuard lock(file_lock_);
     for (const Buffer::RawSlice& slice : slices) {
-      const Api::SysCallSizeResult result = os_sys_calls_.write(fd_, slice.mem_, slice.len_);
+      const Api::SysCallSizeResult result = os_sys_calls_.writeFile(fd_, slice.mem_, slice.len_);
       ASSERT(result.rc_ == static_cast<ssize_t>(slice.len_));
       stats_.write_completed_.inc();
     }
@@ -198,7 +239,7 @@ void FileImpl::flushThreadFunc() {
       try {
         if (reopen_file_) {
           reopen_file_ = false;
-          os_sys_calls_.close(fd_);
+          os_sys_calls_.closeFile(fd_);
           open();
         }
 
