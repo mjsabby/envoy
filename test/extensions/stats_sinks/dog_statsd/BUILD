@@ -15,6 +15,7 @@ envoy_extension_cc_test(
     name = "config_test",
     srcs = ["config_test.cc"],
     extension_name = "envoy.stat_sinks.dog_statsd",
+    test_on_windows = False,
     deps = [
         "//include/envoy/registry",
         "//source/common/protobuf:utility_lib",

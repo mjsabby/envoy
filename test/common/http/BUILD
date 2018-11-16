@@ -36,6 +36,7 @@ envoy_cc_test(
 envoy_cc_test(
     name = "codec_client_test",
     srcs = ["codec_client_test.cc"],
+    test_on_windows = False,
     deps = [
         ":common_lib",
         "//source/common/buffer:buffer_lib",
@@ -71,6 +72,7 @@ envoy_cc_test(
 envoy_cc_test(
     name = "codes_test",
     srcs = ["codes_test.cc"],
+    test_on_windows = False,
     deps = [
         "//source/common/common:empty_string",
         "//source/common/http:codes_lib",

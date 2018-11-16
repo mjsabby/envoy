@@ -70,7 +70,8 @@ std::unique_ptr<Socket::Options> SocketOptionFactory::buildLiteralOptions(
     }
     options->emplace_back(std::make_shared<Network::SocketOptionImpl>(
         socket_option.state(),
-        Network::SocketOptionName(std::make_pair(socket_option.level(), socket_option.name())),
+        Network::SocketOptionName(std::make_pair(static_cast<int>(socket_option.level()),
+                                                 static_cast<int>(socket_option.name()))),
         buf));
   }
   return options;
