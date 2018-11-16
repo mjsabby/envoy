@@ -23,6 +23,7 @@ envoy_cc_test(
     data = [
         "//test/config/integration/certs",
     ],
+    test_on_windows = False,
     deps = [
         ":http_integration_lib",
         "//source/common/config:protobuf_link_hacks",
@@ -94,6 +95,7 @@ envoy_cc_test(
         "//test/config/integration/certs",
         "//test/proto:bookstore_proto_descriptor",
     ],
+    test_on_windows = False,
     deps = [
         ":integration_lib",
         "//source/common/http:header_map_lib",
@@ -154,6 +156,7 @@ envoy_cc_test(
         "http2_upstream_integration_test.cc",
         "http2_upstream_integration_test.h",
     ],
+    test_on_windows = False,
     deps = [
         ":http_integration_lib",
         "//source/common/http:header_map_lib",
@@ -170,6 +173,7 @@ envoy_cc_test(
         "integration_admin_test.cc",
         "integration_admin_test.h",
     ],
+    test_on_windows = False,
     deps = [
         ":http_integration_lib",
         "//include/envoy/http:header_map_interface",
@@ -233,6 +237,7 @@ envoy_cc_test_library(
 envoy_cc_test(
     name = "idle_timeout_integration_test",
     srcs = ["idle_timeout_integration_test.cc"],
+    test_on_windows = False,
     deps = [
         ":http_protocol_integration_lib",
         "//test/test_common:test_time_lib",
@@ -323,6 +328,7 @@ envoy_cc_test(
         "integration_test.cc",
         "integration_test.h",
     ],
+    test_on_windows = False,
     deps = [
         ":http_integration_lib",
         "//source/common/http:header_map_lib",
@@ -343,6 +349,7 @@ envoy_cc_test(
         "websocket_integration_test.cc",
         "websocket_integration_test.h",
     ],
+    test_on_windows = False,
     deps = [
         ":http_protocol_integration_lib",
         "//source/common/http:header_map_lib",
@@ -384,6 +391,7 @@ envoy_cc_test(
 envoy_cc_test(
     name = "load_stats_integration_test",
     srcs = ["load_stats_integration_test.cc"],
+    test_on_windows = False,
     deps = [
         ":http_integration_lib",
         "//source/common/config:resources_lib",
@@ -443,6 +451,7 @@ envoy_cc_test(
 envoy_cc_test(
     name = "ratelimit_integration_test",
     srcs = ["ratelimit_integration_test.cc"],
+    test_on_windows = False,
     deps = [
         ":http_integration_lib",
         "//source/common/buffer:zero_copy_input_stream_lib",
@@ -597,6 +606,7 @@ envoy_cc_test(
         "uds_integration_test.h",
     ],
     data = ["//test/config/integration:server_uds.json"],
+    test_on_windows = False,
     deps = [
         ":http_integration_lib",
         "//source/common/event:dispatcher_includes",

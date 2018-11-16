@@ -30,18 +30,18 @@ SysCallIntResult MockOsSysCalls::open(const std::string& full_path, int flags, i
   return SysCallIntResult{rc, errno};
 }
 
-SysCallSizeResult MockOsSysCalls::write(int fd, const void* buffer, size_t num_bytes) {
+SysCallSizeResult MockOsSysCalls::writeFile(int fd, const void* buffer, size_t num_bytes) {
   Thread::LockGuard lock(write_mutex_);
 
-  ssize_t rc = write_(fd, buffer, num_bytes);
+  ssize_t rc = writeFile_(fd, buffer, num_bytes);
   num_writes_++;
   write_event_.notifyOne();
 
   return SysCallSizeResult{rc, errno};
 }
 
-SysCallIntResult MockOsSysCalls::setsockopt(int sockfd, int level, int optname, const void* optval,
-                                            socklen_t optlen) {
+SysCallIntResult MockOsSysCalls::setsockopt(SOCKET_FD sockfd, int level, int optname,
+                                            const void* optval, socklen_t optlen) {
   ASSERT(optlen == sizeof(int));
 
   // Allow mocking system call failure.
@@ -53,9 +53,13 @@ SysCallIntResult MockOsSysCalls::setsockopt(int sockfd, int level, int optname, 
   return SysCallIntResult{0, 0};
 };
 
-SysCallIntResult MockOsSysCalls::getsockopt(int sockfd, int level, int optname, void* optval,
+SysCallIntResult MockOsSysCalls::getsockopt(SOCKET_FD sockfd, int level, int optname, void* optval,
                                             socklen_t* optlen) {
+#if !defined(WIN32)
   ASSERT(*optlen == sizeof(int));
+#else
+  ASSERT(*optlen == sizeof(int) || *optlen == sizeof(WSAPROTOCOL_INFO));
+#endif
   int val = 0;
   const auto& it = boolsockopts_.find(SockOptKey(sockfd, level, optname));
   if (it != boolsockopts_.end()) {

@@ -19,6 +19,7 @@ envoy_cc_test(
     name = "backtrace_test",
     srcs = ["backtrace_test.cc"],
     tags = ["backtrace"],
+    test_on_windows = False,
     deps = ["//source/server:backtrace_lib"],
 )
 
@@ -119,6 +120,7 @@ envoy_cc_test(
 envoy_cc_test(
     name = "overload_manager_impl_test",
     srcs = ["overload_manager_impl_test.cc"],
+    test_on_windows = False,
     deps = [
         "//include/envoy/registry",
         "//source/common/stats:isolated_store_lib",
@@ -205,6 +207,7 @@ envoy_cc_test(
         "//test/config/integration:server.json",
         "//test/config/integration:server_config_files",
     ],
+    test_on_windows = False,
     deps = [
         "//source/common/common:version_lib",
         "//source/extensions/access_loggers/file:config",

@@ -2,6 +2,14 @@
 
 #include "absl/debugging/symbolize.h"
 
+#if defined(WIN32)
+#include <winsock2.h>
+#include <ws2tcpip.h>
+// <winsock.h> includes <windows.h>, so undef some interfering symbols
+#undef DELETE
+#undef GetMessage
+#endif
+
 // NOLINT(namespace-envoy)
 
 /**
@@ -17,6 +25,23 @@ int main(int argc, char** argv) {
   // handling, such as running in a chroot jail.
   absl::InitializeSymbolizer(argv[0]);
 #endif
+#if defined(WIN32)
+  WORD wVersionRequested;
+  WSADATA wsaData;
+  int err;
+
+  /* Use the MAKEWORD(lowbyte, highbyte) macro declared in Windef.h */
+  wVersionRequested = MAKEWORD(2, 2);
+
+  err = WSAStartup(wVersionRequested, &wsaData);
+  if (err != 0) {
+    /* Tell the user that we could not find a usable */
+    /* Winsock DLL. */
+    printf("WSAStartup failed with error: %d\n", err);
+    return 1;
+  }
+#endif
+
   std::unique_ptr<Envoy::MainCommon> main_common;
 
   // Initialize the server's main context under a try/catch loop and simply return EXIT_FAILURE

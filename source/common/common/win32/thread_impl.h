@@ -21,6 +21,8 @@ public:
    */
   void join() override;
 
+  HANDLE handle() const { return thread_handle_; }
+
 private:
   std::function<void()> thread_routine_;
   HANDLE thread_handle_;

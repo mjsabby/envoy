@@ -23,7 +23,7 @@ public:
   void enable();
 
 protected:
-  virtual Address::InstanceConstSharedPtr getLocalAddress(int fd);
+  virtual Address::InstanceConstSharedPtr getLocalAddress(evutil_socket_t fd);
 
   Address::InstanceConstSharedPtr local_address_;
   ListenerCallbacks& cb_;

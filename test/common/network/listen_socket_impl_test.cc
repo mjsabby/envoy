@@ -1,5 +1,7 @@
 #include "envoy/common/exception.h"
+#include "envoy/common/platform.h"
 
+#include "common/api/os_sys_calls_impl.h"
 #include "common/network/listen_socket_impl.h"
 #include "common/network/utility.h"
 
@@ -30,7 +32,7 @@ TEST_P(ListenSocketImplTest, BindSpecificPort) {
   // Pick a free port.
   auto addr_fd = Network::Test::bindFreeLoopbackPort(version_, Address::SocketType::Stream);
   auto addr = addr_fd.first;
-  EXPECT_LE(0, addr_fd.second);
+  ASSERT_TRUE(SOCKET_VALID(addr_fd.second));
 
   // Confirm that we got a reasonable address and port.
   ASSERT_EQ(Address::Type::Ip, addr->type());
@@ -42,7 +44,8 @@ TEST_P(ListenSocketImplTest, BindSpecificPort) {
   // should bind to our assigned port during the interval between closing the fd and re-binding.
   // TODO(jamessynge): Consider adding a loop or other such approach to this test so that a
   // bind failure (in the TcpListenSocket ctor) once isn't considered an error.
-  EXPECT_EQ(0, close(addr_fd.second));
+  auto& os_sys_calls = Api::OsSysCallsSingleton::get();
+  EXPECT_EQ(0, os_sys_calls.closeSocket(addr_fd.second).rc_);
 
   auto option = std::make_unique<MockSocketOption>();
   auto options = std::make_shared<std::vector<Network::Socket::OptionConstSharedPtr>>();
@@ -50,7 +53,7 @@ TEST_P(ListenSocketImplTest, BindSpecificPort) {
       .WillOnce(Return(true));
   options->emplace_back(std::move(option));
   TcpListenSocket socket1(addr, options, true);
-  EXPECT_EQ(0, listen(socket1.fd(), 0));
+  EXPECT_EQ(0, os_sys_calls.listen(socket1.fd(), 0).rc_);
   EXPECT_EQ(addr->ip()->port(), socket1.localAddress()->ip()->port());
   EXPECT_EQ(addr->ip()->addressAsString(), socket1.localAddress()->ip()->addressAsString());
 
@@ -63,7 +66,8 @@ TEST_P(ListenSocketImplTest, BindSpecificPort) {
   EXPECT_THROW(Network::TcpListenSocket socket2(addr, options2, true), EnvoyException);
 
   // Test the case of a socket with fd and given address and port.
-  TcpListenSocket socket3(dup(socket1.fd()), addr, nullptr);
+  const SOCKET_FD dup_socket = TestUtility::duplicateSocket(socket1.fd());
+  TcpListenSocket socket3(dup_socket, addr, nullptr);
   EXPECT_EQ(addr->asString(), socket3.localAddress()->asString());
 }
 

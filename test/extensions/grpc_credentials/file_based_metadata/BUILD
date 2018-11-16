@@ -13,6 +13,7 @@ envoy_cc_test(
     name = "file_based_metadata_grpc_credentials_test",
     srcs = ["file_based_metadata_grpc_credentials_test.cc"],
     data = ["//test/config/integration/certs"],
+    test_on_windows = False,
     deps = [
         "//source/extensions/grpc_credentials:well_known_names",
         "//source/extensions/grpc_credentials/file_based_metadata:config",
