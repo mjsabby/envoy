@@ -1,5 +1,5 @@
-#include "common/common/thread.h"
 #include "common/event/libevent.h"
+#include "common/thread/thread.h"
 
 #include "test/test_common/simulated_time_system.h"
 

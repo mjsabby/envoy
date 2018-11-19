@@ -15,6 +15,7 @@
 #include "common/common/lock_guard.h"
 #include "common/common/logger.h"
 #include "common/event/libevent.h"
+#include "common/thread/thread.h"
 
 #include "absl/types/optional.h"
 
@@ -54,7 +55,7 @@ public:
   }
 
   // Server::GuardDog
-  WatchDogSharedPtr createWatchDog(int32_t thread_id) override;
+  WatchDogSharedPtr createWatchDog(Thread::ThreadId thread_id) override;
   void stopWatching(WatchDogSharedPtr wd) override;
 
 private:

@@ -4,7 +4,7 @@
 
 #include "envoy/singleton/manager.h"
 
-#include "common/common/thread.h"
+#include "common/thread/thread.h"
 
 namespace Envoy {
 namespace Singleton {

@@ -3,8 +3,8 @@
 #include "common/api/api_impl.h"
 #include "common/common/lock_guard.h"
 #include "common/common/mutex_tracer_impl.h"
-#include "common/common/thread.h"
 #include "common/runtime/runtime_impl.h"
+#include "common/thread/thread.h"
 
 #include "exe/main_common.h"
 

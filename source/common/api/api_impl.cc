@@ -3,9 +3,9 @@
 #include <chrono>
 #include <string>
 
-#include "common/common/thread.h"
 #include "common/event/dispatcher_impl.h"
 #include "common/filesystem/filesystem_impl.h"
+#include "common/thread/thread.h"
 
 namespace Envoy {
 namespace Api {

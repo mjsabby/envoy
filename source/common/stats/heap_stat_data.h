@@ -5,9 +5,9 @@
 #include <unordered_set>
 
 #include "common/common/hash.h"
-#include "common/common/thread.h"
 #include "common/common/thread_annotations.h"
 #include "common/stats/stat_data_allocator_impl.h"
+#include "common/thread/thread.h"
 
 #include "absl/container/flat_hash_set.h"
 

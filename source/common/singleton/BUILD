@@ -21,7 +21,7 @@ envoy_cc_library(
         "//include/envoy/registry",
         "//include/envoy/singleton:manager_interface",
         "//source/common/common:assert_lib",
-        "//source/common/common:thread_lib",
+        "//source/common/thread:thread_lib",
     ],
 )
 

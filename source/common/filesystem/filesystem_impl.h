@@ -14,7 +14,7 @@
 #include "envoy/stats/store.h"
 
 #include "common/buffer/buffer_impl.h"
-#include "common/common/thread.h"
+#include "common/thread/thread.h"
 
 namespace Envoy {
 // clang-format off

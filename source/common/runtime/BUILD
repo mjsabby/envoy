@@ -21,11 +21,11 @@ envoy_cc_library(
         "//include/envoy/thread_local:thread_local_interface",
         "//source/common/common:empty_string",
         "//source/common/common:minimal_logger_lib",
-        "//source/common/common:thread_lib",
         "//source/common/common:utility_lib",
         "//source/common/filesystem:directory_lib",
         "//source/common/filesystem:filesystem_lib",
         "//source/common/protobuf:utility_lib",
+        "//source/common/thread:thread_lib",
     ],
 )
 

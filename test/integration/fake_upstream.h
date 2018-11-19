@@ -21,12 +21,12 @@
 #include "common/common/callback_impl.h"
 #include "common/common/linked_object.h"
 #include "common/common/lock_guard.h"
-#include "common/common/thread.h"
 #include "common/grpc/codec.h"
 #include "common/grpc/common.h"
 #include "common/network/filter_impl.h"
 #include "common/network/listen_socket_impl.h"
 #include "common/stats/isolated_store_impl.h"
+#include "common/thread/thread.h"
 
 #include "test/test_common/printers.h"
 #include "test/test_common/test_time_system.h"

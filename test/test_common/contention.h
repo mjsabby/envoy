@@ -5,7 +5,7 @@
 
 #include "common/common/lock_guard.h"
 #include "common/common/mutex_tracer_impl.h"
-#include "common/common/thread.h"
+#include "common/thread/thread.h"
 
 #include "test/test_common/test_time.h"
 

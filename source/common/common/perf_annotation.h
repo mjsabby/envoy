@@ -6,8 +6,8 @@
 #include <cstdint>
 #include <unordered_map>
 
-#include "common/common/thread.h"
 #include "common/common/utility.h"
+#include "common/thread/thread.h"
 
 #include "absl/strings/string_view.h"
 

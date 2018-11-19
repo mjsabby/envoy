@@ -5,8 +5,8 @@
 
 #include "common/common/fmt.h"
 #include "common/common/logger.h"
-#include "common/common/thread.h"
 #include "common/event/libevent.h"
+#include "common/thread/thread.h"
 
 #include "test/config_test/config_test.h"
 

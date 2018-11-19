@@ -14,6 +14,6 @@ envoy_cc_mock(
     hdrs = ["mocks.h"],
     deps = [
         "//include/envoy/filesystem:filesystem_interface",
-        "//source/common/common:thread_lib",
+        "//source/common/thread:thread_lib",
     ],
 )

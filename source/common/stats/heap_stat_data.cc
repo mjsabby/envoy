@@ -1,8 +1,8 @@
 #include "common/stats/heap_stat_data.h"
 
 #include "common/common/lock_guard.h"
-#include "common/common/thread.h"
 #include "common/common/utility.h"
+#include "common/thread/thread.h"
 
 namespace Envoy {
 namespace Stats {

@@ -10,8 +10,8 @@
 #include "envoy/server/configuration.h"
 #include "envoy/server/guarddog.h"
 
-#include "common/common/thread.h"
 #include "common/event/dispatcher_impl.h"
+#include "common/thread/thread.h"
 
 namespace Envoy {
 namespace Event {

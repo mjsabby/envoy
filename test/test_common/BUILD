@@ -55,7 +55,7 @@ envoy_cc_test_library(
     hdrs = ["contention.h"],
     deps = [
         "//source/common/common:mutex_tracer_lib",
-        "//source/common/common:thread_lib",
+        "//source/common/thread:thread_lib",
         "//test/test_common:test_time_lib",
     ],
 )
@@ -90,7 +90,6 @@ envoy_cc_test_library(
         "//include/envoy/http:codec_interface",
         "//include/envoy/network:address_interface",
         "//source/common/common:empty_string",
-        "//source/common/common:thread_lib",
         "//source/common/common:utility_lib",
         "//source/common/config:bootstrap_json_lib",
         "//source/common/filesystem:directory_lib",
@@ -101,6 +100,7 @@ envoy_cc_test_library(
         "//source/common/protobuf:utility_lib",
         "//source/common/stats:stats_lib",
         "//source/common/stats:stats_options_lib",
+        "//source/common/thread:thread_lib",
         "@envoy_api//envoy/config/bootstrap/v2:bootstrap_cc",
     ],
 )
@@ -146,6 +146,7 @@ envoy_cc_test_library(
     hdrs = ["test_time_system.h"],
     deps = [
         "//include/envoy/event:timer_interface",
+        "//source/common/thread:thread_lib",
     ],
 )
 

@@ -17,8 +17,8 @@ envoy_cc_library(
         "//source/common/common:assert_lib",
         "//source/common/common:hash_lib",
         "//source/common/common:thread_annotations",
-        "//source/common/common:thread_lib",
         "//source/common/common:utility_lib",
+        "//source/common/thread:thread_lib",
     ],
 )
 
@@ -127,8 +127,8 @@ envoy_cc_library(
     deps = [
         "//include/envoy/stats:symbol_table_interface",
         "//source/common/common:assert_lib",
-        "//source/common/common:thread_lib",
         "//source/common/common:utility_lib",
+        "//source/common/thread:thread_lib",
     ],
 )
 

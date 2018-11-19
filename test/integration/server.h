@@ -12,8 +12,8 @@
 #include "common/common/assert.h"
 #include "common/common/lock_guard.h"
 #include "common/common/logger.h"
-#include "common/common/thread.h"
 #include "common/stats/source_impl.h"
+#include "common/thread/thread.h"
 
 #include "server/options_impl.h"
 #include "server/server.h"

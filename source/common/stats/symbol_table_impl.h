@@ -14,8 +14,8 @@
 #include "common/common/hash.h"
 #include "common/common/lock_guard.h"
 #include "common/common/non_copyable.h"
-#include "common/common/thread.h"
 #include "common/common/utility.h"
+#include "common/thread/thread.h"
 
 #include "absl/strings/str_join.h"
 #include "absl/strings/str_split.h"

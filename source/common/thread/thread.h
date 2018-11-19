@@ -1,39 +1,15 @@
 #pragma once
 
-#include <functional>
 #include <memory>
 
 #include "envoy/thread/thread.h"
+
+#include "common/thread/thread_impl.h"
 
 #include "absl/synchronization/mutex.h"
 
 namespace Envoy {
 namespace Thread {
-
-typedef int32_t ThreadId;
-
-/**
- * Get current thread id.
- */
-ThreadId currentThreadId();
-
-/**
- * Wrapper for a pthread thread. We don't use std::thread because it eats exceptions and leads to
- * unusable stack traces.
- */
-class ThreadImpl : public Thread {
-public:
-  ThreadImpl(std::function<void()> thread_routine);
-
-  /**
-   * Join on thread exit.
-   */
-  void join() override;
-
-private:
-  std::function<void()> thread_routine_;
-  pthread_t thread_id_;
-};
 
 /**
  * Implementation of BasicLockable

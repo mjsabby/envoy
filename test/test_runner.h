@@ -2,8 +2,8 @@
 
 #include "common/common/logger.h"
 #include "common/common/logger_delegates.h"
-#include "common/common/thread.h"
 #include "common/event/libevent.h"
+#include "common/thread/thread.h"
 
 #include "test/mocks/access_log/mocks.h"
 #include "test/test_common/environment.h"

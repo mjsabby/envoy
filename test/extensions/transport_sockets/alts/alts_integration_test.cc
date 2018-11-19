@@ -1,6 +1,6 @@
 #include "envoy/config/transport_socket/alts/v2alpha/alts.pb.h"
 
-#include "common/common/thread.h"
+#include "common/thread/thread.h"
 
 #include "extensions/transport_sockets/alts/config.h"
 

@@ -49,7 +49,7 @@ envoy_cc_library(
         "//include/envoy/filesystem:filesystem_interface",
         "//source/common/api:os_sys_calls_lib",
         "//source/common/buffer:buffer_lib",
-        "//source/common/common:thread_lib",
+        "//source/common/thread:thread_lib",
     ],
 )
 

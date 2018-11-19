@@ -5,7 +5,7 @@
 
 #include "envoy/filesystem/filesystem.h"
 
-#include "common/common/thread.h"
+#include "common/thread/thread.h"
 
 #include "gmock/gmock.h"
 

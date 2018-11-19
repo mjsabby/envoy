@@ -35,9 +35,9 @@ envoy_cc_test_library(
     external_deps = ["libprotobuf_mutator"],
     deps = [
         "//source/common/common:minimal_logger_lib",
-        "//source/common/common:thread_lib",
         "//source/common/common:utility_lib",
         "//source/common/event:libevent_lib",
+        "//source/common/thread:thread_lib",
         "//test/test_common:environment_lib",
     ],
 )

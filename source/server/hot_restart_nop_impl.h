@@ -4,8 +4,8 @@
 
 #include "envoy/server/hot_restart.h"
 
-#include "common/common/thread.h"
 #include "common/stats/heap_stat_data.h"
+#include "common/thread/thread.h"
 
 namespace Envoy {
 namespace Server {

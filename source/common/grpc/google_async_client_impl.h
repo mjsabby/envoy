@@ -5,12 +5,12 @@
 #include "envoy/api/api.h"
 #include "envoy/grpc/async_client.h"
 #include "envoy/stats/scope.h"
-#include "envoy/thread/thread.h"
 #include "envoy/thread_local/thread_local.h"
 #include "envoy/tracing/http_tracer.h"
 
 #include "common/common/linked_object.h"
 #include "common/common/thread_annotations.h"
+#include "common/thread/thread.h"
 #include "common/tracing/http_tracer_impl.h"
 
 #include "grpcpp/generic/generic_stub.h"

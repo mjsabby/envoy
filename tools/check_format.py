@@ -259,7 +259,7 @@ def checkSourceLine(line, file_path, reportError):
     # We don't check here for std::mutex because that may legitimately show up in
     # comments, for example this one.
     reportError("Don't use <mutex> or <condition_variable*>, switch to "
-                "Thread::MutexBasicLockable in source/common/common/thread.h")
+                "Thread::MutexBasicLockable in source/common/thread/thread.h")
   if line.startswith('#include <shared_mutex>'):
     # We don't check here for std::shared_timed_mutex because that may
     # legitimately show up in comments, for example this one.

@@ -178,18 +178,6 @@ envoy_cc_library(
 )
 
 envoy_cc_library(
-    name = "thread_lib",
-    srcs = ["thread.cc"],
-    hdrs = ["thread.h"],
-    external_deps = ["abseil_synchronization"],
-    deps = [
-        ":assert_lib",
-        ":macros",
-        "//include/envoy/thread:thread_interface",
-    ],
-)
-
-envoy_cc_library(
     name = "lock_guard_lib",
     hdrs = ["lock_guard.h"],
     deps = [
@@ -268,8 +256,8 @@ envoy_cc_library(
     deps = [
         ":assert_lib",
         ":thread_annotations",
-        ":thread_lib",
         ":utility_lib",
+        "//source/common/thread:thread_lib",
     ],
 )
 

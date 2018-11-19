@@ -2,8 +2,8 @@
 
 #include "common/api/api_impl.h"
 #include "common/common/lock_guard.h"
-#include "common/common/thread.h"
 #include "common/singleton/threadsafe_singleton.h"
+#include "common/thread/thread.h"
 
 #include "test/test_common/threadsafe_singleton_injector.h"
 

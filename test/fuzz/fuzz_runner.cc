@@ -1,8 +1,8 @@
 #include "test/fuzz/fuzz_runner.h"
 
-#include "common/common/thread.h"
 #include "common/common/utility.h"
 #include "common/event/libevent.h"
+#include "common/thread/thread.h"
 
 #include "test/test_common/environment.h"
 

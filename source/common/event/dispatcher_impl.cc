@@ -11,13 +11,13 @@
 
 #include "common/buffer/buffer_impl.h"
 #include "common/common/lock_guard.h"
-#include "common/common/thread.h"
 #include "common/event/file_event_impl.h"
 #include "common/event/signal_impl.h"
 #include "common/filesystem/watcher_impl.h"
 #include "common/network/connection_impl.h"
 #include "common/network/dns_impl.h"
 #include "common/network/listener_impl.h"
+#include "common/thread/thread.h"
 
 #include "event2/event.h"
 

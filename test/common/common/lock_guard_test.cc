@@ -1,5 +1,5 @@
 #include "common/common/lock_guard.h"
-#include "common/common/thread.h"
+#include "common/thread/thread.h"
 
 #include "gtest/gtest.h"
 

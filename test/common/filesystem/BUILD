@@ -14,12 +14,12 @@ envoy_cc_test(
     deps = [
         "//source/common/api:api_lib",
         "//source/common/api:os_sys_calls_lib",
-        "//source/common/common:thread_lib",
         "//source/common/event:dispatcher_includes",
         "//source/common/event:dispatcher_lib",
         "//source/common/filesystem:filesystem_lib",
         "//source/common/stats:isolated_store_lib",
         "//source/common/stats:stats_lib",
+        "//source/common/thread:thread_lib",
         "//test/mocks/api:api_mocks",
         "//test/mocks/event:event_mocks",
         "//test/mocks/filesystem:filesystem_mocks",

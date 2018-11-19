@@ -4,7 +4,7 @@
 
 #include "common/common/lock_guard.h"
 #include "common/common/logger.h"
-#include "common/common/thread.h"
+#include "common/thread/thread.h"
 
 #include "extensions/filters/http/jwt_authn/filter_config.h"
 #include "extensions/filters/http/jwt_authn/matcher.h"

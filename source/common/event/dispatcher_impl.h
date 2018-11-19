@@ -11,8 +11,8 @@
 #include "envoy/network/connection_handler.h"
 
 #include "common/common/logger.h"
-#include "common/common/thread.h"
 #include "common/event/libevent.h"
+#include "common/thread/thread.h"
 
 namespace Envoy {
 namespace Event {

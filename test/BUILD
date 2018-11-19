@@ -25,7 +25,7 @@ envoy_cc_test_library(
     ],
     deps = [
         "//source/common/common:logger_lib",
-        "//source/common/common:thread_lib",
+        "//source/common/thread:thread_lib",
         "//source/common/event:libevent_lib",
         "//test/mocks/access_log:access_log_mocks",
         "//test/test_common:environment_lib",

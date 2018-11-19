@@ -203,6 +203,6 @@ envoy_cc_test(
     srcs = ["lock_guard_test.cc"],
     deps = [
         "//source/common/common:lock_guard_lib",
-        "//source/common/common:thread_lib",
+        "//source/common/thread:thread_lib",
     ],
 )

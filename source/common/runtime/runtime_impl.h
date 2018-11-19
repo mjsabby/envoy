@@ -15,7 +15,6 @@
 #include "common/common/assert.h"
 #include "common/common/empty_string.h"
 #include "common/common/logger.h"
-#include "common/common/thread.h"
 
 #include "spdlog/spdlog.h"
 

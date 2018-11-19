@@ -1,8 +1,8 @@
 #pragma once
 
 #include "common/common/lock_guard.h"
-#include "common/common/thread.h"
 #include "common/common/utility.h"
+#include "common/thread/thread.h"
 
 #include "test/test_common/test_time_system.h"
 
