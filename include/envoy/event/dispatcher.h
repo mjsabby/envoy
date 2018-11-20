@@ -95,7 +95,7 @@ public:
   /**
    * @return WatcherPtr a filesystem watcher owned by the caller.
    */
-  virtual WatcherPtr createFilesystemWatcher() PURE;
+  virtual WatcherPtr createFilesystemWatcher(const std::string& path, Watcher::OnChangedCb cb) PURE;
 
   ///**
   // * Create a listener on a specific port.

@@ -53,7 +53,7 @@ public:
   //Network::DnsResolverSharedPtr createDnsResolver(
   //    const std::vector<Network::Address::InstanceConstSharedPtr>& resolvers) override;
   StreamEventPtr createStreamEvent(SOCKET_FD fd, OnReadCb rcb, OnWriteCb wcb) override;
-  WatcherPtr createFilesystemWatcher() override;
+  WatcherPtr createFilesystemWatcher(const std::string& path, Watcher::OnChangedCb cb) override;
   //Network::ListenerPtr createListener(Network::Socket& socket, Network::ListenerCallbacks& cb,
   //                                    bool bind_to_port,
   //                                    bool hand_off_restored_destination_connections) override;

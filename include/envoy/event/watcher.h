@@ -8,6 +8,7 @@
 #include "envoy/common/pure.h"
 
 #include "absl/strings/string_view.h"
+#include "uv.h"
 
 namespace Envoy {
 namespace Event {
@@ -17,10 +18,11 @@ namespace Event {
  */
 class Watcher {
 public:
-  typedef std::function<void(uint32_t events)> OnChangedCb;
+  typedef std::function<void(const char* filename, int events, int status)> OnChangedCb;
 
   struct Events {
-    static const uint32_t MovedTo = 0x1;
+    static const int MovedTo = UV_RENAME;
+    static const int Changed = UV_CHANGE;
   };
 
   virtual ~Watcher() {}
@@ -31,7 +33,6 @@ public:
    * @param events supplies the events to watch.
    * @param cb supplies the callback to invoke when a change occurs.
    */
-  virtual void addWatch(const std::string& path, uint32_t events, OnChangedCb cb) PURE;
 };
 
 typedef std::unique_ptr<Watcher> WatcherPtr;

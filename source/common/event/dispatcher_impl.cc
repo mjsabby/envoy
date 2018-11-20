@@ -104,9 +104,9 @@ StreamEventPtr DispatcherImpl::createStreamEvent(SOCKET_FD fd, OnReadCb rcb, OnW
   return StreamEventPtr{new StreamEventImpl(*this, fd, rcb, wcb)};
 }
 
-WatcherPtr DispatcherImpl::createFilesystemWatcher() {
+WatcherPtr DispatcherImpl::createFilesystemWatcher(const std::string& path, Watcher::OnChangedCb cb) {
   //ASSERT(isThreadSafe());
-  return WatcherPtr{new WatcherImpl(*this)};
+  return WatcherPtr{new WatcherImpl(*this, path, cb)};
 }
 
 //Network::ListenerPtr

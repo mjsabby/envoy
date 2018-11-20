@@ -2,6 +2,7 @@
 
 #include "common/common/assert.h"
 #include "common/common/fmt.h"
+#include "common/event/dispatcher_impl.h"
 #include "common/event/watcher_impl.h"
 
 #include "uv.h"
@@ -9,11 +10,23 @@
 namespace Envoy {
 namespace Event {
 
-WatcherImpl::~WatcherImpl() {}
+WatcherImpl::WatcherImpl(DispatcherImpl& dispatcher, const std::string& path, OnChangedCb cb) 
+   : loop_(&dispatcher.loop()), cb_(cb) {
+  raw_handle_.fs_event.data = this;
 
-void WatcherImpl::addWatch(const std::string& path, uint32_t events, Watcher::OnChangedCb cb) {
-  file_events_.emplace_back(uv_fs_event_t{});
+  int rc = uv_fs_event_init(loop_, &raw_handle_.fs_event);
+  ASSERT(rc == 0);
+
+  auto fsEventCb = [](uv_fs_event_t* handle, const char* filename, int events, int status){
+    WatcherImpl* watcher = static_cast<WatcherImpl*>(handle->data);
+    watcher->cb_(filename, events, status);
+  };
+
+  rc = uv_fs_event_start(&raw_handle_.fs_event, fsEventCb, path.c_str(), 0);
+  ASSERT(rc == 0);
 }
+
+WatcherImpl::~WatcherImpl() {}
 
 } // namespace Event
 } // namespace Envoy
