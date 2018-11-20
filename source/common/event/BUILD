@@ -24,6 +24,7 @@ envoy_cc_library(
     srcs = [
         "dispatcher_impl.cc",
         "file_event_impl.cc",
+        "watcher_impl.cc",
         "signal_impl.cc",
     ],
     hdrs = [
@@ -37,7 +38,6 @@ envoy_cc_library(
         #"//include/envoy/network:listen_socket_interface",
         #"//include/envoy/network:listener_interface",
         "//source/common/common:assert_lib",
-        #"//source/common/filesystem:watcher_lib",
         #"//source/common/network:connection_lib",
         #"//source/common/network:dns_lib",
         #"//source/common/network:listener_lib",
@@ -71,12 +71,14 @@ envoy_cc_library(
         "dispatcher_impl.h",
         "event_impl_base.h",
         "file_event_impl.h",
+        "watcher_impl.h",
     ],
     deps = [
         ":libevent_lib",
         "//include/envoy/event:deferred_deletable",
         "//include/envoy/event:dispatcher_interface",
         "//include/envoy/event:file_event_interface",
+        "//include/envoy/event:watcher_interface",
         #"//include/envoy/network:connection_handler_interface",
         "//source/common/common:minimal_logger_lib",
         "//source/common/thread:thread_lib",

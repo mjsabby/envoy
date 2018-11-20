@@ -13,7 +13,7 @@
 #include "common/common/lock_guard.h"
 #include "common/event/file_event_impl.h"
 #include "common/event/signal_impl.h"
-//#include "common/filesystem/watcher_impl.h"
+#include "common/event/watcher_impl.h"
 //#include "common/network/connection_impl.h"
 //#include "common/network/dns_impl.h"
 //#include "common/network/listener_impl.h"
@@ -103,11 +103,11 @@ StreamEventPtr DispatcherImpl::createStreamEvent(SOCKET_FD fd, OnReadCb rcb, OnW
   //ASSERT(isThreadSafe());
   return StreamEventPtr{new StreamEventImpl(*this, fd, rcb, wcb)};
 }
-//
-//Filesystem::WatcherPtr DispatcherImpl::createFilesystemWatcher() {
-//  ASSERT(isThreadSafe());
-//  return Filesystem::WatcherPtr{new Filesystem::WatcherImpl(*this)};
-//}
+
+WatcherPtr DispatcherImpl::createFilesystemWatcher() {
+  //ASSERT(isThreadSafe());
+  return WatcherPtr{new WatcherImpl(*this)};
+}
 
 //Network::ListenerPtr
 //DispatcherImpl::createListener(Network::Socket& socket, Network::ListenerCallbacks& cb,

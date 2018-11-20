@@ -52,9 +52,8 @@ public:
   //                       const Network::ConnectionSocket::OptionsSharedPtr& options) override;
   //Network::DnsResolverSharedPtr createDnsResolver(
   //    const std::vector<Network::Address::InstanceConstSharedPtr>& resolvers) override;
-  StreamEventPtr createStreamEvent(SOCKET_FD fd, OnReadCb rcb, OnWriteCb wcb);
-  //                             uint32_t events) override;
-  //Filesystem::WatcherPtr createFilesystemWatcher() override;
+  StreamEventPtr createStreamEvent(SOCKET_FD fd, OnReadCb rcb, OnWriteCb wcb) override;
+  WatcherPtr createFilesystemWatcher() override;
   //Network::ListenerPtr createListener(Network::Socket& socket, Network::ListenerCallbacks& cb,
   //                                    bool bind_to_port,
   //                                    bool hand_off_restored_destination_connections) override;

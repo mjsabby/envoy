@@ -11,7 +11,7 @@
 #include "envoy/event/file_event.h"
 #include "envoy/event/signal.h"
 #include "envoy/event/timer.h"
-#include "envoy/filesystem/filesystem.h"
+#include "envoy/event/watcher.h"
 //#include "envoy/network/connection.h"
 //#include "envoy/network/connection_handler.h"
 //#include "envoy/network/dns.h"
@@ -92,10 +92,10 @@ public:
    */
   virtual StreamEventPtr createStreamEvent(SOCKET_FD fd, OnReadCb rcb, OnWriteCb wcb) PURE;
 
-  ///**
-  // * @return Filesystem::WatcherPtr a filesystem watcher owned by the caller.
-  // */
-  //virtual Filesystem::WatcherPtr createFilesystemWatcher() PURE;
+  /**
+   * @return WatcherPtr a filesystem watcher owned by the caller.
+   */
+  virtual WatcherPtr createFilesystemWatcher() PURE;
 
   ///**
   // * Create a listener on a specific port.
