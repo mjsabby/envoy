@@ -7,8 +7,21 @@
 
 #include "common/common/thread_annotations.h"
 
+#if defined(WIN32)
+#include <Windows.h>
+// <windows.h> defines some macros that interfere with our code, so undef them
+#undef DELETE
+#undef GetMessage
+#endif
+
 namespace Envoy {
 namespace Thread {
+
+#if !defined(WIN32)
+using ThreadId = int32_t;
+#else
+using ThreadId = DWORD;
+#endif
 
 class Thread {
 public:
