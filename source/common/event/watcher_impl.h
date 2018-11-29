@@ -19,11 +19,20 @@ namespace Event {
  */
 class WatcherImpl : public Watcher, Logger::Loggable<Logger::Id::file> {
 public:
-  WatcherImpl(Event::DispatcherImpl& dispatcher, const std::string& path, OnChangedCb cb);
+  WatcherImpl::WatcherImpl(DispatcherImpl& dispatcher) : loop_(&dispatcher.loop()) {}
   ~WatcherImpl();
 
+  void addWatch(const std::string& path, OnChangedCb cb) override;
+
 private:
-  uv_any_handle raw_handle_;
+  struct FileWatch {
+    FileWatch(OnChangedCb cb) : cb_(cb) {}
+
+    uv_fs_event_t handle_;
+    OnChangedCb cb_;
+  };
+
+  std::list<FileWatch> file_watches_;
   uv_loop_t* loop_;
   OnChangedCb cb_;
 };

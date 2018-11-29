@@ -1,4 +1,5 @@
 #include <cstdint>
+#include <fstream>
 
 #include "envoy/event/file_event.h"
 
@@ -88,35 +89,65 @@ int main(int argc, char** argv) {
 
   DispatcherImpl dispatcher;
   {
-  StreamEventPtr file_event = dispatcher.createStreamEvent(
-    ft.test_socket(),
-    [](uv_stream_t *s, ssize_t nread, const uv_buf_t * buf) {
-      if (nread >= 0) {
-        printf("hi: %s\n", std::string(buf->base, static_cast<size_t>(nread)).c_str());
-      } else {
-        printf("something bad happened: %Id\n", nread);
+    StreamEventPtr file_event = dispatcher.createStreamEvent(
+      ft.test_socket(),
+      [](uv_stream_t *s, ssize_t nread, const uv_buf_t * buf) {
+        if (nread >= 0) {
+          printf("hi: %s\n", std::string(buf->base, static_cast<size_t>(nread)).c_str());
+        } else {
+          printf("something bad happened: %Id\n", nread);
+        }
+      }, 
+      [](uv_write_t *w, int status) {
+        printf("wrote some data: %d\n", status);
+      } 
+      );
+
+    char* readBuffer = static_cast<char *>(::malloc(1024));
+    uv_buf_t b;
+    b.base = readBuffer;
+    b.len = 1024;
+
+    file_event->startRead(&b);
+
+    uv_write_t req;
+    uv_buf_t wb;
+    wb.base = "sending some data";
+    wb.len = 17;
+    file_event->write(&req, &wb, 1) ;
+
+    dispatcher.run(Dispatcher::RunType::NonBlock);
+    ft.readFromRemote();
+
+    std::ofstream file1("/tmp/watching_file1");
+    file1 << "hi1";
+    std::ofstream file2("/tmp/watching_file2");
+    file2 << "hi2";
+    WatcherPtr watcher = dispatcher.createFilesystemWatcher();
+    watcher->addWatch(
+      "/tmp/watching_file1",
+      [](const char* filename, int events, int status){
+        if (status != 0) {
+          printf("watcher error: %d\n", status);
+        }
+        if (events & Watcher::Events::MovedTo) {
+          printf("moved to\n");
+        }
+        if (events & Watcher::Events::Changed) {
+          printf("file changed\n");
+        }
       }
-    }, 
-    [](uv_write_t *w, int status) {
-      printf("wrote some data: %d\n", status);
-    } 
     );
 
-  char* readBuffer = static_cast<char *>(::malloc(1024));
-  uv_buf_t b;
-  b.base = readBuffer;
-  b.len = 1024;
+    file1 << "bye1";
+    dispatcher.run(Dispatcher::RunType::Block);
+    file1.close();
+    file2.close();
 
-  file_event->startRead(&b);
-
-  uv_write_t req;
-  uv_buf_t wb;
-  wb.base = "sending some data";
-  wb.len = 17;
-  file_event->write(&req, &wb, 1) ;
-
-  dispatcher.run(Dispatcher::RunType::NonBlock);
-  ft.readFromRemote();
+    const BOOL rc = ::MoveFileEx("/tmp/watching_file2", "/tmp/watching_file1", MOVEFILE_REPLACE_EXISTING);
+    ASSERT(0 != rc);
+    ::Sleep(1000);
+    dispatcher.run(Dispatcher::RunType::NonBlock);
 
   }
   dispatcher.exit();

@@ -8,51 +8,54 @@ load(
 
 envoy_package()
 
-envoy_cc_library(
-    name = "deferred_deletable",
-    hdrs = ["deferred_deletable.h"],
-)
+#envoy_cc_library(
+#    name = "deferred_deletable",
+#    hdrs = ["deferred_deletable.h"],
+#)
 
 envoy_cc_library(
     name = "dispatcher_interface",
     hdrs = ["dispatcher.h"],
     deps = [
-        ":deferred_deletable",
+#        ":deferred_deletable",
         ":file_event_interface",
-        ":signal_interface",
-        ":timer_interface",
+#        ":signal_interface",
+#        ":timer_interface",
         ":watcher_interface",
-        "//include/envoy/common:time_interface",
-        "//include/envoy/network:connection_handler_interface",
-        "//include/envoy/network:connection_interface",
-        "//include/envoy/network:dns_interface",
-        "//include/envoy/network:listen_socket_interface",
-        "//include/envoy/network:listener_interface",
-        "//include/envoy/network:transport_socket_interface",
-        "//include/envoy/thread:thread_interface",
+#        "//include/envoy/common:time_interface",
+#        "//include/envoy/network:connection_handler_interface",
+#        "//include/envoy/network:connection_interface",
+#        "//include/envoy/network:dns_interface",
+#        "//include/envoy/network:listen_socket_interface",
+#        "//include/envoy/network:listener_interface",
+#        "//include/envoy/network:transport_socket_interface",
+#        "//include/envoy/thread:thread_interface",
     ],
 )
 
 envoy_cc_library(
     name = "file_event_interface",
     hdrs = ["file_event.h"],
+    external_deps = ["libuv"],
 )
 
 envoy_cc_library(
     name = "watcher_interface",
     hdrs = ["watcher.h"],
+    external_deps = ["libuv"],
 )
 
-envoy_cc_library(
-    name = "signal_interface",
-    hdrs = ["signal.h"],
-)
-
-envoy_cc_library(
-    name = "timer_interface",
-    hdrs = ["timer.h"],
-    deps = [
-        "//include/envoy/common:time_interface",
-        "//source/common/event:libevent_lib",
-    ],
-)
+#envoy_cc_library(
+#    name = "signal_interface",
+#    hdrs = ["signal.h"],
+#)
+#
+#envoy_cc_library(
+#    name = "timer_interface",
+#    hdrs = ["timer.h"],
+#    deps = [
+#        "//include/envoy/common:time_interface",
+#        "//source/common/event:libevent_lib",
+#    ],
+#)
+#

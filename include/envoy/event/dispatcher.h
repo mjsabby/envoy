@@ -7,10 +7,10 @@
 #include <vector>
 
 #include "envoy/common/platform.h"
-#include "envoy/common/time.h"
+//#include "envoy/common/time.h"
 #include "envoy/event/file_event.h"
-#include "envoy/event/signal.h"
-#include "envoy/event/timer.h"
+//#include "envoy/event/signal.h"
+//#include "envoy/event/timer.h"
 #include "envoy/event/watcher.h"
 //#include "envoy/network/connection.h"
 //#include "envoy/network/connection_handler.h"
@@ -95,7 +95,7 @@ public:
   /**
    * @return WatcherPtr a filesystem watcher owned by the caller.
    */
-  virtual WatcherPtr createFilesystemWatcher(const std::string& path, Watcher::OnChangedCb cb) PURE;
+  virtual WatcherPtr createFilesystemWatcher() PURE;
 
   ///**
   // * Create a listener on a specific port.

@@ -5,15 +5,15 @@
 #include <list>
 #include <vector>
 
-#include "envoy/common/time.h"
-#include "envoy/event/deferred_deletable.h"
+//#include "envoy/common/time.h"
+//#include "envoy/event/deferred_deletable.h"
 #include "envoy/event/dispatcher.h"
 //#include "envoy/network/connection_handler.h"
 
 #include "common/common/assert.h"
 #include "common/common/logger.h"
 #include "common/event/libevent.h"
-#include "common/thread/thread.h"
+//#include "common/thread/thread.h"
 
 namespace Envoy {
 namespace Event {
@@ -53,7 +53,7 @@ public:
   //Network::DnsResolverSharedPtr createDnsResolver(
   //    const std::vector<Network::Address::InstanceConstSharedPtr>& resolvers) override;
   StreamEventPtr createStreamEvent(SOCKET_FD fd, OnReadCb rcb, OnWriteCb wcb) override;
-  WatcherPtr createFilesystemWatcher(const std::string& path, Watcher::OnChangedCb cb) override;
+  WatcherPtr createFilesystemWatcher() override;
   //Network::ListenerPtr createListener(Network::Socket& socket, Network::ListenerCallbacks& cb,
   //                                    bool bind_to_port,
   //                                    bool hand_off_restored_destination_connections) override;

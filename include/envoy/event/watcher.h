@@ -27,12 +27,12 @@ public:
 
   virtual ~Watcher() {}
 
-  /**
+    /**
    * Add a file watch.
    * @param path supplies the path to watch.
-   * @param events supplies the events to watch.
    * @param cb supplies the callback to invoke when a change occurs.
    */
+  virtual void addWatch(const std::string& path, OnChangedCb cb) PURE;
 };
 
 typedef std::unique_ptr<Watcher> WatcherPtr;
