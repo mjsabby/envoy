@@ -4,6 +4,7 @@
 
 #include "common/api/os_sys_calls_impl.h"
 #include "common/event/dispatcher_impl.h"
+#include "common/stats/isolated_store_impl.h"
 
 #include "test/mocks/common.h"
 #include "test/test_common/environment.h"
@@ -18,7 +19,7 @@ namespace Event {
 class FileEventImplTest : public testing::Test {
 public:
   FileEventImplTest()
-      : dispatcher_(test_time_.timeSystem()), os_sys_calls_(Api::OsSysCallsSingleton::get()) {}
+      : api_(Api::createApiForTest(stats_store_)), dispatcher_(test_time_.timeSystem(), *api_), os_sys_calls_(Api::OsSysCallsSingleton::get()) {}
 
   void SetUp() override {
 #if !defined(WIN32)
@@ -39,6 +40,8 @@ public:
 
 protected:
   SOCKET_FD fds_[2];
+  Stats::IsolatedStoreImpl stats_store_;
+  Api::ApiPtr api_;
   DangerousDeprecatedTestTime test_time_;
   DispatcherImpl dispatcher_;
   Api::OsSysCalls& os_sys_calls_;
@@ -66,7 +69,9 @@ TEST_P(FileEventImplActivateTest, Activate) {
   ASSERT_TRUE(SOCKET_VALID(fd));
 
   DangerousDeprecatedTestTime test_time;
-  DispatcherImpl dispatcher(test_time.timeSystem());
+  Stats::IsolatedStoreImpl stats_store;
+  Api::ApiPtr api = Api::createApiForTest(stats_store);
+  DispatcherImpl dispatcher(test_time.timeSystem(), *api);
   ReadyWatcher read_event;
   EXPECT_CALL(read_event, ready()).Times(1);
   ReadyWatcher write_event;

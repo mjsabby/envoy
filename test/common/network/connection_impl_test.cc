@@ -78,8 +78,10 @@ INSTANTIATE_TEST_CASE_P(IpVersions, ConnectionImplDeathTest,
                         TestUtility::ipTestParamsToString);
 
 TEST_P(ConnectionImplDeathTest, BadFd) {
+  Stats::IsolatedStoreImpl stats_store;
+  Api::ApiPtr api = Api::createApiForTest(stats_store);
   Event::SimulatedTimeSystem time_system;
-  Event::DispatcherImpl dispatcher(time_system);
+  Event::DispatcherImpl dispatcher(time_system, *api);
   EXPECT_DEATH_LOG_TO_STDERR(
       ConnectionImpl(dispatcher, std::make_unique<ConnectionSocketImpl>(-1, nullptr, nullptr),
                      Network::Test::createRawBufferSocket(), false),
@@ -88,9 +90,10 @@ TEST_P(ConnectionImplDeathTest, BadFd) {
 
 class ConnectionImplTest : public testing::TestWithParam<Address::IpVersion> {
 public:
+  ConnectionImplTest() : api_(Api::createApiForTest(stats_store_)) {}
   void setUpBasicConnection() {
     if (dispatcher_.get() == nullptr) {
-      dispatcher_ = std::make_unique<Event::DispatcherImpl>(time_system_);
+      dispatcher_ = std::make_unique<Event::DispatcherImpl>(time_system_, *api_);
     }
     listener_ = dispatcher_->createListener(socket_, listener_callbacks_, true, false);
 
@@ -210,6 +213,7 @@ protected:
   Event::SimulatedTimeSystem time_system_;
   Event::DispatcherPtr dispatcher_;
   Stats::IsolatedStoreImpl stats_store_;
+  Api::ApiPtr api_;
   Network::TcpListenSocket socket_{Network::Test::getAnyAddress(GetParam()), nullptr, true};
   Network::MockListenerCallbacks listener_callbacks_;
   Network::MockConnectionHandler connection_handler_;
@@ -1622,7 +1626,9 @@ TEST_P(ReadBufferLimitTest, SomeLimit) {
 
 class TcpClientConnectionImplTest : public testing::TestWithParam<Address::IpVersion> {
 protected:
-  TcpClientConnectionImplTest() : dispatcher_(time_system_) {}
+  TcpClientConnectionImplTest() : api_(Api::createApiForTest(stats_store_)), dispatcher_(time_system_, *api_) {}
+  Stats::IsolatedStoreImpl stats_store_;
+  Api::ApiPtr api_;
   Event::SimulatedTimeSystem time_system_;
   Event::DispatcherImpl dispatcher_;
 };
@@ -1663,7 +1669,9 @@ TEST_P(TcpClientConnectionImplTest, BadConnectConnRefused) {
 
 class PipeClientConnectionImplTest : public testing::Test {
 protected:
-  PipeClientConnectionImplTest() : dispatcher_(time_system_) {}
+  PipeClientConnectionImplTest() : api_(Api::createApiForTest(stats_store_)), dispatcher_(time_system_, *api_) {}
+  Stats::IsolatedStoreImpl stats_store_;
+  Api::ApiPtr api_;
   Event::SimulatedTimeSystem time_system_;
   Event::DispatcherImpl dispatcher_;
   const std::string path_{TestEnvironment::unixDomainSocketPath("foo")};

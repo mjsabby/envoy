@@ -26,7 +26,5 @@ void ThreadImplWin32::join() {
   RELEASE_ASSERT(rc == WAIT_OBJECT_0, "");
 }
 
-ThreadId currentThreadId() { return ::GetCurrentThreadId(); }
-
 } // namespace Thread
 } // namespace Envoy

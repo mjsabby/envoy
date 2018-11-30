@@ -67,7 +67,8 @@ void testUtil(const std::string& client_ctx_yaml, const std::string& server_ctx_
       std::move(server_cfg), manager, server_stats_store, std::vector<std::string>{});
 
   DangerousDeprecatedTestTime test_time;
-  Event::DispatcherImpl dispatcher(test_time.timeSystem());
+  Api::ApiPtr api = Api::createApiForTest(server_stats_store);
+  Event::DispatcherImpl dispatcher(test_time.timeSystem(), *api);
   Network::TcpListenSocket socket(Network::Test::getCanonicalLoopbackAddress(version), nullptr,
                                   true);
   Network::MockListenerCallbacks callbacks;
@@ -188,7 +189,8 @@ const std::string testUtilV2(
                                                         server_stats_store, server_names);
 
   DangerousDeprecatedTestTime test_time;
-  Event::DispatcherImpl dispatcher(test_time.timeSystem());
+  Api::ApiPtr api = Api::createApiForTest(server_stats_store);
+  Event::DispatcherImpl dispatcher(test_time.timeSystem(), *api);
   Network::TcpListenSocket socket(Network::Test::getCanonicalLoopbackAddress(version), nullptr,
                                   true);
   NiceMock<Network::MockListenerCallbacks> callbacks;
@@ -1976,7 +1978,8 @@ void testTicketSessionResumption(const std::string& server_ctx_yaml1,
   NiceMock<Network::MockListenerCallbacks> callbacks;
   Network::MockConnectionHandler connection_handler;
   DangerousDeprecatedTestTime test_time;
-  Event::DispatcherImpl dispatcher(test_time.timeSystem());
+  Api::ApiPtr api = Api::createApiForTest(server_stats_store);
+  Event::DispatcherImpl dispatcher(test_time.timeSystem(), *api);
   Network::ListenerPtr listener1 = dispatcher.createListener(socket1, callbacks, true, false);
   Network::ListenerPtr listener2 = dispatcher.createListener(socket2, callbacks, true, false);
 
@@ -2489,7 +2492,8 @@ void testClientSessionResumption(const std::string& server_ctx_yaml,
                                   true);
   NiceMock<Network::MockListenerCallbacks> callbacks;
   Network::MockConnectionHandler connection_handler;
-  Event::DispatcherImpl dispatcher(time_system);
+  Api::ApiPtr api = Api::createApiForTest(server_stats_store);
+  Event::DispatcherImpl dispatcher(time_system, *api);
   Network::ListenerPtr listener = dispatcher.createListener(socket, callbacks, true, false);
 
   Network::ConnectionPtr server_connection;

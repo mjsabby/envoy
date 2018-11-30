@@ -45,7 +45,7 @@ public:
 class InjectedResourceMonitorTest : public testing::Test {
 protected:
   InjectedResourceMonitorTest()
-      : dispatcher_(test_time_.timeSystem()),
+      : api_(Api::createApiForTest(stats_store_)), dispatcher_(test_time_.timeSystem(), *api_),
         resource_filename_(TestEnvironment::temporaryPath("injected_resource")),
         file_updater_(resource_filename_), monitor_(createMonitor()) {}
 
@@ -64,6 +64,8 @@ protected:
     return std::make_unique<TestableInjectedResourceMonitor>(config, context);
   }
 
+  Stats::IsolatedStoreImpl stats_store_;
+  Api::ApiPtr api_
   DangerousDeprecatedTestTime test_time_;
   Event::DispatcherImpl dispatcher_;
   const std::string resource_filename_;

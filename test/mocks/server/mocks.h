@@ -158,7 +158,7 @@ public:
   // Server::WatchDog
   MOCK_METHOD1(startWatchdog, void(Event::Dispatcher& dispatcher));
   MOCK_METHOD0(touch, void());
-  MOCK_CONST_METHOD0(threadId, Thread::ThreadId());
+  MOCK_CONST_METHOD0(threadId, std::string());
   MOCK_CONST_METHOD0(lastTouchTime, MonotonicTime());
 };
 
@@ -168,7 +168,7 @@ public:
   ~MockGuardDog();
 
   // Server::GuardDog
-  MOCK_METHOD1(createWatchDog, WatchDogSharedPtr(Thread::ThreadId thread_id));
+  MOCK_METHOD1(createWatchDog, WatchDogSharedPtr(Api::Api& api));
   MOCK_METHOD1(stopWatching, void(WatchDogSharedPtr wd));
 
   std::shared_ptr<MockWatchDog> watch_dog_;
@@ -441,7 +441,7 @@ public:
   testing::NiceMock<Envoy::Runtime::MockLoader> runtime_loader_;
   Stats::IsolatedStoreImpl scope_;
   testing::NiceMock<ThreadLocal::MockInstance> thread_local_;
-  Singleton::ManagerPtr singleton_manager_;
+  //Singleton::ManagerPtr singleton_manager_;
   testing::NiceMock<MockAdmin> admin_;
   Stats::IsolatedStoreImpl listener_scope_;
   Event::SimulatedTimeSystem time_system_;
