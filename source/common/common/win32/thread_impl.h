@@ -1,15 +1,14 @@
 #pragma once
 
-#include <functional>
-
-#include "envoy/thread/thread.h"
-
-#if defined(WIN32)
 #include <windows.h>
+
 // <windows.h> defines some macros that interfere with our code, so undef them
 #undef DELETE
 #undef GetMessage
-#endif
+
+#include <functional>
+
+#include "envoy/thread/thread.h"
 
 namespace Envoy {
 namespace Thread {
@@ -18,17 +17,11 @@ class ThreadIdImplWin32 : public ThreadId {
 public:
   ThreadIdImplWin32(DWORD id) : id_(id) {}
 
-  std::string string() const override {
-    return std::to_string(id_);
-  }
+  std::string string() const override;
 
-  bool operator==(const ThreadId& rhs) const override {
-    return id_ == dynamic_cast<const ThreadIdImplWin32&>(rhs).id_;
-  }
+  bool operator==(const ThreadId& rhs) const override;
 
-  bool isCurrentThreadId() const override {
-    return id_ == ::GetCurrentThreadId(); 
-  }
+  bool isCurrentThreadId() const override;
 
 private:
   DWORD id_;
@@ -62,13 +55,9 @@ class ThreadFactoryImplWin32 : public ThreadFactory {
 public:
   ThreadFactoryImplWin32() {}
 
-  ThreadPtr createThread(std::function<void()> thread_routine) override {
-    return std::make_unique<ThreadImplWin32>(thread_routine);
-  }
+  ThreadPtr createThread(std::function<void()> thread_routine) override;
 
-  ThreadIdPtr currentThreadId() override { 
-    return std::make_unique<ThreadIdImplWin32>(::GetCurrentThreadId());
-  }
+  ThreadIdPtr currentThreadId() override;
 };
 
 } // namespace Thread

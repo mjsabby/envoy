@@ -6,6 +6,16 @@
 namespace Envoy {
 namespace Thread {
 
+ThreadIdImplWin32::ThreadIdImplWin32(DWORD id) : id_(id) {}
+
+std::string ThreadIdImplWin32::string() const { return std::to_string(id_); }
+
+bool ThreadIdImplWin32::operator==(const ThreadId& rhs) const {
+  return id_ == dynamic_cast<const ThreadIdImplWin32&>(rhs).id_;
+}
+
+bool ThreadIdImplWin32::isCurrentThreadId() const { return id_ == ::GetCurrentThreadId(); }
+
 ThreadImplWin32::ThreadImplWin32(std::function<void()> thread_routine)
     : thread_routine_(thread_routine) {
   RELEASE_ASSERT(Logger::Registry::initialized(), "");
@@ -24,6 +34,14 @@ ThreadImplWin32::~ThreadImplWin32() { ::CloseHandle(thread_handle_); }
 void ThreadImplWin32::join() {
   const DWORD rc = ::WaitForSingleObject(thread_handle_, INFINITE);
   RELEASE_ASSERT(rc == WAIT_OBJECT_0, "");
+}
+
+ThreadPtr ThreadFactoryImplWin32::createThread(std::function<void()> thread_routine) {
+  return std::make_unique<ThreadImplWin32>(thread_routine);
+}
+
+ThreadIdPtr ThreadFactoryImplWin32::currentThreadId() {
+  return std::make_unique<ThreadIdImplWin32>(::GetCurrentThreadId());
 }
 
 } // namespace Thread

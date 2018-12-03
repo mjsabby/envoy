@@ -359,7 +359,9 @@ void configureServerAndExpiredClientCertificate(envoy::api::v2::Listener& listen
 class SslSocketTest : public SslCertsTest,
                       public testing::WithParamInterface<Network::Address::IpVersion> {
 protected:
-  SslSocketTest() : api_(Api::createApiForTest(stats_store_)), dispatcher_(std::make_unique<Event::DispatcherImpl>(test_time_.timeSystem(), *api_)) {}
+  SslSocketTest()
+      : api_(Api::createApiForTest(stats_store_)),
+        dispatcher_(std::make_unique<Event::DispatcherImpl>(test_time_.timeSystem(), *api_)) {}
 
   Stats::IsolatedStoreImpl stats_store_;
   Api::ApiPtr api_;
@@ -3352,8 +3354,8 @@ public:
   void singleWriteTest(uint32_t read_buffer_limit, uint32_t bytes_to_write) {
     MockWatermarkBuffer* client_write_buffer = nullptr;
     MockBufferFactory* factory = new StrictMock<MockBufferFactory>;
-    dispatcher_ = std::make_unique<Event::DispatcherImpl>(test_time_.timeSystem(),
-                                                          Buffer::WatermarkFactoryPtr{factory}, *api_);
+    dispatcher_ = std::make_unique<Event::DispatcherImpl>(
+        test_time_.timeSystem(), Buffer::WatermarkFactoryPtr{factory}, *api_);
 
     // By default, expect 4 buffers to be created - the client and server read and write buffers.
     EXPECT_CALL(*factory, create_(_, _))

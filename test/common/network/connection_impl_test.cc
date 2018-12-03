@@ -163,8 +163,8 @@ public:
     ASSERT(dispatcher_.get() == nullptr);
 
     MockBufferFactory* factory = new StrictMock<MockBufferFactory>;
-    dispatcher_ =
-        std::make_unique<Event::DispatcherImpl>(time_system_, Buffer::WatermarkFactoryPtr{factory}, *api_);
+    dispatcher_ = std::make_unique<Event::DispatcherImpl>(
+        time_system_, Buffer::WatermarkFactoryPtr{factory}, *api_);
     // The first call to create a client session will get a MockBuffer.
     // Other calls for server sessions will by default get a normal OwnedImpl.
     EXPECT_CALL(*factory, create_(_, _))
@@ -1626,7 +1626,8 @@ TEST_P(ReadBufferLimitTest, SomeLimit) {
 
 class TcpClientConnectionImplTest : public testing::TestWithParam<Address::IpVersion> {
 protected:
-  TcpClientConnectionImplTest() : api_(Api::createApiForTest(stats_store_)), dispatcher_(time_system_, *api_) {}
+  TcpClientConnectionImplTest()
+      : api_(Api::createApiForTest(stats_store_)), dispatcher_(time_system_, *api_) {}
   Stats::IsolatedStoreImpl stats_store_;
   Api::ApiPtr api_;
   Event::SimulatedTimeSystem time_system_;
@@ -1669,7 +1670,8 @@ TEST_P(TcpClientConnectionImplTest, BadConnectConnRefused) {
 
 class PipeClientConnectionImplTest : public testing::Test {
 protected:
-  PipeClientConnectionImplTest() : api_(Api::createApiForTest(stats_store_)), dispatcher_(time_system_, *api_) {}
+  PipeClientConnectionImplTest()
+      : api_(Api::createApiForTest(stats_store_)), dispatcher_(time_system_, *api_) {}
   Stats::IsolatedStoreImpl stats_store_;
   Api::ApiPtr api_;
   Event::SimulatedTimeSystem time_system_;

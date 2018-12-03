@@ -19,7 +19,8 @@ namespace Event {
 class FileEventImplTest : public testing::Test {
 public:
   FileEventImplTest()
-      : api_(Api::createApiForTest(stats_store_)), dispatcher_(test_time_.timeSystem(), *api_), os_sys_calls_(Api::OsSysCallsSingleton::get()) {}
+      : api_(Api::createApiForTest(stats_store_)), dispatcher_(test_time_.timeSystem(), *api_),
+        os_sys_calls_(Api::OsSysCallsSingleton::get()) {}
 
   void SetUp() override {
 #if !defined(WIN32)

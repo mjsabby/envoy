@@ -88,8 +88,7 @@ WatchDogSharedPtr GuardDogImpl::createWatchDog(Api::Api& api) {
   // accessed out of the locked section below is const (time_system_ has no
   // state).
   auto wd_interval = loop_interval_ / 2;
-  WatchDogSharedPtr new_watchdog =
-      std::make_shared<WatchDogImpl>(time_system_, wd_interval, api);
+  WatchDogSharedPtr new_watchdog = std::make_shared<WatchDogImpl>(time_system_, wd_interval, api);
   WatchedDog watched_dog;
   watched_dog.dog_ = new_watchdog;
   {

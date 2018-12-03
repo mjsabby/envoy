@@ -32,9 +32,7 @@ Thread::ThreadPtr Impl::createThread(std::function<void()> thread_routine) {
   return thread_factory_.createThread(thread_routine);
 }
 
-Thread::ThreadIdPtr Impl::currentThreadId() {
-  return thread_factory_.currentThreadId();
-}
+Thread::ThreadIdPtr Impl::currentThreadId() { return thread_factory_.currentThreadId(); }
 
 } // namespace Api
 } // namespace Envoy

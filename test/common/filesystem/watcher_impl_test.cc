@@ -23,7 +23,8 @@ namespace Filesystem {
 
 class WatcherImplTest : public testing::Test {
 protected:
-  WatcherImplTest() : api_(Api::createApiForTest(stats_store_)), dispatcher_(test_time_.timeSystem(), *api_) {}
+  WatcherImplTest()
+      : api_(Api::createApiForTest(stats_store_)), dispatcher_(test_time_.timeSystem(), *api_) {}
 
   Stats::IsolatedStoreImpl stats_store_;
   Api::ApiPtr api_;

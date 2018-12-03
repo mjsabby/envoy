@@ -160,8 +160,7 @@ MockMain::MockMain(int wd_miss, int wd_megamiss, int wd_kill, int wd_multikill)
 
 MockMain::~MockMain() {}
 
-//MockFactoryContext::MockFactoryContext() : singleton_manager_(new Singleton::ManagerImpl(*api_)) {
-MockFactoryContext::MockFactoryContext() {
+MockFactoryContext::MockFactoryContext() : singleton_manager_(new Singleton::ManagerImpl(api_)) {
   ON_CALL(*this, accessLogManager()).WillByDefault(ReturnRef(access_log_manager_));
   ON_CALL(*this, clusterManager()).WillByDefault(ReturnRef(cluster_manager_));
   ON_CALL(*this, dispatcher()).WillByDefault(ReturnRef(dispatcher_));
@@ -172,7 +171,7 @@ MockFactoryContext::MockFactoryContext() {
   ON_CALL(*this, random()).WillByDefault(ReturnRef(random_));
   ON_CALL(*this, runtime()).WillByDefault(ReturnRef(runtime_loader_));
   ON_CALL(*this, scope()).WillByDefault(ReturnRef(scope_));
-  //ON_CALL(*this, singletonManager()).WillByDefault(ReturnRef(*singleton_manager_));
+  ON_CALL(*this, singletonManager()).WillByDefault(ReturnRef(*singleton_manager_));
   ON_CALL(*this, threadLocal()).WillByDefault(ReturnRef(thread_local_));
   ON_CALL(*this, admin()).WillByDefault(ReturnRef(admin_));
   ON_CALL(*this, listenerScope()).WillByDefault(ReturnRef(listener_scope_));
