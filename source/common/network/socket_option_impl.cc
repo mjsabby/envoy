@@ -16,7 +16,11 @@ bool SocketOptionImpl::setOption(Socket& socket,
     const Api::SysCallIntResult result =
         SocketOptionImpl::setSocketOption(socket, optname_, value_);
     if (result.rc_ != 0) {
+#if !defined(WIN32)
       ENVOY_LOG(warn, "Setting option on socket failed: {}", strerror(result.errno_));
+#else
+      ENVOY_LOG(warn, "Setting option on socket failed: {}", result.errno_);
+#endif
       return false;
     }
   }
@@ -30,7 +34,11 @@ Api::SysCallIntResult SocketOptionImpl::setSocketOption(Socket& socket,
                                                         const absl::string_view value) {
 
   if (!optname.has_value()) {
+#if !defined(WIN32)
     return {-1, ENOTSUP};
+#else
+    return {-1, WSAEOPNOTSUPP};
+#endif
   }
   auto& os_syscalls = Api::OsSysCallsSingleton::get();
   return os_syscalls.setsockopt(socket.fd(), optname.value().first, optname.value().second,

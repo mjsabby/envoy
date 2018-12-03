@@ -402,6 +402,7 @@ RunHelper::RunHelper(Instance& instance, Options& options, Event::Dispatcher& di
       instance.shutdown();
     });
 
+#if !defined(WIN32)
     sig_usr_1_ = dispatcher.listenForSignal(SIGUSR1, [&access_log_manager]() {
       ENVOY_LOG(warn, "caught SIGUSR1");
       access_log_manager.reopen();
@@ -410,6 +411,7 @@ RunHelper::RunHelper(Instance& instance, Options& options, Event::Dispatcher& di
     sig_hup_ = dispatcher.listenForSignal(SIGHUP, []() {
       ENVOY_LOG(warn, "caught and eating SIGHUP. See documentation for how to hot restart.");
     });
+#endif
   }
 
   // Register for cluster manager init notification. We don't start serving worker traffic until

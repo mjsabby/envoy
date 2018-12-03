@@ -70,6 +70,7 @@ envoy_cc_test(
 envoy_cc_test(
     name = "symbol_table_impl_test",
     srcs = ["symbol_table_impl_test.cc"],
+    test_on_windows = False,
     deps = [
         ":stat_test_utility_lib",
         "//source/common/memory:stats_lib",
