@@ -15,7 +15,7 @@ namespace Thread {
 
 class ThreadIdImplWin32 : public ThreadId {
 public:
-  ThreadIdImplWin32(DWORD id) : id_(id) {}
+  ThreadIdImplWin32(DWORD id);
 
   std::string string() const override;
 
