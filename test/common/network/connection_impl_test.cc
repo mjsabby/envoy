@@ -164,7 +164,7 @@ public:
 
     MockBufferFactory* factory = new StrictMock<MockBufferFactory>;
     dispatcher_ =
-        std::make_unique<Event::DispatcherImpl>(time_system_, Buffer::WatermarkFactoryPtr{factory});
+        std::make_unique<Event::DispatcherImpl>(time_system_, Buffer::WatermarkFactoryPtr{factory}, *api_);
     // The first call to create a client session will get a MockBuffer.
     // Other calls for server sessions will by default get a normal OwnedImpl.
     EXPECT_CALL(*factory, create_(_, _))
@@ -275,7 +275,7 @@ TEST_P(ConnectionImplTest, CloseDuringConnectCallback) {
 }
 
 TEST_P(ConnectionImplTest, ImmediateConnectError) {
-  dispatcher_ = std::make_unique<Event::DispatcherImpl>(time_system_);
+  dispatcher_ = std::make_unique<Event::DispatcherImpl>(time_system_, *api_);
 
   // Using a broadcast/multicast address as the connection destinations address causes an
   // immediate error return from connect().
@@ -903,7 +903,7 @@ TEST_P(ConnectionImplTest, BindFailureTest) {
     source_address_ = Network::Address::InstanceConstSharedPtr{
         new Network::Address::Ipv6Instance(address_string, 0)};
   }
-  dispatcher_ = std::make_unique<Event::DispatcherImpl>(time_system_);
+  dispatcher_ = std::make_unique<Event::DispatcherImpl>(time_system_, *api_);
   listener_ = dispatcher_->createListener(socket_, listener_callbacks_, true, false);
 
   client_connection_ = dispatcher_->createClientConnection(
@@ -1547,7 +1547,7 @@ class ReadBufferLimitTest : public ConnectionImplTest {
 public:
   void readBufferLimitTest(uint32_t read_buffer_limit, uint32_t expected_chunk_size) {
     const uint32_t buffer_size = 256 * 1024;
-    dispatcher_ = std::make_unique<Event::DispatcherImpl>(time_system_);
+    dispatcher_ = std::make_unique<Event::DispatcherImpl>(time_system_, *api_);
     listener_ = dispatcher_->createListener(socket_, listener_callbacks_, true, false);
 
     Network::Address::InstanceConstSharedPtr remote;

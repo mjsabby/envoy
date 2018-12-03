@@ -1,4 +1,5 @@
 #include "common/event/dispatcher_impl.h"
+#include "common/stats/isolated_store_impl.h"
 
 #include "server/resource_monitor_config_impl.h"
 
@@ -65,7 +66,7 @@ protected:
   }
 
   Stats::IsolatedStoreImpl stats_store_;
-  Api::ApiPtr api_
+  Api::ApiPtr api_;
   DangerousDeprecatedTestTime test_time_;
   Event::DispatcherImpl dispatcher_;
   const std::string resource_filename_;
