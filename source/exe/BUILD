@@ -4,6 +4,9 @@ load(
     "//bazel:envoy_build_system.bzl",
     "envoy_cc_binary",
     "envoy_cc_library",
+    "envoy_cc_platform_dep",
+    "envoy_cc_posix_library",
+    "envoy_cc_win32_library",
     "envoy_package",
 )
 load(
@@ -54,7 +57,19 @@ envoy_cc_library(
     ],
     deps = [
         ":envoy_main_common_lib",
-    ],
+    ] + envoy_cc_platform_dep("platform_setup_lib"),
+)
+
+envoy_cc_posix_library(
+    name = "legacy_main_lib",
+    srcs = ["posix/legacy_main.cc"],
+    hdrs = ["posix/legacy_main.h"],
+    strip_include_prefix = "posix",
+    deps = [":envoy_main_common_lib"],
+)
+
+envoy_cc_win32_library(
+    name = "legacy_main_lib",
 )
 
 envoy_cc_library(
@@ -76,7 +91,24 @@ envoy_cc_library(
             ":sigaction_lib",
             ":terminate_handler_lib",
         ],
-    }),
+    }) + envoy_cc_platform_dep("platform_setup_lib"),
+)
+
+envoy_cc_posix_library(
+    name = "platform_setup_lib",
+    hdrs = ["posix/platform_setup.h"],
+    strip_include_prefix = "posix",
+    deps = ["//source/common/common:thread_lib"],
+)
+
+envoy_cc_win32_library(
+    name = "platform_setup_lib",
+    hdrs = ["win32/platform_setup.h"],
+    strip_include_prefix = "win32",
+    deps = [
+        "//source/common/common:assert_lib",
+        "//source/common/common:thread_lib",
+    ],
 )
 
 envoy_cc_library(

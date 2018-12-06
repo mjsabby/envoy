@@ -3,6 +3,8 @@
 #include "envoy/event/timer.h"
 #include "envoy/runtime/runtime.h"
 
+#include "exe/platform_setup.h"
+
 #include "common/common/thread.h"
 #include "common/event/real_time_system.h"
 #include "common/stats/thread_local_store.h"
@@ -80,7 +82,7 @@ private:
 // go through MainCommonBase directly.
 class MainCommon {
 public:
-  MainCommon(int argc, const char* const* argv);
+  MainCommon(int argc, const char* const* argv, PlatformSetup& setup);
   bool run() { return base_.run(); }
 
   // Makes an admin-console request by path, calling handler() when complete.
@@ -110,17 +112,7 @@ private:
   Event::RealTimeSystem real_time_system_;
   DefaultTestHooks default_test_hooks_;
   ProdComponentFactory prod_component_factory_;
-  Thread::ThreadFactoryImpl thread_factory_;
   MainCommonBase base_;
 };
-
-/**
- * This is the real main body that executes after site-specific
- * main() runs.
- *
- * @param options Options object initialized by site-specific code
- * @return int Return code that should be returned from the actual main()
- */
-int main_common(OptionsImpl& options);
 
 } // namespace Envoy
