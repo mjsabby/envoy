@@ -92,7 +92,7 @@ envoy_cc_library(
     srcs = ["datasource.cc"],
     hdrs = ["datasource.h"],
     deps = [
-        "//source/common/filesystem:filesystem_lib",
+        "//include/envoy/filesystem:filesystem_interface",
         "@envoy_api//envoy/api/v2/core:base_cc",
     ],
 )

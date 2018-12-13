@@ -65,12 +65,12 @@ typedef _WSABUF IOVEC;
 #define ENVOY_SHUT_WR SD_SEND
 #define ENVOY_SHUT_RDWR SD_BOTH
 
-#if defined(_M_IX86)
+#ifdef _M_IX86
 typedef int32_t ssize_t;
-#elif defined(_M_AMD64)
+#elif _M_AMD64
 typedef int64_t ssize_t;
 #else
-#error add typedef for platform
+#error add ssize_t typedef for platform
 #endif
 
 typedef uint32_t mode_t;

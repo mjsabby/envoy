@@ -20,16 +20,17 @@ CdsApiPtr CdsApiImpl::create(const envoy::api::v2::core::ConfigSource& cds_confi
                              const absl::optional<envoy::api::v2::core::ConfigSource>& eds_config,
                              ClusterManager& cm, Event::Dispatcher& dispatcher,
                              Runtime::RandomGenerator& random,
-                             const LocalInfo::LocalInfo& local_info, Stats::Scope& scope) {
-  return CdsApiPtr{
-      new CdsApiImpl(cds_config, eds_config, cm, dispatcher, random, local_info, scope)};
+                             const LocalInfo::LocalInfo& local_info, Stats::Scope& scope,
+                             Filesystem::Instance& file_system) {
+  return CdsApiPtr{new CdsApiImpl(cds_config, eds_config, cm, dispatcher, random, local_info, scope,
+                                  file_system)};
 }
 
 CdsApiImpl::CdsApiImpl(const envoy::api::v2::core::ConfigSource& cds_config,
                        const absl::optional<envoy::api::v2::core::ConfigSource>& eds_config,
                        ClusterManager& cm, Event::Dispatcher& dispatcher,
                        Runtime::RandomGenerator& random, const LocalInfo::LocalInfo& local_info,
-                       Stats::Scope& scope)
+                       Stats::Scope& scope, Filesystem::Instance& file_system)
     : cm_(cm), scope_(scope.createScope("cluster_manager.cds.")) {
   Config::Utility::checkLocalInfo("cds", local_info);
 
@@ -43,7 +44,7 @@ CdsApiImpl::CdsApiImpl(const envoy::api::v2::core::ConfigSource& cds_config,
                                        scope.statsOptions());
           },
           "envoy.api.v2.ClusterDiscoveryService.FetchClusters",
-          "envoy.api.v2.ClusterDiscoveryService.StreamClusters");
+          "envoy.api.v2.ClusterDiscoveryService.StreamClusters", file_system);
 }
 
 void CdsApiImpl::onConfigUpdate(const ResourceVector& resources, const std::string& version_info) {

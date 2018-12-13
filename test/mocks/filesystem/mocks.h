@@ -23,6 +23,40 @@ public:
   MOCK_METHOD0(flush, void());
 };
 
+class MockInstance : public Instance {
+public:
+  MockInstance();
+  ~MockInstance();
+
+  // Filesystem::Instance
+  MOCK_METHOD1(fileExists, bool(const std::string&));
+  MOCK_METHOD1(directoryExists, bool(const std::string&));
+  MOCK_METHOD1(fileSize, ssize_t(const std::string&));
+  MOCK_METHOD1(fileReadToEnd, std::string(const std::string&));
+  MOCK_METHOD1(illegalPath, bool(const std::string&));
+};
+
+class MockStatsInstance : public StatsInstance {
+public:
+  MockStatsInstance();
+  ~MockStatsInstance();
+
+  // Filesystem::StatsInstance
+  MOCK_METHOD4(createFile, FileSharedPtr(const std::string&, Event::Dispatcher&,
+                                         Thread::BasicLockable&, std::chrono::milliseconds));
+  MOCK_METHOD3(createFile,
+               FileSharedPtr(const std::string&, Event::Dispatcher&, Thread::BasicLockable&));
+
+  // Filesystem::Instance
+  MOCK_METHOD1(fileExists, bool(const std::string&));
+  MOCK_METHOD1(directoryExists, bool(const std::string&));
+  MOCK_METHOD1(fileSize, ssize_t(const std::string&));
+  MOCK_METHOD1(fileReadToEnd, std::string(const std::string&));
+  MOCK_METHOD1(illegalPath, bool(const std::string&));
+
+  std::shared_ptr<Filesystem::MockFile> file_{new Filesystem::MockFile()};
+};
+
 class MockWatcher : public Watcher {
 public:
   MockWatcher();

@@ -163,7 +163,8 @@ MockMain::~MockMain() {}
 
 MockFactoryContext::MockFactoryContext()
     : singleton_manager_(
-          new Singleton::ManagerImpl(Thread::threadFactoryForTest().currentThreadId())) {
+          new Singleton::ManagerImpl(Thread::threadFactoryForTest().currentThreadId())),
+      file_system_(Filesystem::fileSystemForTest()) {
   ON_CALL(*this, accessLogManager()).WillByDefault(ReturnRef(access_log_manager_));
   ON_CALL(*this, clusterManager()).WillByDefault(ReturnRef(cluster_manager_));
   ON_CALL(*this, dispatcher()).WillByDefault(ReturnRef(dispatcher_));
@@ -184,7 +185,8 @@ MockFactoryContext::MockFactoryContext()
 MockFactoryContext::~MockFactoryContext() {}
 
 MockTransportSocketFactoryContext::MockTransportSocketFactoryContext()
-    : secret_manager_(new Secret::SecretManagerImpl()) {}
+    : secret_manager_(new Secret::SecretManagerImpl()),
+      file_system_(Filesystem::fileSystemForTest()) {}
 
 MockTransportSocketFactoryContext::~MockTransportSocketFactoryContext() {}
 

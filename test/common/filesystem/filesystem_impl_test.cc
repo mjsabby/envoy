@@ -30,21 +30,21 @@ using testing::Throw;
 
 namespace Envoy {
 
-#if !defined(WIN32)
-const std::string devNull = "/dev/null";
-#else
+#ifdef WIN32
 const std::string devNull = "NUL";
+#else
+const std::string devNull = "/dev/null";
 #endif
 
 class FileSystemImplTest : public testing::Test {
 protected:
   FileSystemImplTest()
-      : file_system_(std::chrono::milliseconds(10000), Thread::threadFactoryForTest(),
-                     stats_store_) {}
+      : file_system_(std::chrono::milliseconds(10000), Thread::threadFactoryForTest(), stats_store_,
+                     Filesystem::fileSystemForTest()) {}
 
   const std::chrono::milliseconds timeout_40ms_{40};
   Stats::IsolatedStoreImpl stats_store_;
-  Filesystem::Instance file_system_;
+  Filesystem::StatsInstanceImpl file_system_;
 };
 
 TEST_F(FileSystemImplTest, BadFile) {
@@ -55,40 +55,42 @@ TEST_F(FileSystemImplTest, BadFile) {
 }
 
 TEST_F(FileSystemImplTest, fileExists) {
-  EXPECT_FALSE(Filesystem::fileExists("/dev/blahblahblah"));
-#if !defined(WIN32)
-  EXPECT_TRUE(Filesystem::fileExists(devNull));
-  EXPECT_TRUE(Filesystem::fileExists("/dev"));
-#else
+  EXPECT_FALSE(file_system_.fileExists("/dev/blahblahblah"));
+#ifdef WIN32
   const std::string file_path = TestEnvironment::writeStringToFileForTest("test_envoy", "x");
-  EXPECT_TRUE(Filesystem::fileExists(file_path));
-  EXPECT_TRUE(Filesystem::fileExists("c:/windows"));
+  EXPECT_TRUE(file_system_.fileExists(file_path));
+  EXPECT_TRUE(file_system_.fileExists("c:/windows"));
+#else
+  EXPECT_TRUE(file_system_.fileExists(devNull));
+  EXPECT_TRUE(file_system_.fileExists("/dev"));
 #endif
 }
 
 TEST_F(FileSystemImplTest, directoryExists) {
-  EXPECT_FALSE(Filesystem::directoryExists(devNull));
-#if !defined(WIN32)
-  EXPECT_TRUE(Filesystem::directoryExists("/dev"));
+#ifdef WIN32
+  const std::string file_path = TestEnvironment::writeStringToFileForTest("test_envoy", "x");
+  EXPECT_FALSE(file_system_.directoryExists(file_path));
+  EXPECT_TRUE(file_system_.directoryExists("c:/windows"));
 #else
-  EXPECT_TRUE(Filesystem::directoryExists("c:/windows"));
+  EXPECT_FALSE(file_system_.directoryExists(devNull));
+  EXPECT_TRUE(file_system_.directoryExists("/dev"));
 #endif
-  EXPECT_FALSE(Filesystem::directoryExists("/dev/blahblah"));
+  EXPECT_FALSE(file_system_.directoryExists("/dev/blahblah"));
 }
 
 TEST_F(FileSystemImplTest, fileSize) {
-  EXPECT_EQ(0, Filesystem::fileSize(devNull));
-  EXPECT_EQ(-1, Filesystem::fileSize("/dev/blahblahblah"));
+  EXPECT_EQ(0, file_system_.fileSize(devNull));
+  EXPECT_EQ(-1, file_system_.fileSize("/dev/blahblahblah"));
   const std::string data = "test string\ntest";
   const std::string file_path = TestEnvironment::writeStringToFileForTest("test_envoy", data);
-  EXPECT_EQ(data.length(), Filesystem::fileSize(file_path));
+  EXPECT_EQ(data.length(), file_system_.fileSize(file_path));
 }
 
 TEST_F(FileSystemImplTest, fileReadToEndSuccess) {
   const std::string data = "test string\ntest";
   const std::string file_path = TestEnvironment::writeStringToFileForTest("test_envoy", data);
 
-  EXPECT_EQ(data, Filesystem::fileReadToEnd(file_path));
+  EXPECT_EQ(data, file_system_.fileReadToEnd(file_path));
 }
 
 // Files are read into std::string; verify that all bytes (eg non-ascii characters) come back
@@ -100,7 +102,7 @@ TEST_F(FileSystemImplTest, fileReadToEndSuccessBinary) {
   }
   const std::string file_path = TestEnvironment::writeStringToFileForTest("test_envoy", data);
 
-  const std::string read = Filesystem::fileReadToEnd(file_path);
+  const std::string read = file_system_.fileReadToEnd(file_path);
   const std::vector<uint8_t> binary_read(read.begin(), read.end());
   EXPECT_EQ(binary_read.size(), 256);
   for (unsigned i = 0; i < 256; i++) {
@@ -110,41 +112,43 @@ TEST_F(FileSystemImplTest, fileReadToEndSuccessBinary) {
 
 TEST_F(FileSystemImplTest, fileReadToEndDoesNotExist) {
   unlink(TestEnvironment::temporaryPath("envoy_this_not_exist").c_str());
-  EXPECT_THROW(Filesystem::fileReadToEnd(TestEnvironment::temporaryPath("envoy_this_not_exist")),
+  EXPECT_THROW(file_system_.fileReadToEnd(TestEnvironment::temporaryPath("envoy_this_not_exist")),
                EnvoyException);
 }
 
+#ifndef WIN32
 TEST_F(FileSystemImplTest, CanonicalPathSuccess) {
-#if !defined(WIN32)
-  EXPECT_EQ("/", Filesystem::canonicalPath("//"));
-#else
-  EXPECT_EQ("C:\\", Filesystem::canonicalPath("//"));
-#endif
+  Filesystem::InstanceImpl file_system_impl;
+  EXPECT_EQ("/", file_system_impl.canonicalPath("//"));
 }
 
 TEST_F(FileSystemImplTest, CanonicalPathFail) {
-  EXPECT_THROW_WITH_MESSAGE(Filesystem::canonicalPath("/_some_non_existent_file"), EnvoyException,
+  Filesystem::InstanceImpl file_system_impl;
+  EXPECT_THROW_WITH_MESSAGE(file_system_impl.canonicalPath("/_some_non_existent_file"),
+                            EnvoyException,
                             "Unable to determine canonical path for /_some_non_existent_file");
 }
+#endif
 
 TEST_F(FileSystemImplTest, IllegalPath) {
-  EXPECT_FALSE(Filesystem::illegalPath("/"));
-#if !defined(WIN32)
-  EXPECT_TRUE(Filesystem::illegalPath("/dev"));
-  EXPECT_TRUE(Filesystem::illegalPath("/dev/"));
-  EXPECT_TRUE(Filesystem::illegalPath("/proc"));
-  EXPECT_TRUE(Filesystem::illegalPath("/proc/"));
-  EXPECT_TRUE(Filesystem::illegalPath("/sys"));
-  EXPECT_TRUE(Filesystem::illegalPath("/sys/"));
-  EXPECT_TRUE(Filesystem::illegalPath("/_some_non_existent_file"));
+  EXPECT_FALSE(file_system_.illegalPath("/"));
+#ifdef WIN32
+  EXPECT_FALSE(file_system_.illegalPath("/dev"));
+  EXPECT_FALSE(file_system_.illegalPath("/dev/"));
+  EXPECT_FALSE(file_system_.illegalPath("/proc"));
+  EXPECT_FALSE(file_system_.illegalPath("/proc/"));
+  EXPECT_FALSE(file_system_.illegalPath("/sys"));
+  EXPECT_FALSE(file_system_.illegalPath("/sys/"));
+  EXPECT_FALSE(file_system_.illegalPath("/_some_non_existent_file"));
 #else
-  EXPECT_FALSE(Filesystem::illegalPath("/dev"));
-  EXPECT_FALSE(Filesystem::illegalPath("/dev/"));
-  EXPECT_FALSE(Filesystem::illegalPath("/proc"));
-  EXPECT_FALSE(Filesystem::illegalPath("/proc/"));
-  EXPECT_FALSE(Filesystem::illegalPath("/sys"));
-  EXPECT_FALSE(Filesystem::illegalPath("/sys/"));
-  EXPECT_FALSE(Filesystem::illegalPath("/_some_non_existent_file"));
+  EXPECT_FALSE(file_system_.illegalPath("//"));
+  EXPECT_TRUE(file_system_.illegalPath("/dev"));
+  EXPECT_TRUE(file_system_.illegalPath("/dev/"));
+  EXPECT_TRUE(file_system_.illegalPath("/proc"));
+  EXPECT_TRUE(file_system_.illegalPath("/proc/"));
+  EXPECT_TRUE(file_system_.illegalPath("/sys"));
+  EXPECT_TRUE(file_system_.illegalPath("/sys/"));
+  EXPECT_TRUE(file_system_.illegalPath("/_some_non_existent_file"));
 #endif
 }
 

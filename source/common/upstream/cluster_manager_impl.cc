@@ -244,7 +244,7 @@ ClusterManagerImpl::ClusterManagerImpl(
     const auto& sds_config = bootstrap.dynamic_resources().deprecated_v1().sds_config();
     switch (sds_config.config_source_specifier_case()) {
     case envoy::api::v2::core::ConfigSource::kPath: {
-      Config::Utility::checkFilesystemSubscriptionBackingPath(sds_config.path());
+      Config::Utility::checkFilesystemSubscriptionBackingPath(sds_config.path(), api.fileSystem());
       break;
     }
     case envoy::api::v2::core::ConfigSource::kApiConfigSource: {
@@ -1215,14 +1215,15 @@ ClusterSharedPtr ProdClusterManagerFactory::clusterFromProto(
     bool added_via_api) {
   return ClusterImplBase::create(cluster, cm, stats_, tls_, dns_resolver_, ssl_context_manager_,
                                  runtime_, random_, main_thread_dispatcher_, log_manager,
-                                 local_info_, outlier_event_logger, added_via_api);
+                                 local_info_, outlier_event_logger, added_via_api,
+                                 api_.fileSystem());
 }
 
 CdsApiPtr ProdClusterManagerFactory::createCds(
     const envoy::api::v2::core::ConfigSource& cds_config,
     const absl::optional<envoy::api::v2::core::ConfigSource>& eds_config, ClusterManager& cm) {
   return CdsApiImpl::create(cds_config, eds_config, cm, main_thread_dispatcher_, random_,
-                            local_info_, stats_);
+                            local_info_, stats_, api_.fileSystem());
 }
 
 } // namespace Upstream

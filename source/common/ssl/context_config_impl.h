@@ -58,6 +58,7 @@ public:
 protected:
   ContextConfigImpl(const envoy::api::v2::auth::CommonTlsContext& config,
                     Server::Configuration::TransportSocketFactoryContext& factory_context);
+  Filesystem::Instance& file_system_;
 
 private:
   static unsigned

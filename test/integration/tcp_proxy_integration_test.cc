@@ -259,7 +259,7 @@ TEST_P(TcpProxyIntegrationTest, AccessLog) {
   std::string log_result;
   // Access logs only get flushed to disk periodically, so poll until the log is non-empty
   do {
-    log_result = Filesystem::fileReadToEnd(access_log_path);
+    log_result = Filesystem::fileSystemForTest().fileReadToEnd(access_log_path);
   } while (log_result.empty());
 
   // Regex matching localhost:port

@@ -43,7 +43,9 @@ namespace Upstream {
 
 class SdsTest : public testing::Test {
 protected:
-  SdsTest() : request_(&cm_.async_client_) { resetCluster(false); }
+  SdsTest() : request_(&cm_.async_client_), file_system_(Filesystem::fileSystemForTest()) {
+    resetCluster(false);
+  }
 
   void resetCluster(bool set_request_timeout) {
     std::string raw_config = R"EOF(
@@ -76,7 +78,7 @@ protected:
         "cluster.{}.",
         sds_cluster_.alt_stat_name().empty() ? sds_cluster_.name() : sds_cluster_.alt_stat_name()));
     Envoy::Server::Configuration::TransportSocketFactoryContextImpl factory_context(
-        ssl_context_manager_, *scope, cm_, local_info_, dispatcher_, random_, stats_);
+        ssl_context_manager_, *scope, cm_, local_info_, dispatcher_, random_, stats_, file_system_);
     cluster_.reset(
         new EdsClusterImpl(sds_cluster_, runtime_, factory_context, std::move(scope), false));
     EXPECT_EQ(Cluster::InitializePhase::Secondary, cluster_->initializePhase());
@@ -138,6 +140,7 @@ protected:
   Http::MockAsyncClientRequest request_;
   NiceMock<Runtime::MockLoader> runtime_;
   NiceMock<LocalInfo::MockLocalInfo> local_info_;
+  Filesystem::Instance& file_system_;
 };
 
 TEST_F(SdsTest, Shutdown) {
@@ -177,7 +180,7 @@ TEST_F(SdsTest, NoHealthChecker) {
 
   Http::MessagePtr message(new Http::ResponseMessageImpl(
       Http::HeaderMapPtr{new Http::TestHeaderMapImpl{{":status", "200"}}}));
-  message->body() = std::make_unique<Buffer::OwnedImpl>(Filesystem::fileReadToEnd(
+  message->body() = std::make_unique<Buffer::OwnedImpl>(file_system_.fileReadToEnd(
       TestEnvironment::runfilesPath("test/common/upstream/test_data/sds_response.json")));
 
   EXPECT_CALL(membership_updated_, ready()).Times(2);
@@ -216,7 +219,7 @@ TEST_F(SdsTest, NoHealthChecker) {
   message = std::make_unique<Http::ResponseMessageImpl>(
       Http::HeaderMapPtr{new Http::TestHeaderMapImpl{{":status", "200"}}});
   message->body() =
-      std::make_unique<Buffer::OwnedImpl>(Filesystem::fileReadToEnd(TestEnvironment::runfilesPath(
+      std::make_unique<Buffer::OwnedImpl>(file_system_.fileReadToEnd(TestEnvironment::runfilesPath(
           "test/common/upstream/test_data/sds_response_weight_change.json")));
   EXPECT_CALL(membership_updated_, ready());
   EXPECT_CALL(*timer_, enableTimer(_));
@@ -303,7 +306,7 @@ TEST_F(SdsTest, HealthChecker) {
   // all the hosts to load in unhealthy.
   Http::MessagePtr message(new Http::ResponseMessageImpl(
       Http::HeaderMapPtr{new Http::TestHeaderMapImpl{{":status", "200"}}}));
-  message->body() = std::make_unique<Buffer::OwnedImpl>(Filesystem::fileReadToEnd(
+  message->body() = std::make_unique<Buffer::OwnedImpl>(file_system_.fileReadToEnd(
       TestEnvironment::runfilesPath("test/common/upstream/test_data/sds_response.json")));
 
   EXPECT_CALL(*health_checker, addHostCheckCompleteCb(_));
@@ -382,7 +385,7 @@ TEST_F(SdsTest, HealthChecker) {
   EXPECT_CALL(*timer_, enableTimer(_));
   message = std::make_unique<Http::ResponseMessageImpl>(
       Http::HeaderMapPtr{new Http::TestHeaderMapImpl{{":status", "200"}}});
-  message->body() = std::make_unique<Buffer::OwnedImpl>(Filesystem::fileReadToEnd(
+  message->body() = std::make_unique<Buffer::OwnedImpl>(file_system_.fileReadToEnd(
       TestEnvironment::runfilesPath("test/common/upstream/test_data/sds_response_2.json")));
   callbacks_->onSuccess(std::move(message));
   EXPECT_EQ(14UL, cluster_->prioritySet().hostSetsPerPriority()[0]->hosts().size());
@@ -411,7 +414,7 @@ TEST_F(SdsTest, HealthChecker) {
   EXPECT_CALL(*timer_, enableTimer(_));
   message = std::make_unique<Http::ResponseMessageImpl>(
       Http::HeaderMapPtr{new Http::TestHeaderMapImpl{{":status", "200"}}});
-  message->body() = std::make_unique<Buffer::OwnedImpl>(Filesystem::fileReadToEnd(
+  message->body() = std::make_unique<Buffer::OwnedImpl>(file_system_.fileReadToEnd(
       TestEnvironment::runfilesPath("test/common/upstream/test_data/sds_response_2.json")));
   callbacks_->onSuccess(std::move(message));
   EXPECT_EQ(13UL, cluster_->prioritySet().hostSetsPerPriority()[0]->hosts().size());
@@ -439,7 +442,7 @@ TEST_F(SdsTest, HealthChecker) {
   EXPECT_CALL(*timer_, enableTimer(_));
   message = std::make_unique<Http::ResponseMessageImpl>(
       Http::HeaderMapPtr{new Http::TestHeaderMapImpl{{":status", "200"}}});
-  message->body() = std::make_unique<Buffer::OwnedImpl>(Filesystem::fileReadToEnd(
+  message->body() = std::make_unique<Buffer::OwnedImpl>(file_system_.fileReadToEnd(
       TestEnvironment::runfilesPath("test/common/upstream/test_data/sds_response_3.json")));
   callbacks_->onSuccess(std::move(message));
   EXPECT_EQ(13UL, cluster_->prioritySet().hostSetsPerPriority()[0]->hosts().size());

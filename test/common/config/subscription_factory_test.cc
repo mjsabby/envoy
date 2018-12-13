@@ -28,7 +28,8 @@ namespace Config {
 
 class SubscriptionFactoryTest : public ::testing::Test {
 public:
-  SubscriptionFactoryTest() : http_request_(&cm_.async_client_) {
+  SubscriptionFactoryTest()
+      : http_request_(&cm_.async_client_), file_system_(Filesystem::fileSystemForTest()) {
     legacy_subscription_ =
         std::make_unique<MockSubscription<envoy::api::v2::ClusterLoadAssignment>>();
   }
@@ -41,7 +42,7 @@ public:
           return legacy_subscription_.release();
         },
         "envoy.api.v2.EndpointDiscoveryService.FetchEndpoints",
-        "envoy.api.v2.EndpointDiscoveryService.StreamEndpoints");
+        "envoy.api.v2.EndpointDiscoveryService.StreamEndpoints", file_system_);
   }
 
   Upstream::MockClusterManager cm_;
@@ -52,6 +53,7 @@ public:
   Http::MockAsyncClientRequest http_request_;
   Stats::MockIsolatedStatsStore stats_store_;
   NiceMock<LocalInfo::MockLocalInfo> local_info_;
+  Filesystem::Instance& file_system_;
 };
 
 class SubscriptionFactoryTestApiConfigSource

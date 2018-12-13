@@ -40,14 +40,15 @@ public:
       const envoy::api::v2::core::ConfigSource& config, const LocalInfo::LocalInfo& local_info,
       Event::Dispatcher& dispatcher, Upstream::ClusterManager& cm, Runtime::RandomGenerator& random,
       Stats::Scope& scope, std::function<Subscription<ResourceType>*()> rest_legacy_constructor,
-      const std::string& rest_method, const std::string& grpc_method) {
+      const std::string& rest_method, const std::string& grpc_method,
+      Filesystem::Instance& file_system) {
     std::unique_ptr<Subscription<ResourceType>> result;
     SubscriptionStats stats = Utility::generateStats(scope);
     switch (config.config_source_specifier_case()) {
     case envoy::api::v2::core::ConfigSource::kPath: {
-      Utility::checkFilesystemSubscriptionBackingPath(config.path());
-      result.reset(
-          new Config::FilesystemSubscriptionImpl<ResourceType>(dispatcher, config.path(), stats));
+      Utility::checkFilesystemSubscriptionBackingPath(config.path(), file_system);
+      result.reset(new Config::FilesystemSubscriptionImpl<ResourceType>(dispatcher, config.path(),
+                                                                        stats, file_system));
       break;
     }
     case envoy::api::v2::core::ConfigSource::kApiConfigSource: {

@@ -79,13 +79,14 @@ private:
 } // namespace
 
 JsonTranscoderConfig::JsonTranscoderConfig(
-    const envoy::config::filter::http::transcoder::v2::GrpcJsonTranscoder& proto_config) {
+    const envoy::config::filter::http::transcoder::v2::GrpcJsonTranscoder& proto_config,
+    Filesystem::Instance& file_system) {
   FileDescriptorSet descriptor_set;
 
   switch (proto_config.descriptor_set_case()) {
   case envoy::config::filter::http::transcoder::v2::GrpcJsonTranscoder::kProtoDescriptor:
     if (!descriptor_set.ParseFromString(
-            Filesystem::fileReadToEnd(proto_config.proto_descriptor()))) {
+            file_system.fileReadToEnd(proto_config.proto_descriptor()))) {
       throw EnvoyException("transcoding_filter: Unable to parse proto descriptor");
     }
     break;

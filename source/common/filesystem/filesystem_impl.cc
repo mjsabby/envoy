@@ -4,8 +4,10 @@
 #include <dirent.h>
 #else
 #include <fcntl.h>
-#include <experimental/filesystem> // C++-standard header file name
-#include <filesystem>              // Microsoft-specific implementation header file name
+#include <io.h>
+#include <windows.h>
+#undef DELETE
+#undef GetMessage
 #endif
 #include <sys/stat.h>
 
@@ -34,17 +36,24 @@
 namespace Envoy {
 namespace Filesystem {
 
-bool fileExists(const std::string& path) {
-#if !defined(WIN32)
+bool InstanceImpl::fileExists(const std::string& path) {
+#if defined(WIN32)
+  const DWORD attributes = ::GetFileAttributes(path.c_str());
+  return attributes != INVALID_FILE_ATTRIBUTES;
+#else
   std::ifstream input_file(path);
   return input_file.is_open();
-#else
-  return std::experimental::filesystem::v1::exists(path);
 #endif
 }
 
-bool directoryExists(const std::string& path) {
-#if !defined(WIN32)
+bool InstanceImpl::directoryExists(const std::string& path) {
+#if defined(WIN32)
+  const DWORD attributes = ::GetFileAttributes(path.c_str());
+  if (attributes == INVALID_FILE_ATTRIBUTES) {
+    return false;
+  }
+  return attributes & FILE_ATTRIBUTE_DIRECTORY;
+#else
   DIR* const dir = opendir(path.c_str());
   const bool dir_exists = nullptr != dir;
   if (dir_exists) {
@@ -52,13 +61,10 @@ bool directoryExists(const std::string& path) {
   }
 
   return dir_exists;
-#else
-  return std::experimental::filesystem::v1::exists(path) &&
-         std::experimental::filesystem::v1::is_directory(path);
 #endif
 }
 
-ssize_t fileSize(const std::string& path) {
+ssize_t InstanceImpl::fileSize(const std::string& path) {
   struct stat info;
   auto& os_sys_calls = Api::OsSysCallsSingleton::get();
   if (os_sys_calls.stat(path.c_str(), &info).rc_ != 0) {
@@ -67,15 +73,16 @@ ssize_t fileSize(const std::string& path) {
   return info.st_size;
 }
 
-std::string fileReadToEnd(const std::string& path, std::ios_base::openmode mode) {
+std::string InstanceImpl::fileReadToEnd(const std::string& path) {
   std::ios::sync_with_stdio(false);
 
-#if defined(WIN32)
+#ifdef WIN32
   // On Windows, we need to explicitly set the file mode as binary. Otherwise,
   // 0x1a will be treated as EOF
-  mode |= std::ios_base::binary;
+  std::ifstream file(path, std::ios_base::binary);
+#else
+  std::ifstream file(path);
 #endif
-  std::ifstream file(path, mode);
   if (!file) {
     throw EnvoyException(fmt::format("unable to read file: {}", path));
   }
@@ -86,26 +93,7 @@ std::string fileReadToEnd(const std::string& path, std::ios_base::openmode mode)
   return file_string.str();
 }
 
-std::string canonicalPath(const std::string& path) {
-// TODO(htuch): When we are using C++17, switch to std::filesystem::canonical.
-#if !defined(WIN32)
-  char* resolved_path = ::realpath(path.c_str(), nullptr);
-  if (resolved_path == nullptr) {
-    throw EnvoyException(fmt::format("Unable to determine canonical path for {}", path));
-  }
-  std::string resolved_path_string{resolved_path};
-  free(resolved_path);
-  return resolved_path_string;
-#else
-  auto canonical = std::experimental::filesystem::v1::canonical(path);
-  if (!std::experimental::filesystem::v1::exists(canonical)) {
-    throw EnvoyException(fmt::format("Unable to determine canonical path for {}", path));
-  }
-  return canonical.string();
-#endif
-}
-
-bool illegalPath(const std::string& path) {
+bool InstanceImpl::illegalPath(const std::string& path) {
 #if !defined(WIN32)
   try {
     const std::string canonical_path = canonicalPath(path);
@@ -129,19 +117,58 @@ bool illegalPath(const std::string& path) {
 #endif
 }
 
-Instance::Instance(std::chrono::milliseconds file_flush_interval_msec,
-                   Thread::ThreadFactory& thread_factory, Stats::Store& stats_store)
+std::string InstanceImpl::canonicalPath(const std::string& path) {
+// TODO(htuch): When we are using C++17, switch to std::filesystem::canonical.
+#if defined(WIN32)
+  PANIC("don't call canonical path on windows");
+#else
+  char* resolved_path = ::realpath(path.c_str(), nullptr);
+  if (resolved_path == nullptr) {
+    throw EnvoyException(fmt::format("Unable to determine canonical path for {}", path));
+  }
+  std::string resolved_path_string{resolved_path};
+  free(resolved_path);
+  return resolved_path_string;
+#endif
+}
+
+StatsInstanceImpl::StatsInstanceImpl(std::chrono::milliseconds file_flush_interval_msec,
+                                     Thread::ThreadFactory& thread_factory,
+                                     Stats::Store& stats_store, Instance& file_system)
     : file_flush_interval_msec_(file_flush_interval_msec),
       file_stats_{FILESYSTEM_STATS(POOL_COUNTER_PREFIX(stats_store, "filesystem."),
                                    POOL_GAUGE_PREFIX(stats_store, "filesystem."))},
-      thread_factory_(thread_factory) {}
+      thread_factory_(thread_factory), file_system_(file_system) {}
 
-FileSharedPtr Instance::createFile(const std::string& path, Event::Dispatcher& dispatcher,
-                                   Thread::BasicLockable& lock,
-                                   std::chrono::milliseconds file_flush_interval_msec) {
-  return std::make_shared<Filesystem::FileImpl>(path, dispatcher, lock, file_stats_,
-                                                file_flush_interval_msec, thread_factory_);
+FileSharedPtr StatsInstanceImpl::createFile(const std::string& path, Event::Dispatcher& dispatcher,
+                                            Thread::BasicLockable& lock,
+                                            std::chrono::milliseconds file_flush_interval_msec) {
+  return std::make_shared<FileImpl>(path, dispatcher, lock, file_stats_, file_flush_interval_msec,
+                                    thread_factory_);
 };
+
+FileSharedPtr StatsInstanceImpl::createFile(const std::string& path, Event::Dispatcher& dispatcher,
+                                            Thread::BasicLockable& lock) {
+  return createFile(path, dispatcher, lock, file_flush_interval_msec_);
+}
+
+bool StatsInstanceImpl::fileExists(const std::string& path) {
+  return file_system_.fileExists(path);
+}
+
+bool StatsInstanceImpl::directoryExists(const std::string& path) {
+  return file_system_.directoryExists(path);
+}
+
+ssize_t StatsInstanceImpl::fileSize(const std::string& path) { return file_system_.fileSize(path); }
+
+std::string StatsInstanceImpl::fileReadToEnd(const std::string& path) {
+  return file_system_.fileReadToEnd(path);
+}
+
+bool StatsInstanceImpl::illegalPath(const std::string& path) {
+  return file_system_.illegalPath(path);
+}
 
 FileImpl::FileImpl(const std::string& path, Event::Dispatcher& dispatcher,
                    Thread::BasicLockable& lock, FileSystemStats& stats,

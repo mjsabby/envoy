@@ -315,6 +315,7 @@ public:
    * @param ssl_context_manager supplies a manager for all SSL contexts.
    * @param secret_manager supplies a manager for static secrets.
    * @param added_via_api denotes whether this was added via API.
+   * @param file_system supplies a filesytem instance.
    * @return Upstream::ClusterInfoConstSharedPtr
    */
   virtual Upstream::ClusterInfoConstSharedPtr
@@ -322,7 +323,8 @@ public:
                     const envoy::api::v2::core::BindConfig& bind_config, Stats::Store& stats,
                     Ssl::ContextManager& ssl_context_manager, bool added_via_api,
                     ClusterManager& cm, const LocalInfo::LocalInfo& local_info,
-                    Event::Dispatcher& dispatcher, Runtime::RandomGenerator& random) PURE;
+                    Event::Dispatcher& dispatcher, Runtime::RandomGenerator& random,
+                    Filesystem::Instance& file_system) PURE;
 };
 
 } // namespace Upstream

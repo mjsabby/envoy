@@ -10,6 +10,8 @@
 #include "envoy/stats/store.h"
 
 #include "common/api/os_sys_calls_impl.h"
+#include "common/filesystem/filesystem_impl.h"
+#include "common/stats/isolated_store_impl.h"
 
 #include "test/mocks/filesystem/mocks.h"
 #include "test/test_common/test_time_system.h"
@@ -30,14 +32,12 @@ public:
   }
 
   MOCK_METHOD1(allocateDispatcher_, Event::Dispatcher*(Event::TimeSystem&));
-  MOCK_METHOD3(createFile,
-               Filesystem::FileSharedPtr(const std::string& path, Event::Dispatcher& dispatcher,
-                                         Thread::BasicLockable& lock));
-  MOCK_METHOD1(fileExists, bool(const std::string& path));
-  MOCK_METHOD1(fileReadToEnd, std::string(const std::string& path));
+  MOCK_METHOD0(fileSystem, Filesystem::StatsInstance&());
   MOCK_METHOD0(threadFactory, Thread::ThreadFactory&());
 
-  std::shared_ptr<Filesystem::MockFile> file_{new Filesystem::MockFile()};
+  Thread::ThreadFactory& thread_factory_;
+  Stats::IsolatedStoreImpl store_;
+  Filesystem::StatsInstanceImpl file_system_;
 };
 
 class MockOsSysCalls : public OsSysCallsImpl {

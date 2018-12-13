@@ -32,85 +32,46 @@ struct FileSystemStats {
 
 namespace Filesystem {
 
+class InstanceImpl : public Instance {
+public:
+  bool fileExists(const std::string& path) override;
+  bool directoryExists(const std::string& path) override;
+  ssize_t fileSize(const std::string& path) override;
+  std::string fileReadToEnd(const std::string& path) override;
+  bool illegalPath(const std::string& path) override;
+
+  std::string canonicalPath(const std::string& path);
+};
+
 /**
  * Captures state, properties, and stats of a file-system.
  */
-class Instance {
+class StatsInstanceImpl : public StatsInstance {
 public:
-  Instance(std::chrono::milliseconds file_flush_interval_msec,
-           Thread::ThreadFactory& thread_factory, Stats::Store& store);
+  StatsInstanceImpl(std::chrono::milliseconds file_flush_interval_msec,
+                    Thread::ThreadFactory& thread_factory, Stats::Store& store,
+                    Instance& file_system);
 
-  /**
-   * Creates a file, overriding the flush-interval set in the class.
-   *
-   * @param path The path of the file to open.
-   * @param dispatcher The dispatcher used for set up timers to run flush().
-   * @param lock The lock.
-   * @param file_flush_interval_msec Number of milliseconds to delay before flushing.
-   */
+  // Filesystem::StatsInstance
   FileSharedPtr createFile(const std::string& path, Event::Dispatcher& dispatcher,
                            Thread::BasicLockable& lock,
-                           std::chrono::milliseconds file_flush_interval_msec);
-
-  /**
-   * Creates a file, using the default flush-interval for the class.
-   *
-   * @param path The path of the file to open.
-   * @param dispatcher The dispatcher used for set up timers to run flush().
-   * @param lock The lock.
-   */
+                           std::chrono::milliseconds file_flush_interval_msec) override;
   FileSharedPtr createFile(const std::string& path, Event::Dispatcher& dispatcher,
-                           Thread::BasicLockable& lock) {
-    return createFile(path, dispatcher, lock, file_flush_interval_msec_);
-  }
+                           Thread::BasicLockable& lock) override;
+
+  // Filesystem::Instance
+  bool fileExists(const std::string& path) override;
+  bool directoryExists(const std::string& path) override;
+  ssize_t fileSize(const std::string& path) override;
+  std::string fileReadToEnd(const std::string& path) override;
+  bool illegalPath(const std::string& path) override;
 
 private:
   const std::chrono::milliseconds file_flush_interval_msec_;
   FileSystemStats file_stats_;
   Thread::ThreadFactory& thread_factory_;
+  Instance& file_system_;
 };
-
-/**
- * @return bool whether a file exists on disk and can be opened for read.
- */
-bool fileExists(const std::string& path);
-
-/**
- * @return bool whether a directory exists on disk and can be opened for read.
- */
-bool directoryExists(const std::string& path);
-
-/**
- * @return ssize_t the size in bytes of the specified file, or -1 if the file size
- *                 cannot be determined for any reason, including without limitation
- *                 the non-existence of the file.
- */
-ssize_t fileSize(const std::string& path);
-
-/**
- * @return full file content as a string.
- * @throw EnvoyException if the file cannot be read.
- * Be aware, this is not most highly performing file reading method.
- */
-std::string fileReadToEnd(const std::string& path,
-                          std::ios_base::openmode mode = std::ios_base::in);
-
-/**
- * @param path some filesystem path.
- * @return std::string the canonical path (see realpath(3)).
- */
-std::string canonicalPath(const std::string& path);
-
-/**
- * Determine if the path is on a list of paths Envoy will refuse to access. This
- * is a basic sanity check for users, blacklisting some clearly bad paths. Paths
- * may still be problematic (e.g. indirectly leading to /dev/mem) even if this
- * returns false, it is up to the user to validate that supplied paths are
- * valid.
- * @param path some filesystem path.
- * @return is the path on the blacklist?
- */
-bool illegalPath(const std::string& path);
 
 /**
  * This is a file implementation geared for writing out access logs. It turn out that in certain
