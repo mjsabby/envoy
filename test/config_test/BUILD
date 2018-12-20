@@ -24,6 +24,7 @@ envoy_cc_test(
         "example_configs_test_setup.sh",
         "//configs:example_configs",
     ],
+    test_on_windows = False,
     deps = [
         ":config_test_lib",
         "//test/test_common:environment_lib",

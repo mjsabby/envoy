@@ -192,7 +192,7 @@ public:
   void addOptions(const Socket::OptionsSharedPtr& options) override { addOptions_(options); }
 
   MOCK_CONST_METHOD0(localAddress, const Address::InstanceConstSharedPtr&());
-  MOCK_CONST_METHOD0(fd, int());
+  MOCK_CONST_METHOD0(fd, SOCKET_FD());
   MOCK_METHOD0(close, void());
   MOCK_METHOD1(addOption_, void(const Socket::OptionConstSharedPtr& option));
   MOCK_METHOD1(addOptions_, void(const Socket::OptionsSharedPtr& options));
@@ -234,7 +234,7 @@ public:
   MOCK_METHOD1(addOption_, void(const Socket::OptionConstSharedPtr&));
   MOCK_METHOD1(addOptions_, void(const Socket::OptionsSharedPtr&));
   MOCK_CONST_METHOD0(options, const Network::ConnectionSocket::OptionsSharedPtr&());
-  MOCK_CONST_METHOD0(fd, int());
+  MOCK_CONST_METHOD0(fd, SOCKET_FD());
   MOCK_METHOD0(close, void());
 
   Address::InstanceConstSharedPtr local_address_;
@@ -315,10 +315,10 @@ public:
     return asString() == other.asString();
   }
 
-  MOCK_CONST_METHOD1(bind, Api::SysCallIntResult(int));
-  MOCK_CONST_METHOD1(connect, Api::SysCallIntResult(int));
+  MOCK_CONST_METHOD1(bind, Api::SysCallIntResult(SOCKET_FD));
+  MOCK_CONST_METHOD1(connect, Api::SysCallIntResult(SOCKET_FD));
   MOCK_CONST_METHOD0(ip, Address::Ip*());
-  MOCK_CONST_METHOD1(socket, int(Address::SocketType));
+  MOCK_CONST_METHOD1(socket, SOCKET_FD(Address::SocketType));
   MOCK_CONST_METHOD0(type, Address::Type());
 
   const std::string& asString() const override { return physical_; }

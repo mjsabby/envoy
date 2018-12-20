@@ -28,7 +28,13 @@ TEST_F(ApiImplTest, readFileToEnd) {
 }
 
 TEST_F(ApiImplTest, fileExists) {
+#if !defined(WIN32)
   EXPECT_TRUE(api_->fileExists("/dev/null"));
+#else
+  const std::string file_path =
+      TestEnvironment::writeStringToFileForTest("an_existing_file", "hello");
+  EXPECT_TRUE(api_->fileExists(file_path));
+#endif
   EXPECT_FALSE(api_->fileExists("/dev/blahblahblah"));
 }
 

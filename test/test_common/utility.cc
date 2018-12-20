@@ -14,6 +14,7 @@
 #include <cstdint>
 #include <fstream>
 #include <iostream>
+#include <iomanip>
 #include <list>
 #include <stdexcept>
 #include <string>
@@ -23,6 +24,7 @@
 #include "envoy/http/codec.h"
 
 #include "common/api/api_impl.h"
+#include "common/api/os_sys_calls_impl.h"
 #include "common/common/empty_string.h"
 #include "common/common/fmt.h"
 #include "common/common/lock_guard.h"
@@ -226,12 +228,30 @@ void TestUtility::createSymlink(const std::string& target, const std::string& li
 // static
 std::tm TestUtility::parseTimestamp(const std::string& format, const std::string& time_str) {
   std::tm timestamp{};
-  const char* parsed_to = strptime(time_str.c_str(), format.c_str(), &timestamp);
+  std::istringstream text(time_str);
 
-  EXPECT_EQ(parsed_to, time_str.c_str() + time_str.size())
-      << " from failing to parse timestamp \"" << time_str << "\" with format string \"" << format
-      << "\"";
+  text >> std::get_time(&timestamp, format.c_str());
+
+  EXPECT_FALSE(text.fail()) << " from failing to parse timestamp \"" << time_str
+                            << "\" with format string \"" << format << "\"";
   return timestamp;
+}
+
+SOCKET_FD TestUtility::duplicateSocket(SOCKET_FD sock) {
+#ifdef WIN32
+  WSAPROTOCOL_INFO proto_info;
+  const int rc = ::WSADuplicateSocket(sock, ::GetCurrentProcessId(), &proto_info);
+  RELEASE_ASSERT(!SOCKET_FAILURE(rc),
+                 fmt::format("WSADuplicateSocket failed: {}", ::WSAGetLastError()));
+  const SOCKET_FD dup_socket =
+      ::WSASocket(FROM_PROTOCOL_INFO, FROM_PROTOCOL_INFO, FROM_PROTOCOL_INFO, &proto_info, 0, 0);
+  RELEASE_ASSERT(!SOCKET_INVALID(dup_socket),
+                 fmt::format("WSASocket failed: {}", ::WSAGetLastError()));
+#else
+  const SOCKET_FD dup_socket = ::dup(sock);
+  RELEASE_ASSERT(!SOCKET_INVALID(dup_socket), fmt::format("dup failed: {}", errno));
+#endif
+  return dup_socket;
 }
 
 void ConditionalInitializer::setReady() {
@@ -253,8 +273,9 @@ void ConditionalInitializer::waitReady() {
   ready_ = false;
 }
 
-ScopedFdCloser::ScopedFdCloser(int fd) : fd_(fd) {}
-ScopedFdCloser::~ScopedFdCloser() { ::close(fd_); }
+ScopedSocketCloser::ScopedSocketCloser(SOCKET_FD fd)
+    : fd_(fd), os_sys_calls_(Api::OsSysCallsSingleton::get()) {}
+ScopedSocketCloser::~ScopedSocketCloser() { os_sys_calls_.closeSocket(fd_); }
 
 AtomicFileUpdater::AtomicFileUpdater(const std::string& filename)
     : link_(filename), new_link_(absl::StrCat(filename, ".new")),
@@ -270,7 +291,7 @@ void AtomicFileUpdater::update(const std::string& contents) {
   const std::string target = use_target1_ ? target1_ : target2_;
   use_target1_ = !use_target1_;
   {
-    std::ofstream file(target);
+    std::ofstream file(target, std::ios_base::binary);
     file << contents;
   }
   TestUtility::createSymlink(target, new_link_);

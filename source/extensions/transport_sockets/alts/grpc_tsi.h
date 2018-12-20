@@ -4,15 +4,19 @@
 // compile with -Werror, ignoring those compiler warning since we don't have
 // control on those source codes. This works with GCC and Clang.
 
+#if !defined(WIN32)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
 
 #include "grpc/grpc_security.h"
 #include "src/core/tsi/alts/handshaker/alts_tsi_handshaker.h"
 #include "src/core/tsi/transport_security_interface.h"
 
+#if !defined(WIN32)
 #pragma GCC diagnostic pop
+#endif
 
 #include "common/common/c_smart_ptr.h"
 

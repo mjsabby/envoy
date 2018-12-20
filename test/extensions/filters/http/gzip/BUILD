@@ -11,6 +11,7 @@ envoy_package()
 envoy_cc_test(
     name = "gzip_filter_test",
     srcs = ["gzip_filter_test.cc"],
+    test_on_windows = False,
     deps = [
         "//source/common/compressor:compressor_lib",
         "//source/common/decompressor:decompressor_lib",
@@ -27,6 +28,7 @@ envoy_cc_test(
     srcs = [
         "gzip_filter_integration_test.cc",
     ],
+    test_on_windows = False,
     deps = [
         "//source/common/decompressor:decompressor_lib",
         "//source/extensions/filters/http/gzip:config",
