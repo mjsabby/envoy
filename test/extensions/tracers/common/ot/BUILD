@@ -13,6 +13,7 @@ envoy_cc_test(
     srcs = [
         "opentracing_driver_impl_test.cc",
     ],
+    test_on_windows = False,
     deps = [
         "//source/extensions/tracers/dynamic_ot:dynamic_opentracing_driver_lib",
         "//test/mocks/http:http_mocks",

@@ -59,6 +59,9 @@ envoy_cc_library(
         "@bazel_tools//tools/osx:darwin": [
             "kqueue/watcher_impl.cc",
         ],
+        "//bazel:windows_x86_64": [
+            "win32/watcher_impl.cc",
+        ],
         "//conditions:default": [
             "inotify/watcher_impl.cc",
         ],
@@ -66,6 +69,9 @@ envoy_cc_library(
     hdrs = select({
         "@bazel_tools//tools/osx:darwin": [
             "kqueue/watcher_impl.h",
+        ],
+        "//bazel:windows_x86_64": [
+            "win32/watcher_impl.h",
         ],
         "//conditions:default": [
             "inotify/watcher_impl.h",
@@ -76,6 +82,7 @@ envoy_cc_library(
     ],
     strip_include_prefix = select({
         "@bazel_tools//tools/osx:darwin": "kqueue",
+        "//bazel:windows_x86_64": "win32",
         "//conditions:default": "inotify",
     }),
     deps = [
@@ -84,5 +91,11 @@ envoy_cc_library(
         "//source/common/common:linked_object",
         "//source/common/common:minimal_logger_lib",
         "//source/common/common:utility_lib",
-    ],
+    ] + select({
+        "//bazel:windows_x86_64": [
+            "//source/common/api:os_sys_calls_lib",
+            "//source/common/common:thread_lib",
+        ],
+        "//conditions:default": [],
+    }),
 )

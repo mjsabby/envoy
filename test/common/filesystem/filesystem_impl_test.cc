@@ -30,6 +30,12 @@ using testing::Throw;
 
 namespace Envoy {
 
+#if !defined(WIN32)
+const std::string devNull = "/dev/null";
+#else
+const std::string devNull = "NUL";
+#endif
+
 class FileSystemImplTest : public testing::Test {
 protected:
   FileSystemImplTest()
@@ -49,18 +55,29 @@ TEST_F(FileSystemImplTest, BadFile) {
 }
 
 TEST_F(FileSystemImplTest, fileExists) {
-  EXPECT_TRUE(Filesystem::fileExists("/dev/null"));
   EXPECT_FALSE(Filesystem::fileExists("/dev/blahblahblah"));
+#if !defined(WIN32)
+  EXPECT_TRUE(Filesystem::fileExists(devNull));
+  EXPECT_TRUE(Filesystem::fileExists("/dev"));
+#else
+  const std::string file_path = TestEnvironment::writeStringToFileForTest("test_envoy", "x");
+  EXPECT_TRUE(Filesystem::fileExists(file_path));
+  EXPECT_TRUE(Filesystem::fileExists("c:/windows"));
+#endif
 }
 
 TEST_F(FileSystemImplTest, directoryExists) {
+  EXPECT_FALSE(Filesystem::directoryExists(devNull));
+#if !defined(WIN32)
   EXPECT_TRUE(Filesystem::directoryExists("/dev"));
-  EXPECT_FALSE(Filesystem::directoryExists("/dev/null"));
+#else
+  EXPECT_TRUE(Filesystem::directoryExists("c:/windows"));
+#endif
   EXPECT_FALSE(Filesystem::directoryExists("/dev/blahblah"));
 }
 
 TEST_F(FileSystemImplTest, fileSize) {
-  EXPECT_EQ(0, Filesystem::fileSize("/dev/null"));
+  EXPECT_EQ(0, Filesystem::fileSize(devNull));
   EXPECT_EQ(-1, Filesystem::fileSize("/dev/blahblahblah"));
   const std::string data = "test string\ntest";
   const std::string file_path = TestEnvironment::writeStringToFileForTest("test_envoy", data);
@@ -98,7 +115,11 @@ TEST_F(FileSystemImplTest, fileReadToEndDoesNotExist) {
 }
 
 TEST_F(FileSystemImplTest, CanonicalPathSuccess) {
+#if !defined(WIN32)
   EXPECT_EQ("/", Filesystem::canonicalPath("//"));
+#else
+  EXPECT_EQ("C:\\", Filesystem::canonicalPath("//"));
+#endif
 }
 
 TEST_F(FileSystemImplTest, CanonicalPathFail) {
@@ -108,6 +129,7 @@ TEST_F(FileSystemImplTest, CanonicalPathFail) {
 
 TEST_F(FileSystemImplTest, IllegalPath) {
   EXPECT_FALSE(Filesystem::illegalPath("/"));
+#if !defined(WIN32)
   EXPECT_TRUE(Filesystem::illegalPath("/dev"));
   EXPECT_TRUE(Filesystem::illegalPath("/dev/"));
   EXPECT_TRUE(Filesystem::illegalPath("/proc"));
@@ -115,6 +137,15 @@ TEST_F(FileSystemImplTest, IllegalPath) {
   EXPECT_TRUE(Filesystem::illegalPath("/sys"));
   EXPECT_TRUE(Filesystem::illegalPath("/sys/"));
   EXPECT_TRUE(Filesystem::illegalPath("/_some_non_existent_file"));
+#else
+  EXPECT_FALSE(Filesystem::illegalPath("/dev"));
+  EXPECT_FALSE(Filesystem::illegalPath("/dev/"));
+  EXPECT_FALSE(Filesystem::illegalPath("/proc"));
+  EXPECT_FALSE(Filesystem::illegalPath("/proc/"));
+  EXPECT_FALSE(Filesystem::illegalPath("/sys"));
+  EXPECT_FALSE(Filesystem::illegalPath("/sys/"));
+  EXPECT_FALSE(Filesystem::illegalPath("/_some_non_existent_file"));
+#endif
 }
 
 TEST_F(FileSystemImplTest, flushToLogFilePeriodically) {
@@ -129,7 +160,7 @@ TEST_F(FileSystemImplTest, flushToLogFilePeriodically) {
   Filesystem::FileSharedPtr file = file_system_.createFile("", dispatcher, mutex, timeout_40ms_);
 
   EXPECT_CALL(*timer, enableTimer(timeout_40ms_));
-  EXPECT_CALL(os_sys_calls, write_(_, _, _))
+  EXPECT_CALL(os_sys_calls, writeFile_(_, _, _))
       .WillOnce(Invoke([](int fd, const void* buffer, size_t num_bytes) -> ssize_t {
         std::string written = std::string(reinterpret_cast<const char*>(buffer), num_bytes);
         EXPECT_EQ("test", written);
@@ -147,7 +178,7 @@ TEST_F(FileSystemImplTest, flushToLogFilePeriodically) {
     }
   }
 
-  EXPECT_CALL(os_sys_calls, write_(_, _, _))
+  EXPECT_CALL(os_sys_calls, writeFile_(_, _, _))
       .WillOnce(Invoke([](int fd, const void* buffer, size_t num_bytes) -> ssize_t {
         std::string written = std::string(reinterpret_cast<const char*>(buffer), num_bytes);
         EXPECT_EQ("test2", written);
@@ -185,7 +216,7 @@ TEST_F(FileSystemImplTest, flushToLogFileOnDemand) {
   // The first write to a given file will start the flush thread, which can flush
   // immediately (race on whether it will or not). So do a write and flush to
   // get that state out of the way, then test that small writes don't trigger a flush.
-  EXPECT_CALL(os_sys_calls, write_(_, _, _))
+  EXPECT_CALL(os_sys_calls, writeFile_(_, _, _))
       .WillOnce(Invoke([](int, const void*, size_t num_bytes) -> ssize_t { return num_bytes; }));
   file->write("prime-it");
   file->flush();
@@ -195,7 +226,7 @@ TEST_F(FileSystemImplTest, flushToLogFileOnDemand) {
     EXPECT_EQ(expected_writes, os_sys_calls.num_writes_);
   }
 
-  EXPECT_CALL(os_sys_calls, write_(_, _, _))
+  EXPECT_CALL(os_sys_calls, writeFile_(_, _, _))
       .WillOnce(Invoke([](int fd, const void* buffer, size_t num_bytes) -> ssize_t {
         std::string written = std::string(reinterpret_cast<const char*>(buffer), num_bytes);
         EXPECT_EQ("test", written);
@@ -218,7 +249,7 @@ TEST_F(FileSystemImplTest, flushToLogFileOnDemand) {
     EXPECT_EQ(expected_writes, os_sys_calls.num_writes_);
   }
 
-  EXPECT_CALL(os_sys_calls, write_(_, _, _))
+  EXPECT_CALL(os_sys_calls, writeFile_(_, _, _))
       .WillOnce(Invoke([](int fd, const void* buffer, size_t num_bytes) -> ssize_t {
         std::string written = std::string(reinterpret_cast<const char*>(buffer), num_bytes);
         EXPECT_EQ("test2", written);
@@ -253,7 +284,7 @@ TEST_F(FileSystemImplTest, reopenFile) {
   EXPECT_CALL(os_sys_calls, open_(_, _, _)).InSequence(sq).WillOnce(Return(5));
   Filesystem::FileSharedPtr file = file_system_.createFile("", dispatcher, mutex, timeout_40ms_);
 
-  EXPECT_CALL(os_sys_calls, write_(_, _, _))
+  EXPECT_CALL(os_sys_calls, writeFile_(_, _, _))
       .InSequence(sq)
       .WillOnce(Invoke([](int fd, const void* buffer, size_t num_bytes) -> ssize_t {
         std::string written = std::string(reinterpret_cast<const char*>(buffer), num_bytes);
@@ -273,10 +304,10 @@ TEST_F(FileSystemImplTest, reopenFile) {
     }
   }
 
-  EXPECT_CALL(os_sys_calls, close(5)).InSequence(sq);
+  EXPECT_CALL(os_sys_calls, closeFile(5)).InSequence(sq);
   EXPECT_CALL(os_sys_calls, open_(_, _, _)).InSequence(sq).WillOnce(Return(10));
 
-  EXPECT_CALL(os_sys_calls, write_(_, _, _))
+  EXPECT_CALL(os_sys_calls, writeFile_(_, _, _))
       .InSequence(sq)
       .WillOnce(Invoke([](int fd, const void* buffer, size_t num_bytes) -> ssize_t {
         std::string written = std::string(reinterpret_cast<const char*>(buffer), num_bytes);
@@ -286,7 +317,7 @@ TEST_F(FileSystemImplTest, reopenFile) {
         return num_bytes;
       }));
 
-  EXPECT_CALL(os_sys_calls, close(10)).InSequence(sq);
+  EXPECT_CALL(os_sys_calls, closeFile(10)).InSequence(sq);
 
   file->reopen();
   file->write("reopened");
@@ -309,7 +340,7 @@ TEST_F(FileSystemImplTest, reopenThrows) {
   NiceMock<Api::MockOsSysCalls> os_sys_calls;
   TestThreadsafeSingletonInjector<Api::OsSysCallsImpl> os_calls(&os_sys_calls);
 
-  EXPECT_CALL(os_sys_calls, write_(_, _, _))
+  EXPECT_CALL(os_sys_calls, writeFile_(_, _, _))
       .WillRepeatedly(Invoke([](int fd, const void* buffer, size_t num_bytes) -> ssize_t {
         UNREFERENCED_PARAMETER(fd);
         UNREFERENCED_PARAMETER(buffer);
@@ -321,7 +352,7 @@ TEST_F(FileSystemImplTest, reopenThrows) {
   EXPECT_CALL(os_sys_calls, open_(_, _, _)).InSequence(sq).WillOnce(Return(5));
 
   Filesystem::FileSharedPtr file = file_system_.createFile("", dispatcher, mutex, timeout_40ms_);
-  EXPECT_CALL(os_sys_calls, close(5)).InSequence(sq);
+  EXPECT_CALL(os_sys_calls, closeFile(5)).InSequence(sq);
   EXPECT_CALL(os_sys_calls, open_(_, _, _)).InSequence(sq).WillOnce(Return(-1));
 
   file->write("test write");
@@ -358,7 +389,7 @@ TEST_F(FileSystemImplTest, bigDataChunkShouldBeFlushedWithoutTimer) {
 
   Filesystem::FileSharedPtr file = file_system_.createFile("", dispatcher, mutex, timeout_40ms_);
 
-  EXPECT_CALL(os_sys_calls, write_(_, _, _))
+  EXPECT_CALL(os_sys_calls, writeFile_(_, _, _))
       .WillOnce(Invoke([](int fd, const void* buffer, size_t num_bytes) -> ssize_t {
         UNREFERENCED_PARAMETER(fd);
 
@@ -380,7 +411,7 @@ TEST_F(FileSystemImplTest, bigDataChunkShouldBeFlushedWithoutTimer) {
 
   // First write happens without waiting on thread_flush_. Now make a big string and it should be
   // flushed even when timer is not enabled
-  EXPECT_CALL(os_sys_calls, write_(_, _, _))
+  EXPECT_CALL(os_sys_calls, writeFile_(_, _, _))
       .WillOnce(Invoke([](int fd, const void* buffer, size_t num_bytes) -> ssize_t {
         UNREFERENCED_PARAMETER(fd);
 

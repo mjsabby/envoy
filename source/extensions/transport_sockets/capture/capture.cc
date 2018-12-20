@@ -44,10 +44,11 @@ void CaptureSocket::closeSocket(Network::ConnectionEvent event) {
                  path);
   ENVOY_LOG_MISC(trace, "Socket trace for [C{}]: {}", callbacks_->connection().id(),
                  trace_.DebugString());
-  std::ofstream proto_stream(path);
   if (text_format) {
+    std::ofstream proto_stream(path);
     proto_stream << trace_.DebugString();
   } else {
+    std::ofstream proto_stream(path, std::ios::binary);
     trace_.SerializeToOstream(&proto_stream);
   }
   transport_socket_->closeSocket(event);

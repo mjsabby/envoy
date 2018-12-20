@@ -397,6 +397,7 @@ RunHelper::RunHelper(Instance& instance, Options& options, Event::Dispatcher& di
 
   // Setup signals.
   if (options.signalHandlingEnabled()) {
+#ifndef WIN32
     sigterm_ = dispatcher.listenForSignal(SIGTERM, [&instance]() {
       ENVOY_LOG(warn, "caught SIGTERM");
       instance.shutdown();
@@ -415,6 +416,7 @@ RunHelper::RunHelper(Instance& instance, Options& options, Event::Dispatcher& di
     sig_hup_ = dispatcher.listenForSignal(SIGHUP, []() {
       ENVOY_LOG(warn, "caught and eating SIGHUP. See documentation for how to hot restart.");
     });
+#endif
   }
 
   // Register for cluster manager init notification. We don't start serving worker traffic until
