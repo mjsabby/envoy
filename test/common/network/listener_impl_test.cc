@@ -70,7 +70,7 @@ public:
       : ListenerImpl(dispatcher, socket, cb, bind_to_port,
                      hand_off_restored_destination_connections) {}
 
-  MOCK_METHOD1(getLocalAddress, Address::InstanceConstSharedPtr(int fd));
+  MOCK_METHOD1(getLocalAddress, Address::InstanceConstSharedPtr(evutil_socket_t fd));
 };
 
 class ListenerImplTest : public testing::TestWithParam<Address::IpVersion> {
@@ -236,8 +236,9 @@ TEST_P(ListenerImplTest, WildcardListenerIpv4Compat) {
   client_connection->connect();
 
   EXPECT_CALL(listener, getLocalAddress(_))
-      .WillOnce(Invoke(
-          [](int fd) -> Address::InstanceConstSharedPtr { return Address::addressFromFd(fd); }));
+      .WillOnce(Invoke([](SOCKET_FD fd) -> Address::InstanceConstSharedPtr {
+        return Address::addressFromFd(fd);
+      }));
 
   EXPECT_CALL(listener_callbacks, onAccept_(_, _))
       .WillOnce(Invoke([&](Network::ConnectionSocketPtr& socket, bool) -> void {
@@ -267,9 +268,17 @@ TEST_P(ListenerImplTest, DisableAndEnableListener) {
   // When listener is disabled, the timer should fire before any connection is accepted.
   listener.disable();
 
-  ClientConnectionPtr client_connection =
-      dispatcher_.createClientConnection(socket.localAddress(), Address::InstanceConstSharedPtr(),
-                                         Network::Test::createRawBufferSocket(), nullptr);
+  Network::Address::InstanceConstSharedPtr remote;
+#if !defined(WIN32)
+  remote = socket.localAddress();
+#else
+  const uint32_t port = socket.localAddress()->ip()->port();
+  remote = Utility::resolveUrl(
+      fmt::format("tcp://{}:{}", Network::Test::getLoopbackAddressUrlString(GetParam()), port));
+#endif
+
+  ClientConnectionPtr client_connection = dispatcher_.createClientConnection(
+      remote, Address::InstanceConstSharedPtr(), Network::Test::createRawBufferSocket(), nullptr);
   client_connection->connect();
   Event::TimerPtr timer = dispatcher_.createTimer([&] {
     client_connection->close(ConnectionCloseType::NoFlush);

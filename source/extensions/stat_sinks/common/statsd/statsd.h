@@ -1,5 +1,6 @@
 #pragma once
 
+#include "envoy/common/platform.h"
 #include "envoy/local_info/local_info.h"
 #include "envoy/network/connection.h"
 #include "envoy/stats/histogram.h"
@@ -11,6 +12,7 @@
 #include "envoy/thread_local/thread_local.h"
 #include "envoy/upstream/cluster_manager.h"
 
+#include "common/api/os_sys_calls_impl.h"
 #include "common/buffer/buffer_impl.h"
 #include "common/common/macros.h"
 
@@ -29,15 +31,16 @@ class Writer : public ThreadLocal::ThreadLocalObject {
 public:
   Writer(Network::Address::InstanceConstSharedPtr address);
   // For testing.
-  Writer() : fd_(-1) {}
+  Writer() : os_sys_calls_(Api::OsSysCallsSingleton::get()) { SET_SOCKET_INVALID(fd_); }
   virtual ~Writer();
 
   virtual void write(const std::string& message);
   // Called in unit test to validate address.
-  int getFdForTests() const { return fd_; };
+  SOCKET_FD getFdForTests() const { return fd_; };
 
 private:
-  int fd_;
+  Api::OsSysCallsImpl& os_sys_calls_;
+  SOCKET_FD fd_;
 };
 
 /**

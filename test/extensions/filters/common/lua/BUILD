@@ -12,6 +12,7 @@ envoy_package()
 envoy_cc_test(
     name = "lua_test",
     srcs = ["lua_test.cc"],
+    test_on_windows = False,
     deps = [
         "//source/extensions/filters/common/lua:lua_lib",
         "//test/mocks:common_lib",
@@ -23,6 +24,7 @@ envoy_cc_test(
 envoy_cc_test(
     name = "wrappers_test",
     srcs = ["wrappers_test.cc"],
+    test_on_windows = False,
     deps = [
         ":lua_wrappers_lib",
         "//source/common/buffer:buffer_lib",
