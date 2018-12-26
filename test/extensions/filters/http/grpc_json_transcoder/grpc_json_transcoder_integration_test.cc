@@ -8,6 +8,7 @@
 #include "test/proto/bookstore.pb.h"
 #include "test/test_common/utility.h"
 
+#include "absl/strings/match.h"
 #include "gtest/gtest.h"
 
 using Envoy::Protobuf::Message;
@@ -141,7 +142,7 @@ protected:
       if (full_response) {
         EXPECT_EQ(response_body, response->body());
       } else {
-        EXPECT_TRUE(StringUtil::startsWith(response->body().c_str(), response_body));
+        EXPECT_TRUE(absl::StartsWith(response->body(), response_body));
       }
     }
 

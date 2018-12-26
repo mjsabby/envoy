@@ -71,7 +71,9 @@ public:
 
   bool matches(const Http::HeaderMap& headers) const override {
     if (BaseMatcherImpl::matchRoute(headers) &&
-        StringUtil::startsWith(headers.Path()->value().c_str(), prefix_, case_sensitive_)) {
+        (case_sensitive_
+             ? absl::StartsWith(headers.Path()->value().getStringView(), prefix_)
+             : absl::StartsWithIgnoreCase(headers.Path()->value().getStringView(), prefix_))) {
       ENVOY_LOG(debug, "Prefix requirement '{}' matched.", prefix_);
       return true;
     }

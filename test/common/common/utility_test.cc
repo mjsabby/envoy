@@ -232,30 +232,6 @@ TEST(StringUtil, join) {
   EXPECT_EQ("", StringUtil::join({}, ",,"));
 }
 
-TEST(StringUtil, endsWith) {
-  EXPECT_TRUE(StringUtil::endsWith("test", "st"));
-  EXPECT_TRUE(StringUtil::endsWith("t", "t"));
-  EXPECT_TRUE(StringUtil::endsWith("test", ""));
-  EXPECT_TRUE(StringUtil::endsWith("", ""));
-  EXPECT_FALSE(StringUtil::endsWith("test", "ttest"));
-  EXPECT_FALSE(StringUtil::endsWith("test", "w"));
-}
-
-TEST(StringUtil, startsWith) {
-  EXPECT_TRUE(StringUtil::startsWith("Test", "Te"));
-  EXPECT_TRUE(StringUtil::startsWith("Test", "Te", false));
-  EXPECT_TRUE(StringUtil::startsWith("Test", "te", false));
-  EXPECT_TRUE(StringUtil::startsWith("", ""));
-  EXPECT_TRUE(StringUtil::startsWith("test", ""));
-  EXPECT_FALSE(StringUtil::startsWith("Test", "te"));
-  EXPECT_FALSE(StringUtil::startsWith("Test", "tE", true));
-  EXPECT_FALSE(StringUtil::startsWith("test", "boo", true));
-  EXPECT_FALSE(StringUtil::startsWith("test", "boo", false));
-  EXPECT_FALSE(StringUtil::startsWith("test", "testtest"));
-  EXPECT_FALSE(StringUtil::startsWith("test", "TESTTEST", false));
-  EXPECT_FALSE(StringUtil::startsWith("", "test"));
-}
-
 TEST(StringUtil, escape) {
   EXPECT_EQ(StringUtil::escape("hello world"), "hello world");
   EXPECT_EQ(StringUtil::escape("hello\nworld\n"), "hello\\nworld\\n");

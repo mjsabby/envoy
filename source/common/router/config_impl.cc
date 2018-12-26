@@ -33,6 +33,8 @@
 
 #include "extensions/filters/http/well_known_names.h"
 
+#include "absl/strings/match.h"
+
 namespace Envoy {
 namespace Router {
 
@@ -479,7 +481,8 @@ void RouteEntryImplBase::finalizePathHeader(Http::HeaderMap& headers,
   if (insert_envoy_original_path) {
     headers.insertEnvoyOriginalPath().value(*headers.Path());
   }
-  ASSERT(StringUtil::startsWith(path.c_str(), matched_path, case_sensitive_));
+  ASSERT(case_sensitive_ ? absl::StartsWith(path, matched_path)
+                         : absl::StartsWithIgnoreCase(path, matched_path));
   headers.Path()->value(path.replace(0, matched_path.size(), rewrite));
 }
 
@@ -713,7 +716,9 @@ void PrefixRouteEntryImpl::rewritePathHeader(Http::HeaderMap& headers,
 RouteConstSharedPtr PrefixRouteEntryImpl::matches(const Http::HeaderMap& headers,
                                                   uint64_t random_value) const {
   if (RouteEntryImplBase::matchRoute(headers, random_value) &&
-      StringUtil::startsWith(headers.Path()->value().c_str(), prefix_, case_sensitive_)) {
+      (case_sensitive_
+           ? absl::StartsWith(headers.Path()->value().getStringView(), prefix_)
+           : absl::StartsWithIgnoreCase(headers.Path()->value().getStringView(), prefix_))) {
     return clusterEntry(headers, random_value);
   }
   return nullptr;

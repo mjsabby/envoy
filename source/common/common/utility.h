@@ -1,10 +1,5 @@
 #pragma once
 
-#if !defined(WIN32)
-#include <strings.h>
-
-#endif
-
 #include <chrono>
 #include <cstdint>
 #include <regex>
@@ -329,17 +324,6 @@ public:
    * @return escaped string.
    */
   static std::string escape(const std::string& source);
-
-  /**
-   * @return true if @param source ends with @param end.
-   */
-  static bool endsWith(const std::string& source, const std::string& end);
-
-  /**
-   * @param case_sensitive determines if the compare is case sensitive
-   * @return true if @param source starts with @param start and ignores cases.
-   */
-  static bool startsWith(const char* source, const std::string& start, bool case_sensitive = true);
 
   /**
    * Provide a default value for a string if empty.
