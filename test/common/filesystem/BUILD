@@ -12,6 +12,16 @@ envoy_cc_test(
     name = "filesystem_impl_test",
     srcs = ["filesystem_impl_test.cc"],
     deps = [
+        "//source/common/filesystem:filesystem_lib",
+        "//test/test_common:environment_lib",
+        "//test/test_common:utility_lib",
+    ],
+)
+
+envoy_cc_test(
+    name = "stats_instance_impl_test",
+    srcs = ["stats_instance_impl_test.cc"],
+    deps = [
         "//source/common/api:api_lib",
         "//source/common/api:os_sys_calls_lib",
         "//source/common/common:thread_lib",

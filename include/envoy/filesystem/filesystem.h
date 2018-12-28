@@ -14,29 +14,35 @@ namespace Envoy {
 namespace Filesystem {
 
 /**
- * Abstraction for a file on disk.
+ * Abstraction for a basic file on disk.
  */
 class File {
 public:
   virtual ~File() {}
 
   /**
-   * Write data to the file.
+   * Open the file with O_RDWR | O_APPEND | O_CREAT
+   * The file will be closed when this object is destructed
    */
-  virtual void write(absl::string_view) PURE;
+  virtual void open() PURE;
 
   /**
-   * Reopen the file.
+   * Write len bytes from buffer to the file
    */
-  virtual void reopen() PURE;
+  virtual Api::SysCallSizeResult write(const void* buffer, size_t len) PURE;
 
   /**
-   * Synchronously flush all pending data to disk.
+   * Close the file.
    */
-  virtual void flush() PURE;
+  virtual void close() PURE;
+
+  /**
+   * @return bool whether the file is open
+   */
+  virtual bool isOpen() PURE;
 };
 
-typedef std::shared_ptr<File> FileSharedPtr;
+typedef std::unique_ptr<File> FilePtr;
 
 /**
  * Wrapper for platform specific filesystem methods
@@ -79,7 +85,39 @@ public:
    * @return is the path on the blacklist?
    */
   virtual bool illegalPath(const std::string& path) PURE;
+
+  /**
+   * Creates a basic file.
+   *
+   * @param path The path of the file to open.
+   */
+  virtual FilePtr createFile(const std::string& path) PURE;
 };
+
+/**
+ * Abstraction for a file on disk that adds stats collection and periodic flushing.
+ */
+class StatsFile {
+public:
+  virtual ~StatsFile() {}
+
+  /**
+   * Write data to the file.
+   */
+  virtual void write(absl::string_view) PURE;
+
+  /**
+   * Reopen the file.
+   */
+  virtual void reopen() PURE;
+
+  /**
+   * Synchronously flush all pending data to disk.
+   */
+  virtual void flush() PURE;
+};
+
+typedef std::shared_ptr<StatsFile> StatsFileSharedPtr;
 
 class StatsInstance : public Instance {
 public:
@@ -93,9 +131,10 @@ public:
    * @param lock The lock.
    * @param file_flush_interval_msec Number of milliseconds to delay before flushing.
    */
-  virtual FileSharedPtr createFile(const std::string& path, Event::Dispatcher& dispatcher,
-                                   Thread::BasicLockable& lock,
-                                   std::chrono::milliseconds file_flush_interval_msec) PURE;
+  virtual StatsFileSharedPtr
+  createStatsFile(const std::string& path, Event::Dispatcher& dispatcher,
+                  Thread::BasicLockable& lock,
+                  std::chrono::milliseconds file_flush_interval_msec) PURE;
 
   /**
    * Creates a file, using the default flush-interval for the class.
@@ -104,8 +143,8 @@ public:
    * @param dispatcher The dispatcher used for set up timers to run flush().
    * @param lock The lock.
    */
-  virtual FileSharedPtr createFile(const std::string& path, Event::Dispatcher& dispatcher,
-                                   Thread::BasicLockable& lock) PURE;
+  virtual StatsFileSharedPtr createStatsFile(const std::string& path, Event::Dispatcher& dispatcher,
+                                             Thread::BasicLockable& lock) PURE;
 };
 
 enum class FileType { Regular, Directory, Other };

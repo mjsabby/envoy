@@ -3,6 +3,7 @@
 #include <sys/stat.h>
 #include <windows.h>
 
+#include "common/common/assert.h"
 #include "common/filesystem/filesystem_impl.h"
 
 #undef DELETE
@@ -61,6 +62,40 @@ bool InstanceImplWin32::illegalPath(const std::string& path) {
   // Currently, we don't know of any obviously illegal paths on Windows
   return false;
 }
+
+FilePtr InstanceImplWin32::createFile(const std::string& path) {
+  return std::make_unique<FileImplWin32>(path);
+}
+
+FileImplWin32::FileImplWin32(const std::string& path) : path_(path) { open(); }
+
+FileImplWin32::~FileImplWin32() { close(); }
+
+void FileImplWin32::open() {
+  const int flags = O_RDWR | O_APPEND | O_CREAT;
+  const int mode = _S_IREAD | _S_IWRITE;
+
+  fd_ = ::_open(path_.c_str(), flags, mode);
+  if (-1 == fd_) {
+    throw EnvoyException(fmt::format("unable to open file '{}': {}", path_, strerror(errno)));
+  }
+}
+
+Api::SysCallSizeResult FileImplWin32::write(const void* buffer, size_t len) {
+  const ssize_t rc = ::_write(fd_, buffer, len);
+  return {rc, errno};
+}
+
+void FileImplWin32::close() {
+  if (fd_ == -1) {
+    return;
+  }
+  const int rc = ::_close(fd_);
+  ASSERT(rc == 0);
+  fd_ = -1;
+}
+
+bool FileImplWin32::isOpen() { return fd_ != -1; }
 
 } // namespace Filesystem
 } // namespace Envoy

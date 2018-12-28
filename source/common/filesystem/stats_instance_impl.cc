@@ -44,16 +44,18 @@ StatsInstanceImpl::StatsInstanceImpl(std::chrono::milliseconds file_flush_interv
                                    POOL_GAUGE_PREFIX(stats_store, "filesystem."))},
       thread_factory_(thread_factory), file_system_(file_system) {}
 
-FileSharedPtr StatsInstanceImpl::createFile(const std::string& path, Event::Dispatcher& dispatcher,
-                                            Thread::BasicLockable& lock,
-                                            std::chrono::milliseconds file_flush_interval_msec) {
-  return std::make_shared<FileImpl>(path, dispatcher, lock, file_stats_, file_flush_interval_msec,
-                                    thread_factory_);
+StatsFileSharedPtr
+StatsInstanceImpl::createStatsFile(const std::string& path, Event::Dispatcher& dispatcher,
+                                   Thread::BasicLockable& lock,
+                                   std::chrono::milliseconds file_flush_interval_msec) {
+  return std::make_shared<StatsFileImpl>(path, dispatcher, lock, file_stats_,
+                                         file_flush_interval_msec, thread_factory_, file_system_);
 };
 
-FileSharedPtr StatsInstanceImpl::createFile(const std::string& path, Event::Dispatcher& dispatcher,
-                                            Thread::BasicLockable& lock) {
-  return createFile(path, dispatcher, lock, file_flush_interval_msec_);
+StatsFileSharedPtr StatsInstanceImpl::createStatsFile(const std::string& path,
+                                                      Event::Dispatcher& dispatcher,
+                                                      Thread::BasicLockable& lock) {
+  return createStatsFile(path, dispatcher, lock, file_flush_interval_msec_);
 }
 
 bool StatsInstanceImpl::fileExists(const std::string& path) {
@@ -74,39 +76,26 @@ bool StatsInstanceImpl::illegalPath(const std::string& path) {
   return file_system_.illegalPath(path);
 }
 
-FileImpl::FileImpl(const std::string& path, Event::Dispatcher& dispatcher,
-                   Thread::BasicLockable& lock, FileSystemStats& stats,
-                   std::chrono::milliseconds flush_interval_msec,
-                   Thread::ThreadFactory& thread_factory)
-    : path_(path), file_lock_(lock), flush_timer_(dispatcher.createTimer([this]() -> void {
+FilePtr StatsInstanceImpl::createFile(const std::string& path) {
+  return file_system_.createFile(path);
+}
+
+StatsFileImpl::StatsFileImpl(const std::string& path, Event::Dispatcher& dispatcher,
+                             Thread::BasicLockable& lock, FileSystemStats& stats,
+                             std::chrono::milliseconds flush_interval_msec,
+                             Thread::ThreadFactory& thread_factory,
+                             Filesystem::Instance& file_system)
+    : file_lock_(lock), flush_timer_(dispatcher.createTimer([this]() -> void {
         stats_.flushed_by_timer_.inc();
         flush_event_.notifyOne();
         flush_timer_->enableTimer(flush_interval_msec_);
       })),
-      os_sys_calls_(Api::OsSysCallsSingleton::get()), thread_factory_(thread_factory),
-      flush_interval_msec_(flush_interval_msec), stats_(stats) {
-  open();
-}
+      thread_factory_(thread_factory), flush_interval_msec_(flush_interval_msec), stats_(stats),
+      file_(file_system.createFile(path)) {}
 
-void FileImpl::open() {
-  const int flags = O_RDWR | O_APPEND | O_CREAT;
-#if !defined(WIN32)
-  const int mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
-#else
-  const int mode = _S_IREAD | _S_IWRITE;
-#endif
-  const Api::SysCallIntResult result = os_sys_calls_.open(path_, flags, mode);
-  fd_ = result.rc_;
+void StatsFileImpl::reopen() { reopen_file_ = true; }
 
-  if (-1 == fd_) {
-    throw EnvoyException(
-        fmt::format("unable to open file '{}': {}", path_, strerror(result.errno_)));
-  }
-}
-
-void FileImpl::reopen() { reopen_file_ = true; }
-
-FileImpl::~FileImpl() {
+StatsFileImpl::~StatsFileImpl() {
   {
     Thread::LockGuard lock(write_lock_);
     flush_thread_exit_ = true;
@@ -118,16 +107,16 @@ FileImpl::~FileImpl() {
   }
 
   // Flush any remaining data. If file was not opened for some reason, skip flushing part.
-  if (fd_ != -1) {
+  if (file_->isOpen()) {
     if (flush_buffer_.length() > 0) {
       doWrite(flush_buffer_);
     }
 
-    os_sys_calls_.closeFile(fd_);
+    file_->close();
   }
 }
 
-void FileImpl::doWrite(Buffer::Instance& buffer) {
+void StatsFileImpl::doWrite(Buffer::Instance& buffer) {
   uint64_t num_slices = buffer.getRawSlices(nullptr, 0);
   STACK_ARRAY(slices, Buffer::RawSlice, num_slices);
   buffer.getRawSlices(slices.begin(), num_slices);
@@ -143,7 +132,7 @@ void FileImpl::doWrite(Buffer::Instance& buffer) {
   {
     Thread::LockGuard lock(file_lock_);
     for (const Buffer::RawSlice& slice : slices) {
-      const Api::SysCallSizeResult result = os_sys_calls_.writeFile(fd_, slice.mem_, slice.len_);
+      const Api::SysCallSizeResult result = file_->write(slice.mem_, slice.len_);
       ASSERT(result.rc_ == static_cast<ssize_t>(slice.len_));
       stats_.write_completed_.inc();
     }
@@ -153,7 +142,7 @@ void FileImpl::doWrite(Buffer::Instance& buffer) {
   buffer.drain(buffer.length());
 }
 
-void FileImpl::flushThreadFunc() {
+void StatsFileImpl::flushThreadFunc() {
 
   while (true) {
     std::unique_lock<Thread::BasicLockable> flush_lock;
@@ -178,13 +167,13 @@ void FileImpl::flushThreadFunc() {
       ASSERT(flush_buffer_.length() == 0);
     }
 
-    // if we failed to open file before (-1 == fd_), then simply ignore
-    if (fd_ != -1) {
+    // if we failed to open file before then simply ignore
+    if (file_->isOpen()) {
       try {
         if (reopen_file_) {
           reopen_file_ = false;
-          os_sys_calls_.closeFile(fd_);
-          open();
+          file_->close();
+          file_->open();
         }
 
         doWrite(about_to_write_buffer_);
@@ -195,7 +184,7 @@ void FileImpl::flushThreadFunc() {
   }
 }
 
-void FileImpl::flush() {
+void StatsFileImpl::flush() {
   std::unique_lock<Thread::BasicLockable> flush_buffer_lock;
 
   {
@@ -219,7 +208,7 @@ void FileImpl::flush() {
   doWrite(about_to_write_buffer_);
 }
 
-void FileImpl::write(absl::string_view data) {
+void StatsFileImpl::write(absl::string_view data) {
   Thread::LockGuard lock(write_lock_);
 
   if (flush_thread_ == nullptr) {
@@ -234,7 +223,7 @@ void FileImpl::write(absl::string_view data) {
   }
 }
 
-void FileImpl::createFlushStructures() {
+void StatsFileImpl::createFlushStructures() {
   flush_thread_ = thread_factory_.createThread([this]() -> void { flushThreadFunc(); });
   flush_timer_->enableTimer(flush_interval_msec_);
 }

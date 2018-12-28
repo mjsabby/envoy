@@ -37,6 +37,7 @@
 #include "common/network/utility.h"
 #include "common/stats/stats_options_impl.h"
 #include "common/filesystem/directory.h"
+#include "common/filesystem/filesystem_impl.h"
 
 #include "test/test_common/printers.h"
 
@@ -403,9 +404,9 @@ namespace Filesystem {
 // TODO(sesmith177) Tests should get the Filesystem from the same location as the main code
 Instance& fileSystemForTest() {
 #ifdef WIN32
-  static InstanceImpl* file_system = new InstanceImpl();
+  static InstanceImplWin32* file_system = new InstanceImplWin32();
 #else
-  static InstanceImpl* file_system = new InstanceImpl();
+  static InstanceImplPosix* file_system = new InstanceImplPosix();
 #endif
   return *file_system;
 }

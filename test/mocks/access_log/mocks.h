@@ -29,7 +29,7 @@ public:
 
   // AccessLog::AccessLogManager
   MOCK_METHOD0(reopen, void());
-  MOCK_METHOD1(createAccessLog, Filesystem::FileSharedPtr(const std::string& file_name));
+  MOCK_METHOD1(createAccessLog, Filesystem::StatsFileSharedPtr(const std::string& file_name));
 
   std::shared_ptr<Filesystem::MockFile> file_{new testing::NiceMock<Filesystem::MockFile>()};
 };

@@ -42,11 +42,11 @@ public:
                     Instance& file_system);
 
   // Filesystem::StatsInstance
-  FileSharedPtr createFile(const std::string& path, Event::Dispatcher& dispatcher,
-                           Thread::BasicLockable& lock,
-                           std::chrono::milliseconds file_flush_interval_msec) override;
-  FileSharedPtr createFile(const std::string& path, Event::Dispatcher& dispatcher,
-                           Thread::BasicLockable& lock) override;
+  StatsFileSharedPtr createStatsFile(const std::string& path, Event::Dispatcher& dispatcher,
+                                     Thread::BasicLockable& lock,
+                                     std::chrono::milliseconds file_flush_interval_msec) override;
+  StatsFileSharedPtr createStatsFile(const std::string& path, Event::Dispatcher& dispatcher,
+                                     Thread::BasicLockable& lock) override;
 
   // Filesystem::Instance
   bool fileExists(const std::string& path) override;
@@ -54,6 +54,7 @@ public:
   ssize_t fileSize(const std::string& path) override;
   std::string fileReadToEnd(const std::string& path) override;
   bool illegalPath(const std::string& path) override;
+  FilePtr createFile(const std::string& path) override;
 
 private:
   const std::chrono::milliseconds file_flush_interval_msec_;
@@ -69,14 +70,14 @@ private:
  * files. If this turns out to be a good implementation we can potentially have a single flush
  * thread that flushes all files, but we will start with this.
  */
-class FileImpl : public File {
+class StatsFileImpl : public StatsFile {
 public:
-  FileImpl(const std::string& path, Event::Dispatcher& dispatcher, Thread::BasicLockable& lock,
-           FileSystemStats& stats_, std::chrono::milliseconds flush_interval_msec,
-           Thread::ThreadFactory& thread_factory);
-  ~FileImpl();
+  StatsFileImpl(const std::string& path, Event::Dispatcher& dispatcher, Thread::BasicLockable& lock,
+                FileSystemStats& stats_, std::chrono::milliseconds flush_interval_msec,
+                Thread::ThreadFactory& thread_factory, Filesystem::Instance& file_system);
+  ~StatsFileImpl();
 
-  // Filesystem::File
+  // Filesystem::StatsFile
   void write(absl::string_view data) override;
 
   /**
@@ -93,14 +94,10 @@ public:
 private:
   void doWrite(Buffer::Instance& buffer);
   void flushThreadFunc();
-  void open();
   void createFlushStructures();
 
   // Minimum size before the flush thread will be told to flush.
   static const uint64_t MIN_FLUSH_SIZE = 1024 * 64;
-
-  int fd_;
-  std::string path_;
 
   // These locks are always acquired in the following order if multiple locks are held:
   //    1) write_lock_
@@ -136,12 +133,12 @@ private:
                                             // continue to fill. This buffer is then used for the
                                             // final write to disk.
   Event::TimerPtr flush_timer_;
-  Api::OsSysCalls& os_sys_calls_;
   Thread::ThreadFactory& thread_factory_;
   const std::chrono::milliseconds flush_interval_msec_; // Time interval buffer gets flushed no
                                                         // matter if it reached the MIN_FLUSH_SIZE
                                                         // or not.
   FileSystemStats& stats_;
+  FilePtr file_;
 };
 
 } // namespace Filesystem

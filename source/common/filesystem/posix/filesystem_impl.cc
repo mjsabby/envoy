@@ -9,6 +9,7 @@
 
 #include "envoy/common/exception.h"
 
+#include "common/common/assert.h"
 #include "common/common/fmt.h"
 #include "common/common/logger.h"
 #include "common/filesystem/filesystem_impl.h"
@@ -74,6 +75,10 @@ bool InstanceImplPosix::illegalPath(const std::string& path) {
   }
 }
 
+FilePtr InstanceImplPosix::createFile(const std::string& path) {
+  return std::make_unique<FileImplPosix>(path);
+}
+
 std::string InstanceImplPosix::canonicalPath(const std::string& path) {
   // TODO(htuch): When we are using C++17, switch to std::filesystem::canonical.
   char* resolved_path = ::realpath(path.c_str(), nullptr);
@@ -84,6 +89,36 @@ std::string InstanceImplPosix::canonicalPath(const std::string& path) {
   ::free(resolved_path);
   return resolved_path_string;
 }
+
+FileImplPosix::FileImplPosix(const std::string& path) : path_(path) { open(); }
+
+FileImplPosix::~FileImplPosix() { close(); }
+
+void FileImplPosix::open() {
+  const int flags = O_RDWR | O_APPEND | O_CREAT;
+  const int mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+
+  fd_ = ::open(path_.c_str(), flags, mode);
+  if (-1 == fd_) {
+    throw EnvoyException(fmt::format("unable to open file '{}': {}", path_, strerror(errno)));
+  }
+}
+
+Api::SysCallSizeResult FileImplPosix::write(const void* buffer, size_t len) {
+  const ssize_t rc = ::write(fd_, buffer, len);
+  return {rc, errno};
+}
+
+void FileImplPosix::close() {
+  if (fd_ == -1) {
+    return;
+  }
+  const int rc = ::close(fd_);
+  ASSERT(rc == 0);
+  fd_ = -1;
+}
+
+bool FileImplPosix::isOpen() { return fd_ != -1; }
 
 } // namespace Filesystem
 } // namespace Envoy
