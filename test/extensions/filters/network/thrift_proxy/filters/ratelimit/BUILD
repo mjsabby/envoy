@@ -15,6 +15,7 @@ envoy_extension_cc_test(
     name = "ratelimit_test",
     srcs = ["ratelimit_test.cc"],
     extension_name = "envoy.filters.thrift.ratelimit",
+    test_on_windows = False,
     deps = [
         "//source/common/buffer:buffer_lib",
         "//source/common/common:empty_string",
@@ -36,6 +37,7 @@ envoy_extension_cc_test(
     name = "config_test",
     srcs = ["config_test.cc"],
     extension_name = "envoy.filters.thrift.ratelimit",
+    test_on_windows = False,
     deps = [
         "//source/extensions/filters/network/thrift_proxy/filters/ratelimit:config",
         "//test/extensions/filters/network/thrift_proxy:mocks",

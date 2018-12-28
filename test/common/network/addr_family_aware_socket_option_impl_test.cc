@@ -24,7 +24,7 @@ TEST_F(AddrFamilyAwareSocketOptionImplTest, SetOptionFailure) {
 // If a platform supports IPv4 socket option variant for an IPv4 address, it works
 TEST_F(AddrFamilyAwareSocketOptionImplTest, SetOptionSuccess) {
   Address::Ipv4Instance address("1.2.3.4", 5678);
-  const int fd = address.socket(Address::SocketType::Stream);
+  const SOCKET_FD fd = address.socket(Address::SocketType::Stream);
   EXPECT_CALL(socket_, fd()).WillRepeatedly(Return(fd));
 
   AddrFamilyAwareSocketOptionImpl socket_option{envoy::api::v2::core::SocketOption::STATE_PREBIND,
@@ -38,12 +38,18 @@ TEST_F(AddrFamilyAwareSocketOptionImplTest, SetOptionSuccess) {
 // If a platform doesn't support IPv4 socket option variant for an IPv4 address we fail
 TEST_F(AddrFamilyAwareSocketOptionImplTest, V4EmptyOptionNames) {
   Address::Ipv4Instance address("1.2.3.4", 5678);
-  const int fd = address.socket(Address::SocketType::Stream);
+  const SOCKET_FD fd = address.socket(Address::SocketType::Stream);
   EXPECT_CALL(socket_, fd()).WillRepeatedly(Return(fd));
   AddrFamilyAwareSocketOptionImpl socket_option{
       envoy::api::v2::core::SocketOption::STATE_PREBIND, {}, {}, 1};
 
-  EXPECT_LOG_CONTAINS("warning", "Setting option on socket failed: Operation not supported",
+  std::string logline;
+#if !defined(WIN32)
+  logline = "Setting option on socket failed: Operation not supported";
+#else
+  logline = "Setting option on socket failed: 10045";
+#endif
+  EXPECT_LOG_CONTAINS("warning", logline,
                       EXPECT_FALSE(socket_option.setOption(
                           socket_, envoy::api::v2::core::SocketOption::STATE_PREBIND)));
 }
@@ -51,12 +57,18 @@ TEST_F(AddrFamilyAwareSocketOptionImplTest, V4EmptyOptionNames) {
 // If a platform doesn't support IPv4 and IPv6 socket option variants for an IPv4 address, we fail
 TEST_F(AddrFamilyAwareSocketOptionImplTest, V6EmptyOptionNames) {
   Address::Ipv6Instance address("::1:2:3:4", 5678);
-  const int fd = address.socket(Address::SocketType::Stream);
+  const SOCKET_FD fd = address.socket(Address::SocketType::Stream);
   EXPECT_CALL(socket_, fd()).WillRepeatedly(Return(fd));
   AddrFamilyAwareSocketOptionImpl socket_option{
       envoy::api::v2::core::SocketOption::STATE_PREBIND, {}, {}, 1};
 
-  EXPECT_LOG_CONTAINS("warning", "Setting option on socket failed: Operation not supported",
+  std::string logline;
+#if !defined(WIN32)
+  logline = "Setting option on socket failed: Operation not supported";
+#else
+  logline = "Setting option on socket failed: 10045";
+#endif
+  EXPECT_LOG_CONTAINS("warning", logline,
                       EXPECT_FALSE(socket_option.setOption(
                           socket_, envoy::api::v2::core::SocketOption::STATE_PREBIND)));
 }
@@ -65,7 +77,7 @@ TEST_F(AddrFamilyAwareSocketOptionImplTest, V6EmptyOptionNames) {
 // IPv4 variant
 TEST_F(AddrFamilyAwareSocketOptionImplTest, V4IgnoreV6) {
   Address::Ipv4Instance address("1.2.3.4", 5678);
-  const int fd = address.socket(Address::SocketType::Stream);
+  const SOCKET_FD fd = address.socket(Address::SocketType::Stream);
   EXPECT_CALL(socket_, fd()).WillRepeatedly(Return(fd));
 
   AddrFamilyAwareSocketOptionImpl socket_option{envoy::api::v2::core::SocketOption::STATE_PREBIND,
@@ -79,7 +91,7 @@ TEST_F(AddrFamilyAwareSocketOptionImplTest, V4IgnoreV6) {
 // If a platform suppports IPv6 socket option variant for an IPv6 address it works
 TEST_F(AddrFamilyAwareSocketOptionImplTest, V6Only) {
   Address::Ipv6Instance address("::1:2:3:4", 5678);
-  const int fd = address.socket(Address::SocketType::Stream);
+  const SOCKET_FD fd = address.socket(Address::SocketType::Stream);
   EXPECT_CALL(socket_, fd()).WillRepeatedly(Return(fd));
 
   AddrFamilyAwareSocketOptionImpl socket_option{envoy::api::v2::core::SocketOption::STATE_PREBIND,
@@ -94,7 +106,7 @@ TEST_F(AddrFamilyAwareSocketOptionImplTest, V6Only) {
 // we apply the IPv4 variant.
 TEST_F(AddrFamilyAwareSocketOptionImplTest, V6OnlyV4Fallback) {
   Address::Ipv6Instance address("::1:2:3:4", 5678);
-  const int fd = address.socket(Address::SocketType::Stream);
+  const SOCKET_FD fd = address.socket(Address::SocketType::Stream);
   EXPECT_CALL(socket_, fd()).WillRepeatedly(Return(fd));
 
   AddrFamilyAwareSocketOptionImpl socket_option{envoy::api::v2::core::SocketOption::STATE_PREBIND,
@@ -109,7 +121,7 @@ TEST_F(AddrFamilyAwareSocketOptionImplTest, V6OnlyV4Fallback) {
 // AddrFamilyAwareSocketOptionImpl::setIpSocketOption() works with the IPv6 variant.
 TEST_F(AddrFamilyAwareSocketOptionImplTest, V6Precedence) {
   Address::Ipv6Instance address("::1:2:3:4", 5678);
-  const int fd = address.socket(Address::SocketType::Stream);
+  const SOCKET_FD fd = address.socket(Address::SocketType::Stream);
   EXPECT_CALL(socket_, fd()).WillRepeatedly(Return(fd));
 
   AddrFamilyAwareSocketOptionImpl socket_option{envoy::api::v2::core::SocketOption::STATE_PREBIND,
@@ -122,7 +134,9 @@ TEST_F(AddrFamilyAwareSocketOptionImplTest, V6Precedence) {
 
 // GetSocketOptionName returns the v4 information for a v4 address
 TEST_F(AddrFamilyAwareSocketOptionImplTest, V4GetSocketOptionName) {
-  socket_.local_address_ = Utility::parseInternetAddress("1.2.3.4", 5678);
+  Address::Ipv4Instance address("1.2.3.4", 5678); 
+  const SOCKET_FD fd = address.socket(Address::SocketType::Stream);
+  EXPECT_CALL(socket_, fd()).WillRepeatedly(Return(fd));
 
   AddrFamilyAwareSocketOptionImpl socket_option{envoy::api::v2::core::SocketOption::STATE_PREBIND,
                                                 Network::SocketOptionName(std::make_pair(5, 10)),
@@ -136,7 +150,9 @@ TEST_F(AddrFamilyAwareSocketOptionImplTest, V4GetSocketOptionName) {
 
 // GetSocketOptionName returns the v4 information for a v6 address
 TEST_F(AddrFamilyAwareSocketOptionImplTest, V6GetSocketOptionName) {
-  socket_.local_address_ = Utility::parseInternetAddress("2::1", 5678);
+  Address::Ipv6Instance address("::1:2:3:4", 5678);
+  const SOCKET_FD fd = address.socket(Address::SocketType::Stream);
+  EXPECT_CALL(socket_, fd()).WillRepeatedly(Return(fd));
 
   AddrFamilyAwareSocketOptionImpl socket_option{envoy::api::v2::core::SocketOption::STATE_PREBIND,
                                                 Network::SocketOptionName(std::make_pair(5, 10)),

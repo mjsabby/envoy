@@ -75,7 +75,7 @@ RetryStateImpl::RetryStateImpl(const RetryPolicy& route_policy, Http::HeaderMap&
              request_headers.EnvoyRetriableStatusCodes()->value().getStringView(), ",")) {
       uint64_t out;
       if (StringUtil::atoul(std::string(code).c_str(), out)) {
-        retriable_status_codes_.emplace_back(out);
+        retriable_status_codes_.emplace_back(static_cast<uint32_t>(out));
       }
     }
   }

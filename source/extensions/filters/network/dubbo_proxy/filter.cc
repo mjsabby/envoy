@@ -182,7 +182,7 @@ void Filter::onRequestMessage(RequestMessagePtr&& message) {
     return;
   }
 
-  auto request = std::make_unique<ActiveMessage>(*this, message->requestId());
+  auto request = std::make_unique<ActiveMessage>(*this, static_cast<int32_t>(message->requestId()));
   active_call_map_.emplace(message->requestId(), std::move(request));
 }
 

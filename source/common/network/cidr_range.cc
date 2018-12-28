@@ -1,8 +1,10 @@
 #include "common/network/cidr_range.h"
 
+#if !defined(WIN32)
 #include <arpa/inet.h>
 #include <netinet/ip.h>
 #include <sys/socket.h>
+#endif
 
 #include <array>
 #include <cstdint>

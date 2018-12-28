@@ -117,14 +117,14 @@ public:
     Http::MessagePtr message{new Http::ResponseMessageImpl(std::move(response_headers))};
     message->body() = std::make_unique<Buffer::OwnedImpl>(response_json);
     EXPECT_CALL(callbacks_,
-                onConfigUpdate(
+                onConfigUpdate_(
                     RepeatedProtoEq(
                         Config::Utility::getTypedResources<envoy::api::v2::ClusterLoadAssignment>(
                             response_pb)),
                     version))
         .WillOnce(ThrowOnRejectedConfig(accept));
     if (!accept) {
-      EXPECT_CALL(callbacks_, onConfigUpdateFailed(_));
+      EXPECT_CALL(callbacks_, onConfigUpdateFailed_(_));
     }
     EXPECT_CALL(random_gen_, random()).WillOnce(Return(0));
     EXPECT_CALL(*timer_, enableTimer(_));
