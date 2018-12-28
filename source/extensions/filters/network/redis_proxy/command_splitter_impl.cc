@@ -126,7 +126,7 @@ SplitRequestPtr MGETRequest::create(ConnPool::Instance& conn_pool,
   single_mget.asArray().swap(values);
 
   for (uint64_t i = 1; i < incoming_request.asArray().size(); i++) {
-    request_ptr->pending_requests_.emplace_back(*request_ptr, i - 1);
+    request_ptr->pending_requests_.emplace_back(*request_ptr, static_cast<uint32_t>(i - 1));
     PendingRequest& pending_request = request_ptr->pending_requests_.back();
 
     single_mget.asArray()[1].asString() = incoming_request.asArray()[i].asString();
@@ -199,7 +199,8 @@ SplitRequestPtr MSETRequest::create(ConnPool::Instance& conn_pool,
 
   uint64_t fragment_index = 0;
   for (uint64_t i = 1; i < incoming_request.asArray().size(); i += 2) {
-    request_ptr->pending_requests_.emplace_back(*request_ptr, fragment_index++);
+    request_ptr->pending_requests_.emplace_back(*request_ptr,
+                                                static_cast<uint32_t>(fragment_index++));
     PendingRequest& pending_request = request_ptr->pending_requests_.back();
 
     single_mset.asArray()[1].asString() = incoming_request.asArray()[i].asString();
@@ -264,7 +265,7 @@ SplitRequestPtr SplitKeysSumResultRequest::create(ConnPool::Instance& conn_pool,
   single_fragment.asArray().swap(values);
 
   for (uint64_t i = 1; i < incoming_request.asArray().size(); i++) {
-    request_ptr->pending_requests_.emplace_back(*request_ptr, i - 1);
+    request_ptr->pending_requests_.emplace_back(*request_ptr, static_cast<uint32_t>(i - 1));
     PendingRequest& pending_request = request_ptr->pending_requests_.back();
 
     single_fragment.asArray()[1].asString() = incoming_request.asArray()[i].asString();

@@ -191,6 +191,7 @@ TEST(UtilityTest, UnixClusterDns) {
       EnvoyException, "unresolved URL must be TCP scheme, got: unix:///test.sock");
 }
 
+#if !defined(WIN32)
 TEST(UtilityTest, UnixClusterStatic) {
 
   std::string cluster_type;
@@ -205,6 +206,7 @@ TEST(UtilityTest, UnixClusterStatic) {
   Config::CdsJson::translateCluster(*json_object_ptr, eds_config, cluster, stats_options);
   EXPECT_EQ("/test.sock", cluster.hosts(0).pipe().path());
 }
+#endif
 
 TEST(UtilityTest, CheckFilesystemSubscriptionBackingPath) {
   Filesystem::Instance& file_system = Filesystem::fileSystemForTest();

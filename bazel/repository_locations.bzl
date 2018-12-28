@@ -31,11 +31,16 @@ REPOSITORY_LOCATIONS = dict(
         strip_prefix = "backward-cpp-1.4",
         urls = ["https://github.com/bombela/backward-cpp/archive/v1.4.tar.gz"],
     ),
+    com_github_c_ares_c_ares = dict(
+        sha256 = "62dd12f0557918f89ad6f5b759f0bf4727174ae9979499f5452c02be38d9d3e8",
+        strip_prefix = "c-ares-cares-1_14_0",
+        urls = ["https://github.com/c-ares/c-ares/archive/cares-1_14_0.tar.gz"],
+    ),
     com_github_circonus_labs_libcircllhist = dict(
-        sha256 = "9949e2864b8ad00ee5c3e9c1c3c01e51b6b68bb442a919652fc66b9776477987",
-        strip_prefix = "libcircllhist-fd8a14463739d247b414825cc56ca3946792a3b9",
-        # 2018-09-17
-        urls = ["https://github.com/circonus-labs/libcircllhist/archive/fd8a14463739d247b414825cc56ca3946792a3b9.tar.gz"],
+        sha256 = "427d3c712d79cb45315b97cd74fcedb0b12e33eca295041770e60bab1142fa82",
+        strip_prefix = "libcircllhist-989ba17c22955952462b6c26dcdcc77c1ab790c7",
+        # 2018-11-06
+        urls = ["https://github.com/greenhouse-org/libcircllhist/archive/989ba17c22955952462b6c26dcdcc77c1ab790c7.tar.gz"],
     ),
     com_github_cyan4973_xxhash = dict(
         sha256 = "19030315f4fc1b4b2cdb9d7a317069a109f90e39d1fe4c9159b7aaa39030eb95",
@@ -78,6 +83,31 @@ REPOSITORY_LOCATIONS = dict(
         sha256 = "8bbbb1e78d4ddb0a1919276924ab10d11b631df48b657d960e0c795a25515735",
         strip_prefix = "nanopb-f8ac463766281625ad710900479130c7fcb4d63b",
         urls = ["https://github.com/nanopb/nanopb/archive/f8ac463766281625ad710900479130c7fcb4d63b.tar.gz"],
+    ),
+    com_github_nghttp2_nghttp2 = dict(
+        sha256 = "cb70261634c33dc5adbe780afcfc5dab17838ee303631a02b983c6a217bc16ba",
+        strip_prefix = "nghttp2-1.35.1",
+        urls = ["https://github.com/nghttp2/nghttp2/releases/download/v1.35.1/nghttp2-1.35.1.tar.gz"],
+    ),
+    com_github_google_benchmark = dict(
+        sha256 = "0de43b6eaddd356f1d6cd164f73f37faf2f6c96fd684e1f7ea543ce49c1d144e",
+        strip_prefix = "benchmark-505be96ab23056580a3a2315abba048f4428b04e",
+        urls = ["https://github.com/google/benchmark/archive/505be96ab23056580a3a2315abba048f4428b04e.tar.gz"],
+    ),
+    com_github_libevent_libevent = dict(
+        sha256 = "316ddb401745ac5d222d7c529ef1eada12f58f6376a66c1118eee803cb70f83d",
+        strip_prefix = "libevent-release-2.1.8-stable",
+        urls = ["https://github.com/libevent/libevent/archive/release-2.1.8-stable.tar.gz"],
+    ),
+    com_github_jbeder_yaml_cpp = dict(
+        sha256 = "53dcffd55f3433b379fcc694f45c54898711c0e29159a7bd02e82a3e0253bac3",
+        strip_prefix = "yaml-cpp-0f9a586ca1dc29c2ecb8dd715a315b93e3f40f79",
+        urls = ["https://github.com/jbeder/yaml-cpp/archive/0f9a586ca1dc29c2ecb8dd715a315b93e3f40f79.tar.gz"],
+    ),
+    com_github_madler_zlib = dict(
+        sha256 = "629380c90a77b964d896ed37163f5c3a34f6e6d897311f1df2a7016355c45eff",
+        strip_prefix = "zlib-1.2.11",
+        urls = ["https://github.com/madler/zlib/archive/v1.2.11.tar.gz"],
     ),
     io_opentracing_cpp = dict(
         sha256 = "4455ca507936bc4b658ded10a90d8ebbbd61c58f06207be565a4ffdc885687b5",

@@ -16,7 +16,7 @@ namespace Api {
 /**
  * Implementation of Api::Api
  */
-class Impl : public Api::Api {
+class Impl : public Api {
 public:
   Impl(std::chrono::milliseconds file_flush_interval_msec, Thread::ThreadFactory& thread_factory,
        Stats::Store& stats_store, Filesystem::Instance& file_system);

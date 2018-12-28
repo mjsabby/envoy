@@ -535,7 +535,11 @@ TEST(AccessLogFormatterTest, JsonFormatterStartTimeTest) {
 
   // Needed to take into account the behavior in non-GMT timezones.
   struct tm time_val;
+#if !defined(WIN32)
   gmtime_r(&test_epoch, &time_val);
+#else
+  gmtime_s(&time_val, &test_epoch);
+#endif
   time_t expected_time_t = mktime(&time_val);
 
   std::unordered_map<std::string, std::string> expected_json_map = {
@@ -644,7 +648,11 @@ TEST(AccessLogFormatterTest, CompositeFormatterSuccess) {
 
     // Needed to take into account the behavior in non-GMT timezones.
     struct tm time_val;
+#if !defined(WIN32)
     gmtime_r(&test_epoch, &time_val);
+#else
+    gmtime_s(&time_val, &test_epoch);
+#endif
     time_t expected_time_t = mktime(&time_val);
 
     EXPECT_EQ(fmt::format("2018/03/28|{}|bad_format|2018-03-28T23:35:58.000Z|000000000.0.00.000",

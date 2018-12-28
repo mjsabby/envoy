@@ -1,6 +1,7 @@
 #include "common/common/utility.h"
 
 #include <array>
+#include <cctype>
 #include <chrono>
 #include <cmath>
 #include <cstdint>
@@ -164,12 +165,16 @@ std::string
 DateFormatter::fromTimeAndPrepareSpecifierOffsets(time_t time, SpecifierOffsets& specifier_offsets,
                                                   const std::string& seconds_str) const {
   tm current_tm;
+#if !defined(WIN32)
   gmtime_r(&time, &current_tm);
+#else
+  gmtime_s(&current_tm, &time);
+#endif
 
   std::array<char, 1024> buf;
   std::string formatted;
 
-  size_t previous = 0;
+  int32_t previous = 0;
   specifier_offsets.reserve(specifiers_.size());
   for (const auto& specifier : specifiers_) {
     const size_t formatted_length =
@@ -358,7 +363,7 @@ uint32_t StringUtil::itoa(char* out, size_t buffer_size, uint64_t i) {
   }
 
   *current = 0;
-  return current - out;
+  return static_cast<uint32_t>(current - out);
 }
 
 size_t StringUtil::strlcpy(char* dst, const char* src, size_t size) {
@@ -428,7 +433,11 @@ std::string AccessLogDateTimeFormatter::fromTime(const SystemTime& time) {
       cached_time.epoch_time_seconds != epoch_time_seconds) {
     time_t time = static_cast<time_t>(epoch_time_seconds.count());
     tm date_time;
+#if !defined(WIN32)
     gmtime_r(&time, &date_time);
+#else
+    gmtime_s(&date_time, &time);
+#endif
     cached_time.formatted_time_length =
         strftime(cached_time.formatted_time, sizeof(cached_time.formatted_time), DefaultDateFormat,
                  &date_time);

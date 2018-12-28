@@ -10,6 +10,12 @@
 namespace Envoy {
 namespace Filesystem {
 
+#if !defined(WIN32)
+const std::string devNull = "/dev/null";
+#else
+const std::string devNull = "NUL";
+#endif
+
 class FileSystemImplTest : public testing::Test {
 protected:
 #ifdef WIN32
