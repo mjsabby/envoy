@@ -134,7 +134,7 @@ TEST_F(AddrFamilyAwareSocketOptionImplTest, V6Precedence) {
 
 // GetSocketOptionName returns the v4 information for a v4 address
 TEST_F(AddrFamilyAwareSocketOptionImplTest, V4GetSocketOptionName) {
-  Address::Ipv4Instance address("1.2.3.4", 5678); 
+  Address::Ipv4Instance address("1.2.3.4", 5678);
   const SOCKET_FD fd = address.socket(Address::SocketType::Stream);
   EXPECT_CALL(socket_, fd()).WillRepeatedly(Return(fd));
 
