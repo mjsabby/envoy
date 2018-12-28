@@ -8,7 +8,7 @@
 #include "envoy/filesystem/filesystem.h"
 #include "envoy/thread/thread.h"
 
-#include "common/filesystem/filesystem_impl.h"
+#include "common/filesystem/stats_instance_impl.h"
 
 namespace Envoy {
 namespace Api {

@@ -5,7 +5,6 @@
 #include "envoy/config/accesslog/v2/file.pb.h"
 #include "envoy/config/filter/network/tcp_proxy/v2/tcp_proxy.pb.validate.h"
 
-#include "common/filesystem/filesystem_impl.h"
 #include "common/network/utility.h"
 #include "common/ssl/context_manager_impl.h"
 

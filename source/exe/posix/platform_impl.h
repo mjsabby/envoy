@@ -14,7 +14,7 @@ public:
 
 private:
   Thread::ThreadFactoryImplPosix thread_factory_;
-  Filesystem::InstanceImpl file_system_;
+  Filesystem::InstanceImplPosix file_system_;
 };
 
 } // namespace Envoy

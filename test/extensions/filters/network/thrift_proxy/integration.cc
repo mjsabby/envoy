@@ -3,8 +3,6 @@
 #include <algorithm>
 #include <fstream>
 
-#include "common/filesystem/filesystem_impl.h"
-
 #include "test/test_common/environment.h"
 
 namespace Envoy {

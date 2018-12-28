@@ -8,7 +8,6 @@
 #include "envoy/stats/scope.h"
 
 #include "common/config/utility.h"
-#include "common/filesystem/filesystem_impl.h"
 #include "common/http/message_impl.h"
 #include "common/network/utility.h"
 #include "common/protobuf/protobuf.h"

@@ -70,7 +70,7 @@ typedef int32_t ssize_t;
 #elif _M_AMD64
 typedef int64_t ssize_t;
 #else
-#error add ssize_t typedef for platform
+#error add ssize_t typedef for Windows platform
 #endif
 
 typedef uint32_t mode_t;

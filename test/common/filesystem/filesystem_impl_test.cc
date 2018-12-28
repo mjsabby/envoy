@@ -6,7 +6,6 @@
 #include "common/common/lock_guard.h"
 #include "common/common/thread.h"
 #include "common/event/dispatcher_impl.h"
-#include "common/filesystem/filesystem_impl.h"
 #include "common/stats/isolated_store_impl.h"
 
 #include "test/mocks/api/mocks.h"

@@ -12,7 +12,6 @@
 #include "common/config/grpc_subscription_impl.h"
 #include "common/config/http_subscription_impl.h"
 #include "common/config/utility.h"
-#include "common/filesystem/filesystem_impl.h"
 #include "common/protobuf/protobuf.h"
 
 namespace Envoy {

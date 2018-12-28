@@ -6,10 +6,10 @@
 #include "envoy/common/exception.h"
 #include "envoy/http/filter.h"
 
+#include "common/buffer/buffer_impl.h"
 #include "common/common/assert.h"
 #include "common/common/enum_to_int.h"
 #include "common/common/utility.h"
-#include "common/filesystem/filesystem_impl.h"
 #include "common/grpc/common.h"
 #include "common/http/headers.h"
 #include "common/http/utility.h"

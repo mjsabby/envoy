@@ -41,6 +41,7 @@ envoy_cc_library(
     deps = [
         ":certificate_validation_context_config_impl_lib",
         ":tls_certificate_config_impl_lib",
+        "//include/envoy/filesystem:filesystem_interface",
         "//include/envoy/secret:secret_callbacks_interface",
         "//include/envoy/secret:secret_provider_interface",
         "//include/envoy/server:transport_socket_config_interface",

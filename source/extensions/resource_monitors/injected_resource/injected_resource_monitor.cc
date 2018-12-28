@@ -1,7 +1,6 @@
 #include "extensions/resource_monitors/injected_resource/injected_resource_monitor.h"
 
 #include "common/common/assert.h"
-#include "common/filesystem/filesystem_impl.h"
 
 #include "absl/strings/numbers.h"
 

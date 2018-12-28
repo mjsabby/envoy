@@ -27,7 +27,7 @@ public:
 
 private:
   Thread::ThreadFactoryImplWin32 thread_factory_;
-  Filesystem::InstanceImpl file_system_;
+  Filesystem::InstanceImplWin32 file_system_;
 };
 
 } // namespace Envoy

@@ -10,7 +10,6 @@
 #include "envoy/stats/store.h"
 
 #include "common/api/os_sys_calls_impl.h"
-#include "common/filesystem/filesystem_impl.h"
 #include "common/stats/isolated_store_impl.h"
 
 #include "test/mocks/filesystem/mocks.h"

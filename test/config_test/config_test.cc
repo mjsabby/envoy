@@ -5,7 +5,6 @@
 #include <string>
 
 #include "common/common/fmt.h"
-#include "common/filesystem/filesystem_impl.h"
 #include "common/protobuf/utility.h"
 
 #include "server/config_validation/server.h"

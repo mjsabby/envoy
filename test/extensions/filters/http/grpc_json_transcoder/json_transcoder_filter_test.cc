@@ -3,7 +3,6 @@
 
 #include "common/buffer/buffer_impl.h"
 #include "common/config/filter_json.h"
-#include "common/filesystem/filesystem_impl.h"
 #include "common/grpc/codec.h"
 #include "common/grpc/common.h"
 #include "common/http/header_map_impl.h"
