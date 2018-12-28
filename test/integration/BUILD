@@ -13,7 +13,9 @@ load(
 load(
     "//source/extensions:all_extensions.bzl",
     "envoy_all_extensions",
+    "envoy_windows_extensions",
 )
+load("//bazel:repositories.bzl", "PPC_SKIP_TARGETS")
 
 envoy_package()
 
@@ -67,6 +69,7 @@ envoy_proto_library(
 envoy_cc_test(
     name = "eds_integration_test",
     srcs = ["eds_integration_test.cc"],
+    test_on_windows = False,
     deps = [
         ":http_integration_lib",
         "//source/common/upstream:load_balancer_lib",
@@ -102,7 +105,11 @@ envoy_cc_test(
         "//source/common/protobuf:utility_lib",
         "//test/test_common:network_utility_lib",
         "//test/test_common:utility_lib",
-    ] + envoy_all_extensions(),
+    ] + select({
+        "//bazel:windows_x86_64": envoy_windows_extensions(),
+        "//bazel:linux_ppc": envoy_all_extensions(PPC_SKIP_TARGETS),
+        "//conditions:default": envoy_all_extensions(),
+    }),
 )
 
 envoy_sh_test(
@@ -156,7 +163,6 @@ envoy_cc_test(
         "http2_upstream_integration_test.cc",
         "http2_upstream_integration_test.h",
     ],
-    test_on_windows = False,
     deps = [
         ":http_integration_lib",
         "//source/common/http:header_map_lib",
@@ -329,7 +335,6 @@ envoy_cc_test(
         "integration_test.cc",
         "integration_test.h",
     ],
-    test_on_windows = False,
     deps = [
         ":http_integration_lib",
         "//source/common/http:header_map_lib",
