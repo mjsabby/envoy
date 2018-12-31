@@ -46,7 +46,6 @@ TEST_F(StatsInstanceImplTest, flushToLogFilePeriodically) {
 
   Thread::MutexBasicLockable mutex;
   NiceMock<Filesystem::MockFile>* file = new NiceMock<Filesystem::MockFile>;
-  ON_CALL(*file, isOpen()).WillByDefault(Return(true));
   EXPECT_CALL(file_system_, createFile(_))
       .WillOnce(Return(ByMove(std::unique_ptr<NiceMock<Filesystem::MockFile>>(file))));
 
@@ -98,7 +97,6 @@ TEST_F(StatsInstanceImplTest, flushToLogFileOnDemand) {
 
   Thread::MutexBasicLockable mutex;
   NiceMock<Filesystem::MockFile>* file = new NiceMock<Filesystem::MockFile>;
-  ON_CALL(*file, isOpen()).WillByDefault(Return(true));
   EXPECT_CALL(file_system_, createFile(_))
       .WillOnce(Return(ByMove(std::unique_ptr<NiceMock<Filesystem::MockFile>>(file))));
 
@@ -172,7 +170,6 @@ TEST_F(StatsInstanceImplTest, reopenFile) {
 
   Thread::MutexBasicLockable mutex;
   NiceMock<Filesystem::MockFile>* file = new NiceMock<Filesystem::MockFile>;
-  ON_CALL(*file, isOpen()).WillByDefault(Return(true));
 
   Sequence sq;
   EXPECT_CALL(file_system_, createFile(_))
@@ -200,7 +197,7 @@ TEST_F(StatsInstanceImplTest, reopenFile) {
     }
   }
 
-  EXPECT_CALL(*file, close()).InSequence(sq);
+  EXPECT_CALL(*file, close_()).InSequence(sq);
   EXPECT_CALL(*file, open_()).InSequence(sq);
 
   EXPECT_CALL(*file, write_(_, _))
@@ -212,7 +209,7 @@ TEST_F(StatsInstanceImplTest, reopenFile) {
         return {static_cast<ssize_t>(num_bytes), 0};
       }));
 
-  EXPECT_CALL(*file, close()).InSequence(sq);
+  EXPECT_CALL(*file, close_()).InSequence(sq);
 
   stats_file->reopen();
   stats_file->write("reopened");
@@ -226,67 +223,64 @@ TEST_F(StatsInstanceImplTest, reopenFile) {
   }
 }
 
-// TEST_F(StatsInstanceImplTest, reopenThrows) {
-//  NiceMock<Event::MockDispatcher> dispatcher;
-//  NiceMock<Event::MockTimer>* timer = new NiceMock<Event::MockTimer>(&dispatcher);
-//
-//  Thread::MutexBasicLockable mutex;
-//  Stats::IsolatedStoreImpl stats_store;
-//  NiceMock<Filesystem::MockFile>* file = new NiceMock<Filesystem::MockFile>;
-//  //ON_CALL(*file, isOpen()).WillByDefault(Return(true));
-//  EXPECT_CALL(file_system_,
-//  createFile(_)).WillOnce(Return(ByMove(std::unique_ptr<NiceMock<Filesystem::MockFile>>(file))));
-//
-//  EXPECT_CALL(*file, write_(_, _))
-//      .WillOnce(Invoke([](const void* buffer, size_t num_bytes) -> Api::SysCallSizeResult {
-//        UNREFERENCED_PARAMETER(buffer);
-//
-//        return {static_cast<ssize_t>(num_bytes), 0};
-//      }));
-//
-//  Sequence sq;
-//  EXPECT_CALL(*file, open_()).InSequence(sq);
-//  EXPECT_CALL(*file, isOpen()).WillRepeatedly(Return(true));
-//
-//  Filesystem::StatsFileSharedPtr stats_file =
-//      stats_instance_.createStatsFile("", dispatcher, mutex, timeout_40ms_);
-//
-//  stats_file->write("test write");
-//  timer->callback_();
-//  {
-//    Thread::LockGuard lock(file->write_mutex_);
-//    while (file->num_writes_ != 1) {
-//      file->write_event_.wait(file->write_mutex_);
-//    }
-//  }
-//
-//  EXPECT_CALL(*file, close()).InSequence(sq);
-//  EXPECT_CALL(*file, open_()).InSequence(sq).WillOnce(Throw(EnvoyException("open failed")));
-//  EXPECT_CALL(*file, isOpen()).WillRepeatedly(Return(false));
-//
-//  stats_file->reopen();
-//
-//  stats_file->write("this is to force reopen");
-//  timer->callback_();
-//
-//  {
-//    Thread::LockGuard lock(file->open_mutex_);
-//    while (file->num_open_ != 2) {
-//      file->open_event_.wait(file->open_mutex_);
-//    }
-//  }
-//
-//  // write call should not cause any exceptions
-//  stats_file->write("random data");
-//  timer->callback_();
-//}
+TEST_F(StatsInstanceImplTest, reopenThrows) {
+  NiceMock<Event::MockDispatcher> dispatcher;
+  NiceMock<Event::MockTimer>* timer = new NiceMock<Event::MockTimer>(&dispatcher);
+
+  Thread::MutexBasicLockable mutex;
+  Stats::IsolatedStoreImpl stats_store;
+  NiceMock<Filesystem::MockFile>* file = new NiceMock<Filesystem::MockFile>;
+  EXPECT_CALL(file_system_, createFile(_))
+      .WillOnce(Return(ByMove(std::unique_ptr<NiceMock<Filesystem::MockFile>>(file))));
+
+  EXPECT_CALL(*file, write_(_, _))
+      .WillOnce(Invoke([](const void* buffer, size_t num_bytes) -> Api::SysCallSizeResult {
+        UNREFERENCED_PARAMETER(buffer);
+
+        return {static_cast<ssize_t>(num_bytes), 0};
+      }));
+
+  //  Sequence sq;
+  //  EXPECT_CALL(*file, open_()).InSequence(sq);
+
+  Filesystem::StatsFileSharedPtr stats_file =
+      stats_instance_.createStatsFile("", dispatcher, mutex, timeout_40ms_);
+
+  stats_file->write("test write");
+  timer->callback_();
+  {
+    Thread::LockGuard lock(file->write_mutex_);
+    while (file->num_writes_ != 1) {
+      file->write_event_.wait(file->write_mutex_);
+    }
+  }
+
+  Sequence sq;
+  EXPECT_CALL(*file, close_()).InSequence(sq);
+  EXPECT_CALL(*file, open_()).InSequence(sq).WillOnce(Throw(EnvoyException("open failed")));
+
+  stats_file->reopen();
+
+  stats_file->write("this is to force reopen");
+  timer->callback_();
+
+  {
+    Thread::LockGuard lock(file->open_mutex_);
+    while (file->num_open_ != 1) {
+      file->open_event_.wait(file->open_mutex_);
+    }
+  }
+
+  // write call should not cause any exceptions
+  stats_file->write("random data");
+  timer->callback_();
+}
 
 TEST_F(StatsInstanceImplTest, bigDataChunkShouldBeFlushedWithoutTimer) {
   NiceMock<Event::MockDispatcher> dispatcher;
   Thread::MutexBasicLockable mutex;
   Stats::IsolatedStoreImpl stats_store;
   NiceMock<Filesystem::MockFile>* file = new NiceMock<Filesystem::MockFile>;
-  ON_CALL(*file, isOpen()).WillByDefault(Return(true));
   EXPECT_CALL(file_system_, createFile(_))
       .WillOnce(Return(ByMove(std::unique_ptr<NiceMock<Filesystem::MockFile>>(file))));
 

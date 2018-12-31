@@ -20,10 +20,11 @@ public:
   // Filesystem::File
   Api::SysCallSizeResult write(const void* buffer, size_t len) override;
   void open() override;
+  void close() override;
+  bool isOpen() override { return is_open_; };
   MOCK_METHOD0(open_, void());
   MOCK_METHOD2(write_, Api::SysCallSizeResult(const void* buffer, size_t len));
-  MOCK_METHOD0(close, void());
-  MOCK_METHOD0(isOpen, bool());
+  MOCK_METHOD0(close_, void());
 
   size_t num_open_;
   size_t num_writes_;
@@ -31,6 +32,9 @@ public:
   Thread::MutexBasicLockable write_mutex_;
   Thread::CondVar open_event_;
   Thread::CondVar write_event_;
+
+private:
+  bool is_open_;
 };
 
 class MockInstance : public Instance {
