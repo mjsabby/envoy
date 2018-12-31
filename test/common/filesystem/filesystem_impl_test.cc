@@ -119,9 +119,7 @@ TEST_F(FileSystemImplTest, IllegalPath) {
 #endif
 }
 
-TEST_F(FileSystemImplTest, BadFile) {
-  EXPECT_THROW(file_system_.createFile(""), EnvoyException);
-}
+TEST_F(FileSystemImplTest, BadFile) { EXPECT_THROW(file_system_.createFile(""), EnvoyException); }
 
 TEST_F(FileSystemImplTest, OpenExisting) {
   const std::string file_path =
@@ -139,8 +137,7 @@ TEST_F(FileSystemImplTest, OpenExisting) {
 }
 
 TEST_F(FileSystemImplTest, CreateNew) {
-  const std::string new_file =
-      TestEnvironment::temporaryPath("envoy_this_not_exist");
+  const std::string new_file = TestEnvironment::temporaryPath("envoy_this_not_exist");
   ::unlink(new_file.c_str());
 
   {

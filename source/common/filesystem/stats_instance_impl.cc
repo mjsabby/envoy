@@ -9,8 +9,8 @@
 #include <string>
 
 #include "envoy/common/exception.h"
-#include "envoy/common/time.h"
 #include "envoy/common/platform.h"
+#include "envoy/common/time.h"
 #include "envoy/event/dispatcher.h"
 #include "envoy/thread/thread.h"
 

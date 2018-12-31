@@ -64,8 +64,9 @@ public:
   ~MockStatsInstance();
 
   // Filesystem::StatsInstance
-  MOCK_METHOD4(createStatsFile, StatsFileSharedPtr(const std::string&, Event::Dispatcher&,
-                                         Thread::BasicLockable&, std::chrono::milliseconds));
+  MOCK_METHOD4(createStatsFile,
+               StatsFileSharedPtr(const std::string&, Event::Dispatcher&, Thread::BasicLockable&,
+                                  std::chrono::milliseconds));
   MOCK_METHOD3(createStatsFile,
                StatsFileSharedPtr(const std::string&, Event::Dispatcher&, Thread::BasicLockable&));
 

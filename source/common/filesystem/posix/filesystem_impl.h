@@ -16,8 +16,8 @@ public:
   bool illegalPath(const std::string& path) override;
   FilePtr createFile(const std::string& path) override;
 
-//private:
-//  friend class FileSystemImplTest;
+  // private:
+  //  friend class FileSystemImplTest;
   std::string canonicalPath(const std::string& path);
 };
 

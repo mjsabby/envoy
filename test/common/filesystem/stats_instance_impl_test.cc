@@ -4,8 +4,8 @@
 #include "common/common/lock_guard.h"
 #include "common/common/thread.h"
 #include "common/event/dispatcher_impl.h"
-#include "common/stats/isolated_store_impl.h"
 #include "common/filesystem/stats_instance_impl.h"
+#include "common/stats/isolated_store_impl.h"
 
 #include "test/mocks/event/mocks.h"
 #include "test/mocks/filesystem/mocks.h"
@@ -47,7 +47,8 @@ TEST_F(StatsInstanceImplTest, flushToLogFilePeriodically) {
   Thread::MutexBasicLockable mutex;
   NiceMock<Filesystem::MockFile>* file = new NiceMock<Filesystem::MockFile>;
   ON_CALL(*file, isOpen()).WillByDefault(Return(true));
-  EXPECT_CALL(file_system_, createFile(_)).WillOnce(Return(ByMove(std::unique_ptr<NiceMock<Filesystem::MockFile>>(file))));
+  EXPECT_CALL(file_system_, createFile(_))
+      .WillOnce(Return(ByMove(std::unique_ptr<NiceMock<Filesystem::MockFile>>(file))));
 
   Filesystem::StatsFileSharedPtr stats_file =
       stats_instance_.createStatsFile("", dispatcher, mutex, timeout_40ms_);
@@ -98,7 +99,8 @@ TEST_F(StatsInstanceImplTest, flushToLogFileOnDemand) {
   Thread::MutexBasicLockable mutex;
   NiceMock<Filesystem::MockFile>* file = new NiceMock<Filesystem::MockFile>;
   ON_CALL(*file, isOpen()).WillByDefault(Return(true));
-  EXPECT_CALL(file_system_, createFile(_)).WillOnce(Return(ByMove(std::unique_ptr<NiceMock<Filesystem::MockFile>>(file))));
+  EXPECT_CALL(file_system_, createFile(_))
+      .WillOnce(Return(ByMove(std::unique_ptr<NiceMock<Filesystem::MockFile>>(file))));
 
   Filesystem::StatsFileSharedPtr stats_file =
       stats_instance_.createStatsFile("", dispatcher, mutex, timeout_40ms_);
@@ -109,7 +111,9 @@ TEST_F(StatsInstanceImplTest, flushToLogFileOnDemand) {
   // immediately (race on whether it will or not). So do a write and flush to
   // get that state out of the way, then test that small writes don't trigger a flush.
   EXPECT_CALL(*file, write_(_, _))
-      .WillOnce(Invoke([](const void*, size_t num_bytes) -> Api::SysCallSizeResult { return {static_cast<ssize_t>(num_bytes), 0}; }));
+      .WillOnce(Invoke([](const void*, size_t num_bytes) -> Api::SysCallSizeResult {
+        return {static_cast<ssize_t>(num_bytes), 0};
+      }));
   stats_file->write("prime-it");
   stats_file->flush();
   uint32_t expected_writes = 1;
@@ -171,7 +175,9 @@ TEST_F(StatsInstanceImplTest, reopenFile) {
   ON_CALL(*file, isOpen()).WillByDefault(Return(true));
 
   Sequence sq;
-  EXPECT_CALL(file_system_, createFile(_)).InSequence(sq).WillOnce(Return(ByMove(std::unique_ptr<NiceMock<Filesystem::MockFile>>(file))));
+  EXPECT_CALL(file_system_, createFile(_))
+      .InSequence(sq)
+      .WillOnce(Return(ByMove(std::unique_ptr<NiceMock<Filesystem::MockFile>>(file))));
   Filesystem::StatsFileSharedPtr stats_file =
       stats_instance_.createStatsFile("", dispatcher, mutex, timeout_40ms_);
 
@@ -220,7 +226,7 @@ TEST_F(StatsInstanceImplTest, reopenFile) {
   }
 }
 
-//TEST_F(StatsInstanceImplTest, reopenThrows) {
+// TEST_F(StatsInstanceImplTest, reopenThrows) {
 //  NiceMock<Event::MockDispatcher> dispatcher;
 //  NiceMock<Event::MockTimer>* timer = new NiceMock<Event::MockTimer>(&dispatcher);
 //
@@ -228,7 +234,8 @@ TEST_F(StatsInstanceImplTest, reopenFile) {
 //  Stats::IsolatedStoreImpl stats_store;
 //  NiceMock<Filesystem::MockFile>* file = new NiceMock<Filesystem::MockFile>;
 //  //ON_CALL(*file, isOpen()).WillByDefault(Return(true));
-//  EXPECT_CALL(file_system_, createFile(_)).WillOnce(Return(ByMove(std::unique_ptr<NiceMock<Filesystem::MockFile>>(file))));
+//  EXPECT_CALL(file_system_,
+//  createFile(_)).WillOnce(Return(ByMove(std::unique_ptr<NiceMock<Filesystem::MockFile>>(file))));
 //
 //  EXPECT_CALL(*file, write_(_, _))
 //      .WillOnce(Invoke([](const void* buffer, size_t num_bytes) -> Api::SysCallSizeResult {
@@ -280,7 +287,8 @@ TEST_F(StatsInstanceImplTest, bigDataChunkShouldBeFlushedWithoutTimer) {
   Stats::IsolatedStoreImpl stats_store;
   NiceMock<Filesystem::MockFile>* file = new NiceMock<Filesystem::MockFile>;
   ON_CALL(*file, isOpen()).WillByDefault(Return(true));
-  EXPECT_CALL(file_system_, createFile(_)).WillOnce(Return(ByMove(std::unique_ptr<NiceMock<Filesystem::MockFile>>(file))));
+  EXPECT_CALL(file_system_, createFile(_))
+      .WillOnce(Return(ByMove(std::unique_ptr<NiceMock<Filesystem::MockFile>>(file))));
 
   Filesystem::StatsFileSharedPtr stats_file =
       stats_instance_.createStatsFile("", dispatcher, mutex, timeout_40ms_);
