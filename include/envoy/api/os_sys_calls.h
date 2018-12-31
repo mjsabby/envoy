@@ -65,18 +65,6 @@ public:
   virtual SysCallIntResult ioctl(SOCKET_FD sockfd, unsigned long int request, void* argp) PURE;
 
   /**
-   * Open file by full_path with given flags and mode.
-   * @return file descriptor.
-   */
-  virtual SysCallIntResult open(const std::string& full_path, int flags, int mode) PURE;
-
-  /**
-   * Write num_bytes to fd from buffer.
-   * @return number of bytes written if non negative, otherwise error code.
-   */
-  virtual SysCallSizeResult writeFile(int fd, const void* buffer, size_t num_bytes) PURE;
-
-  /**
    * Write num_bytes to fd from buffer.
    * @return number of bytes written if non negative, otherwise error code.
    */
@@ -96,12 +84,6 @@ public:
    * @see recv (man 2 recv)
    */
   virtual SysCallSizeResult recv(SOCKET_FD socket, void* buffer, size_t length, int flags) PURE;
-
-  /**
-   * Release all resources allocated for fd.
-   * @return zero on success, -1 returned otherwise.
-   */
-  virtual SysCallIntResult closeFile(int fd) PURE;
 
   /**
    * Release all resources allocated for fd.

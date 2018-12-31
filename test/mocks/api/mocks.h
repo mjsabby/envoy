@@ -46,8 +46,6 @@ public:
   ~MockOsSysCalls();
 
   // Api::OsSysCalls
-  SysCallSizeResult writeFile(int fd, const void* buffer, size_t num_bytes) override;
-  SysCallIntResult open(const std::string& full_path, int flags, int mode) override;
   SysCallIntResult setsockopt(SOCKET_FD sockfd, int level, int optname, const void* optval,
                               socklen_t optlen) override;
   SysCallIntResult getsockopt(SOCKET_FD sockfd, int level, int optname, void* optval,
@@ -57,13 +55,10 @@ public:
   MOCK_METHOD3(connect,
                SysCallIntResult(SOCKET_FD sockfd, const sockaddr* addr, socklen_t addrlen));
   MOCK_METHOD3(ioctl, SysCallIntResult(SOCKET_FD sockfd, unsigned long int request, void* argp));
-  MOCK_METHOD3(open_, int(const std::string& full_path, int flags, int mode));
-  MOCK_METHOD3(writeFile_, ssize_t(int, const void*, size_t));
   MOCK_METHOD3(writeSocket, SysCallSizeResult(SOCKET_FD, const void*, size_t));
   MOCK_METHOD3(writev, SysCallSizeResult(SOCKET_FD, IOVEC*, int));
   MOCK_METHOD3(readv, SysCallSizeResult(SOCKET_FD, IOVEC*, int));
   MOCK_METHOD4(recv, SysCallSizeResult(SOCKET_FD socket, void* buffer, size_t length, int flags));
-  MOCK_METHOD1(closeFile, SysCallIntResult(int));
   MOCK_METHOD1(closeSocket, SysCallIntResult(SOCKET_FD));
   MOCK_METHOD3(shmOpen, SysCallIntResult(const char*, int, mode_t));
   MOCK_METHOD1(shmUnlink, SysCallIntResult(const char*));
@@ -85,12 +80,6 @@ public:
   MOCK_METHOD4(socketpair, SysCallIntResult(int domain, int type, int protocol, SOCKET_FD sv[2]));
   MOCK_METHOD3(accept, SysCallSocketResult(SOCKET_FD sockfd, sockaddr* addr, socklen_t* addr_len));
 
-  size_t num_writes_;
-  size_t num_open_;
-  Thread::MutexBasicLockable write_mutex_;
-  Thread::MutexBasicLockable open_mutex_;
-  Thread::CondVar write_event_;
-  Thread::CondVar open_event_;
   // Map from (sockfd,level,optname) to boolean socket option.
   using SockOptKey = std::tuple<SOCKET_FD, int, int>;
   std::map<SockOptKey, bool> boolsockopts_;

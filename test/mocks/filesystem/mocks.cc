@@ -12,7 +12,7 @@ using testing::Return;
 namespace Envoy {
 namespace Filesystem {
 
-MockFile::MockFile() {}
+MockFile::MockFile() { num_writes_ = num_open_ = 0; }
 MockFile::~MockFile() {}
 
 void MockFile::open() {

@@ -31,24 +31,9 @@ SysCallIntResult OsSysCallsImpl::ioctl(SOCKET_FD sockfd, unsigned long int reque
   return {rc, ::WSAGetLastError()};
 }
 
-SysCallIntResult OsSysCallsImpl::open(const std::string& full_path, int flags, int mode) {
-  const int rc = ::_open(full_path.c_str(), flags, mode);
-  return {rc, errno};
-}
-
-SysCallIntResult OsSysCallsImpl::closeFile(int fd) {
-  const int rc = ::_close(fd);
-  return {rc, errno};
-}
-
 SysCallIntResult OsSysCallsImpl::closeSocket(SOCKET_FD fd) {
   const int rc = ::closesocket(fd);
   return {rc, ::WSAGetLastError()};
-}
-
-SysCallSizeResult OsSysCallsImpl::writeFile(int fd, const void* buffer, size_t num_bytes) {
-  const ssize_t rc = ::_write(fd, buffer, num_bytes);
-  return {rc, errno};
 }
 
 SysCallSizeResult OsSysCallsImpl::writeSocket(SOCKET_FD fd, const void* buffer, size_t num_bytes) {

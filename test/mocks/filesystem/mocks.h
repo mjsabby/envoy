@@ -25,8 +25,8 @@ public:
   MOCK_METHOD0(close, void());
   MOCK_METHOD0(isOpen, bool());
 
-  size_t num_open_ = 0;
-  size_t num_writes_ = 0;
+  size_t num_open_;
+  size_t num_writes_;
   Thread::MutexBasicLockable open_mutex_;
   Thread::MutexBasicLockable write_mutex_;
   Thread::CondVar open_event_;
