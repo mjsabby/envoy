@@ -119,38 +119,39 @@ TEST_F(FileSystemImplTest, IllegalPath) {
 #endif
 }
 
+TEST_F(FileSystemImplTest, BadFile) {
+  EXPECT_THROW(file_system_.createFile(""), EnvoyException);
+}
+
 TEST_F(FileSystemImplTest, OpenExisting) {
   const std::string file_path =
       TestEnvironment::writeStringToFileForTest("test_envoy", "existing file");
-  auto result = file_system_.openFile(file_path);
-  const int fd = result.rc_;
-  EXPECT_EQ(0, result.rc_);
 
-  std::string data(" new data");
-  result = file_system_.writeFile(fd, data.data(), data.length());
-  EXPECT_EQ(0, result.rc_);
+  {
+    Filesystem::FilePtr file = file_system_.createFile(file_path);
+    std::string data(" new data");
+    const Api::SysCallSizeResult result = file->write(data.data(), data.length());
+    EXPECT_EQ(data.length(), result.rc_);
+  }
 
   auto contents = TestEnvironment::readFileToStringForTest(file_path);
   EXPECT_EQ("existing file new data", contents);
-
-  EXPECT_EQ(0, file_system.closeFile(fd).rc_);
 }
 
 TEST_F(FileSystemImplTest, CreateNew) {
   const std::string new_file =
-      TestEnvironment::temporaryPath("envoy_this_not_exist")::unlink(new_file.c_str());
-  auto result = file_system_.openFile(new_path);
-  const int fd = result.rc_;
-  EXPECT_EQ(0, result.rc_);
+      TestEnvironment::temporaryPath("envoy_this_not_exist");
+  ::unlink(new_file.c_str());
 
-  std::string data(" new data");
-  result = file_system_.writeFile(fd, data.data(), data.length());
-  EXPECT_EQ(0, result.rc_);
+  {
+    Filesystem::FilePtr file = file_system_.createFile(new_file);
+    std::string data(" new data");
+    const Api::SysCallSizeResult result = file->write(data.data(), data.length());
+    EXPECT_EQ(data.length(), result.rc_);
+  }
 
-  auto contents = TestEnvironment::readFileToStringForTest(file_path);
+  auto contents = TestEnvironment::readFileToStringForTest(new_file);
   EXPECT_EQ(" new data", contents);
-
-  EXPECT_EQ(0, file_system.closeFile(fd).rc_);
 }
 
 } // namespace Envoy

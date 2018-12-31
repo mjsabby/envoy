@@ -43,11 +43,8 @@ envoy_cc_library(
     srcs = ["stats_instance_impl.cc"],
     hdrs = ["stats_instance_impl.h"],
     deps = [
-        "//include/envoy/api:api_interface",
-        "//include/envoy/api:os_sys_calls_interface",
         "//include/envoy/event:dispatcher_interface",
         "//include/envoy/filesystem:filesystem_interface",
-        "//source/common/api:os_sys_calls_lib",
         "//source/common/buffer:buffer_lib",
         "//source/common/common:thread_lib",
     ],

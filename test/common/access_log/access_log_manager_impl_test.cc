@@ -26,12 +26,12 @@ TEST(AccessLogManagerImpl, reopenAllFiles) {
   Thread::MutexBasicLockable lock;
   Stats::IsolatedStoreImpl stats_store;
 
-  std::shared_ptr<Filesystem::MockFile> log1(new Filesystem::MockFile());
-  std::shared_ptr<Filesystem::MockFile> log2(new Filesystem::MockFile());
+  std::shared_ptr<Filesystem::MockStatsFile> log1(new Filesystem::MockStatsFile());
+  std::shared_ptr<Filesystem::MockStatsFile> log2(new Filesystem::MockStatsFile());
   AccessLogManagerImpl access_log_manager(api, dispatcher, lock);
-  EXPECT_CALL(file_system, createFile("foo", _, _)).WillOnce(Return(log1));
+  EXPECT_CALL(file_system, createStatsFile("foo", _, _)).WillOnce(Return(log1));
   access_log_manager.createAccessLog("foo");
-  EXPECT_CALL(file_system, createFile("bar", _, _)).WillOnce(Return(log2));
+  EXPECT_CALL(file_system, createStatsFile("bar", _, _)).WillOnce(Return(log2));
   access_log_manager.createAccessLog("bar");
 
   // Make sure that getting the access log with the same name returns the same underlying file.

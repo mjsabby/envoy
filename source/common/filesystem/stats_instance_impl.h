@@ -6,8 +6,6 @@
 #include <cstdlib>
 #include <string>
 
-#include "envoy/api/api.h"
-#include "envoy/api/os_sys_calls.h"
 #include "envoy/event/dispatcher.h"
 #include "envoy/filesystem/filesystem.h"
 #include "envoy/stats/stats_macros.h"

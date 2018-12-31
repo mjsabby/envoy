@@ -5,6 +5,7 @@
 namespace Envoy {
 namespace Filesystem {
 
+class FileSystemImplTest;
 class InstanceImplPosix : public Instance {
 public:
   // Filesystem::Instance
@@ -15,7 +16,8 @@ public:
   bool illegalPath(const std::string& path) override;
   FilePtr createFile(const std::string& path) override;
 
-private:
+//private:
+//  friend class FileSystemImplTest;
   std::string canonicalPath(const std::string& path);
 };
 

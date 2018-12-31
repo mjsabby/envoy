@@ -1,16 +1,5 @@
 #include "common/filesystem/stats_instance_impl.h"
 
-#if !defined(WIN32)
-#include <dirent.h>
-#else
-#include <fcntl.h>
-#include <io.h>
-#include <windows.h>
-#undef DELETE
-#undef GetMessage
-#endif
-#include <sys/stat.h>
-
 #include <chrono>
 #include <cstdint>
 #include <fstream>
@@ -25,7 +14,6 @@
 #include "envoy/event/dispatcher.h"
 #include "envoy/thread/thread.h"
 
-#include "common/api/os_sys_calls_impl.h"
 #include "common/common/assert.h"
 #include "common/common/fmt.h"
 #include "common/common/lock_guard.h"
@@ -122,8 +110,8 @@ void StatsFileImpl::doWrite(Buffer::Instance& buffer) {
   buffer.getRawSlices(slices.begin(), num_slices);
 
   // We must do the actual writes to disk under lock, so that we don't intermix chunks from
-  // different FileImpl pointing to the same underlying file. This can happen either via hot
-  // restart or if calling code opens the same underlying file into a different FileImpl in the
+  // different StatsFileImpl pointing to the same underlying file. This can happen either via hot
+  // restart or if calling code opens the same underlying file into a different StatsFileImpl in the
   // same process.
   // TODO PERF: Currently, we use a single cross process lock to serialize all disk writes. This
   //            will never block network workers, but does mean that only a single flush thread can

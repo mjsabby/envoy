@@ -18,9 +18,19 @@ public:
   ~MockFile();
 
   // Filesystem::File
-  MOCK_METHOD1(write, void(absl::string_view data));
-  MOCK_METHOD0(reopen, void());
-  MOCK_METHOD0(flush, void());
+  Api::SysCallSizeResult write(const void* buffer, size_t len) override;
+  void open() override;
+  MOCK_METHOD0(open_, void());
+  MOCK_METHOD2(write_, Api::SysCallSizeResult(const void* buffer, size_t len));
+  MOCK_METHOD0(close, void());
+  MOCK_METHOD0(isOpen, bool());
+
+  size_t num_open_ = 0;
+  size_t num_writes_ = 0;
+  Thread::MutexBasicLockable open_mutex_;
+  Thread::MutexBasicLockable write_mutex_;
+  Thread::CondVar open_event_;
+  Thread::CondVar write_event_;
 };
 
 class MockInstance : public Instance {
@@ -34,6 +44,18 @@ public:
   MOCK_METHOD1(fileSize, ssize_t(const std::string&));
   MOCK_METHOD1(fileReadToEnd, std::string(const std::string&));
   MOCK_METHOD1(illegalPath, bool(const std::string&));
+  MOCK_METHOD1(createFile, FilePtr(const std::string&));
+};
+
+class MockStatsFile : public StatsFile {
+public:
+  MockStatsFile();
+  ~MockStatsFile();
+
+  // Filesystem::StatsFile
+  MOCK_METHOD1(write, void(absl::string_view data));
+  MOCK_METHOD0(reopen, void());
+  MOCK_METHOD0(flush, void());
 };
 
 class MockStatsInstance : public StatsInstance {
@@ -42,10 +64,10 @@ public:
   ~MockStatsInstance();
 
   // Filesystem::StatsInstance
-  MOCK_METHOD4(createFile, FileSharedPtr(const std::string&, Event::Dispatcher&,
+  MOCK_METHOD4(createStatsFile, StatsFileSharedPtr(const std::string&, Event::Dispatcher&,
                                          Thread::BasicLockable&, std::chrono::milliseconds));
-  MOCK_METHOD3(createFile,
-               FileSharedPtr(const std::string&, Event::Dispatcher&, Thread::BasicLockable&));
+  MOCK_METHOD3(createStatsFile,
+               StatsFileSharedPtr(const std::string&, Event::Dispatcher&, Thread::BasicLockable&));
 
   // Filesystem::Instance
   MOCK_METHOD1(fileExists, bool(const std::string&));
@@ -53,8 +75,9 @@ public:
   MOCK_METHOD1(fileSize, ssize_t(const std::string&));
   MOCK_METHOD1(fileReadToEnd, std::string(const std::string&));
   MOCK_METHOD1(illegalPath, bool(const std::string&));
+  MOCK_METHOD1(createFile, FilePtr(const std::string&));
 
-  std::shared_ptr<Filesystem::MockFile> file_{new Filesystem::MockFile()};
+  std::shared_ptr<Filesystem::MockStatsFile> stats_file_{new Filesystem::MockStatsFile()};
 };
 
 class MockWatcher : public Watcher {
