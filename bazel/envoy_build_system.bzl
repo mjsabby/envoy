@@ -267,6 +267,7 @@ def envoy_cc_library(
         include_prefix = envoy_include_prefix(native.package_name()),
         alwayslink = 1,
         linkstatic = 1,
+        #linkstamp = linkstamp,
         linkstamp = select({
             repository + "//bazel:windows_x86_64": None,
             "//conditions:default": linkstamp,

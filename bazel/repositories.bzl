@@ -667,10 +667,10 @@ def _com_github_google_jwt_verify():
 def _foreign_cc_dependencies():
     http_archive(
         name = "rules_foreign_cc",
-        # 2018-10-25
-        sha256 = "92a5669f23711e5db6c7f4511ffdabb0a08a07f22888cc67570185413135eaf3",
-        strip_prefix = "rules_foreign_cc-13419882d68af10d55d3de78888cc18042324176",
-        url = "https://github.com/bazelbuild/rules_foreign_cc/archive/13419882d68af10d55d3de78888cc18042324176.tar.gz",
+        # 2019-01-02
+        sha256 = "9e98c4182c712adeb2cf7698bbee588294e41920eeb18b32183fe346a30bea73",
+        strip_prefix = "rules_foreign_cc-fe983268982babe113c5073522a631bc3d0aa5ee",
+        url = "https://github.com/greenhouse-org/rules_foreign_cc/archive/fe983268982babe113c5073522a631bc3d0aa5ee.tar.gz",
     )
 
 def _apply_dep_blacklist(ctxt, recipes):

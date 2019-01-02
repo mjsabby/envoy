@@ -186,14 +186,14 @@ REPOSITORY_LOCATIONS = dict(
         urls = ["https://github.com/google/googletest/archive/release-1.8.1.tar.gz"],
     ),
     com_google_protobuf = dict(
-        sha256 = "3d610ac90f8fa16e12490088605c248b85fdaf23114ce4b3605cdf81f7823604",
-        strip_prefix = "protobuf-fa252ec2a54acb24ddc87d48fed1ecfd458445fd",
+        sha256 = "35d4b68e02f6f1239f8a954851155c14835914bceddaf1df4b5b0168387e44f0",
+        strip_prefix = "protobuf-664f9277b52dd7a68fa4769dc1df4ea9e061267a",
         # TODO(htuch): Switch back to released versions for protobuf when a release > 3.6.0 happens
         # that includes:
         # - https://github.com/google/protobuf/commit/f35669b8d3f46f7f1236bd21f14d744bba251e60
         # - https://github.com/google/protobuf/commit/6a4fec616ec4b20f54d5fb530808b855cb664390
         # - https://github.com/google/protobuf/commit/fa252ec2a54acb24ddc87d48fed1ecfd458445fd
-        urls = ["https://github.com/protocolbuffers/protobuf/archive/fa252ec2a54acb24ddc87d48fed1ecfd458445fd.tar.gz"],
+        urls = ["https://github.com/protocolbuffers/protobuf/archive/664f9277b52dd7a68fa4769dc1df4ea9e061267a.tar.gz"],
     ),
     grpc_httpjson_transcoding = dict(
         sha256 = "dedd76b0169eb8c72e479529301a1d9b914a4ccb4d2b5ddb4ebe92d63a7b2152",

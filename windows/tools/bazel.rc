@@ -6,4 +6,6 @@ build --define tcmalloc=disabled
 # Build GRPC without c-ares support -- otherwise it will not link
 build --define grpc_no_ares=true
 build --experimental_enable_runfiles
-build --experimental_cc_skylark_api_enabled_packages=@rules_foreign_cc//tools/build_defs,tools/build_defs
+build --experimental_cc_skylark_api_enabled_packages=@rules_foreign_cc//tools/build_defs,tools/build_defs,@foreign_cc_impl
+build --incompatible_merge_genfiles_directory
+build --incompatible_strict_action_env=false
