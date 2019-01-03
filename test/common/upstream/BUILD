@@ -309,7 +309,6 @@ envoy_cc_test(
     deps = [
         ":utility_lib",
         "//source/common/config:utility_lib",
-        "//source/common/filesystem:filesystem_lib",
         "//source/common/http:message_lib",
         "//source/common/network:utility_lib",
         "//source/common/upstream:eds_lib",

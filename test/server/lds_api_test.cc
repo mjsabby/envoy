@@ -24,7 +24,8 @@ namespace Server {
 
 class LdsApiTest : public testing::Test {
 public:
-  LdsApiTest() : request_(&cluster_manager_.async_client_) {}
+  LdsApiTest()
+      : request_(&cluster_manager_.async_client_), file_system_(Filesystem::fileSystemForTest()) {}
 
   void setup(bool v2_rest = false) {
     v2_rest_ = v2_rest;
@@ -53,7 +54,7 @@ public:
     interval_timer_ = new Event::MockTimer(&dispatcher_);
     EXPECT_CALL(init_, registerTarget(_));
     lds_ = std::make_unique<LdsApiImpl>(lds_config, cluster_manager_, dispatcher_, random_, init_,
-                                        local_info_, store_, listener_manager_);
+                                        local_info_, store_, listener_manager_, file_system_);
 
     expectRequest();
     init_.initialize();
@@ -122,6 +123,7 @@ public:
   std::unique_ptr<LdsApiImpl> lds_;
   Event::MockTimer* interval_timer_{};
   Http::AsyncClient::Callbacks* callbacks_{};
+  Filesystem::Instance& file_system_;
 
 private:
   std::list<NiceMock<Network::MockListenerConfig>> listeners_;
@@ -155,7 +157,7 @@ TEST_F(LdsApiTest, UnknownCluster) {
   EXPECT_CALL(cluster_manager_, clusters()).WillOnce(Return(cluster_map));
   EXPECT_THROW_WITH_MESSAGE(
       LdsApiImpl(lds_config, cluster_manager_, dispatcher_, random_, init_, local_info_, store_,
-                 listener_manager_),
+                 listener_manager_, file_system_),
       EnvoyException,
       "envoy::api::v2::core::ConfigSource must have a statically defined non-EDS "
       "cluster: 'foo_cluster' does not exist, was added via api, or is an "
@@ -228,7 +230,7 @@ TEST_F(LdsApiTest, BadLocalInfo) {
   ON_CALL(local_info_, clusterName()).WillByDefault(Return(std::string()));
   EXPECT_THROW_WITH_MESSAGE(
       LdsApiImpl(lds_config, cluster_manager_, dispatcher_, random_, init_, local_info_, store_,
-                 listener_manager_),
+                 listener_manager_, file_system_),
       EnvoyException,
       "lds: node 'id' and 'cluster' are required. Set it either in 'node' config or via "
       "--service-node and --service-cluster options.");

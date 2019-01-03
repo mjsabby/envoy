@@ -80,7 +80,7 @@ RdsRouteConfigSubscription::RdsRouteConfigSubscription(
                                    factory_context.scope());
       },
       "envoy.api.v2.RouteDiscoveryService.FetchRoutes",
-      "envoy.api.v2.RouteDiscoveryService.StreamRoutes");
+      "envoy.api.v2.RouteDiscoveryService.StreamRoutes", factory_context.fileSystem());
 }
 
 RdsRouteConfigSubscription::~RdsRouteConfigSubscription() {

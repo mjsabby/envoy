@@ -51,11 +51,12 @@ InstanceImpl::InstanceImpl(Options& options, Event::TimeSystem& time_system,
                            Thread::BasicLockable& access_log_lock,
                            ComponentFactory& component_factory,
                            Runtime::RandomGeneratorPtr&& random_generator,
-                           ThreadLocal::Instance& tls, Thread::ThreadFactory& thread_factory)
+                           ThreadLocal::Instance& tls, Thread::ThreadFactory& thread_factory,
+                           Filesystem::Instance& file_system)
     : shutdown_(false), options_(options), time_system_(time_system), restarter_(restarter),
       start_time_(time(nullptr)), original_start_time_(start_time_), stats_store_(store),
       thread_local_(tls),
-      api_(new Api::Impl(options.fileFlushIntervalMsec(), thread_factory, store)),
+      api_(new Api::Impl(options.fileFlushIntervalMsec(), thread_factory, store, file_system)),
       secret_manager_(std::make_unique<Secret::SecretManagerImpl>()),
       dispatcher_(api_->allocateDispatcher(time_system)),
       singleton_manager_(new Singleton::ManagerImpl(api_->threadFactory().currentThreadId())),
@@ -171,7 +172,7 @@ bool InstanceImpl::healthCheckFailed() { return server_stats_->live_.value() == 
 
 InstanceUtil::BootstrapVersion
 InstanceUtil::loadBootstrapConfig(envoy::config::bootstrap::v2::Bootstrap& bootstrap,
-                                  Options& options) {
+                                  Options& options, Filesystem::Instance& file_system) {
   const std::string& config_path = options.configPath();
   const std::string& config_yaml = options.configYaml();
 
@@ -184,7 +185,7 @@ InstanceUtil::loadBootstrapConfig(envoy::config::bootstrap::v2::Bootstrap& boots
   }
   try {
     if (!config_path.empty()) {
-      MessageUtil::loadFromFile(config_path, bootstrap);
+      MessageUtil::loadFromFile(config_path, bootstrap, file_system);
     }
     if (!config_yaml.empty()) {
       envoy::config::bootstrap::v2::Bootstrap bootstrap_override;
@@ -203,7 +204,7 @@ InstanceUtil::loadBootstrapConfig(envoy::config::bootstrap::v2::Bootstrap& boots
   if (!config_yaml.empty()) {
     throw EnvoyException("V1 config (detected) with --config-yaml is not supported");
   }
-  Json::ObjectSharedPtr config_json = Json::Factory::loadFromFile(config_path);
+  Json::ObjectSharedPtr config_json = Json::Factory::loadFromFile(config_path, file_system);
   Config::BootstrapJson::translateBootstrap(*config_json, bootstrap, options.statsOptions());
   MessageUtil::validate(bootstrap);
   return BootstrapVersion::V1;
@@ -239,7 +240,7 @@ void InstanceImpl::initialize(Options& options,
                 Configuration::UpstreamTransportSocketConfigFactory>::allFactoryNames());
 
   // Handle configuration that needs to take place prior to the main configuration load.
-  InstanceUtil::loadBootstrapConfig(bootstrap_, options);
+  InstanceUtil::loadBootstrapConfig(bootstrap_, options, api_->fileSystem());
   bootstrap_config_update_time_ = time_system_.systemTime();
 
   // Needs to happen as early as possible in the instantiation to preempt the objects that require
@@ -294,8 +295,8 @@ void InstanceImpl::initialize(Options& options,
   loadServerFlags(initial_config.flagsPath());
 
   // Initialize the overload manager early so other modules can register for actions.
-  overload_manager_ = std::make_unique<OverloadManagerImpl>(dispatcher(), stats(), threadLocal(),
-                                                            bootstrap_.overload_manager());
+  overload_manager_ = std::make_unique<OverloadManagerImpl>(
+      dispatcher(), stats(), threadLocal(), bootstrap_.overload_manager(), api_->fileSystem());
 
   // Workers get created first so they register for thread local updates.
   listener_manager_ = std::make_unique<ListenerManagerImpl>(*this, listener_component_factory_,
@@ -341,7 +342,7 @@ void InstanceImpl::initialize(Options& options,
         Config::Utility::factoryForGrpcApiConfigSource(*async_client_manager_, hds_config, stats())
             ->create(),
         dispatcher(), runtime(), stats(), sslContextManager(), random(), info_factory_,
-        access_log_manager_, clusterManager(), localInfo());
+        access_log_manager_, clusterManager(), localInfo(), api_->fileSystem());
   }
 
   for (Stats::SinkPtr& sink : config_.statsSinks()) {
@@ -379,7 +380,8 @@ Runtime::LoaderPtr InstanceUtil::createRuntime(Instance& server,
 
     return std::make_unique<Runtime::DiskBackedLoaderImpl>(
         server.dispatcher(), server.threadLocal(), config.runtime()->symlinkRoot(),
-        config.runtime()->subdirectory(), override_subdirectory, server.stats(), server.random());
+        config.runtime()->subdirectory(), override_subdirectory, server.stats(), server.random(),
+        server.api().fileSystem());
   } else {
     return std::make_unique<Runtime::LoaderImpl>(server.random(), server.stats(),
                                                  server.threadLocal());
@@ -392,7 +394,7 @@ void InstanceImpl::loadServerFlags(const absl::optional<std::string>& flags_path
   }
 
   ENVOY_LOG(info, "server flags path: {}", flags_path.value());
-  if (api_->fileExists(flags_path.value() + "/drain")) {
+  if (api_->fileSystem().fileExists(flags_path.value() + "/drain")) {
     ENVOY_LOG(info, "starting server in drain mode");
     failHealthcheck(true);
   }

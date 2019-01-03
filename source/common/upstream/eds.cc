@@ -43,7 +43,7 @@ EdsClusterImpl::EdsClusterImpl(
         return new SdsSubscription(info_->stats(), eds_config, cm, dispatcher, random);
       },
       "envoy.api.v2.EndpointDiscoveryService.FetchEndpoints",
-      "envoy.api.v2.EndpointDiscoveryService.StreamEndpoints");
+      "envoy.api.v2.EndpointDiscoveryService.StreamEndpoints", factory_context.fileSystem());
 }
 
 void EdsClusterImpl::startPreInit() { subscription_->start({cluster_name_}, *this); }
