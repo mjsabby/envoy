@@ -27,12 +27,12 @@
 namespace Envoy {
 namespace Filesystem {
 
-bool fileExists(const std::string& path) {
+bool RawInstanceImpl::fileExists(absl::string_view path) {
   std::ifstream input_file(path);
   return input_file.is_open();
 }
 
-bool directoryExists(const std::string& path) {
+bool RawInstanceImpl::directoryExists(absl::string_view path) {
   DIR* const dir = opendir(path.c_str());
   const bool dir_exists = nullptr != dir;
   if (dir_exists) {
@@ -42,7 +42,7 @@ bool directoryExists(const std::string& path) {
   return dir_exists;
 }
 
-ssize_t fileSize(const std::string& path) {
+ssize_t RawInstanceImpl::fileSize(absl::string_view path) {
   struct stat info;
   if (stat(path.c_str(), &info) != 0) {
     return -1;
@@ -50,7 +50,7 @@ ssize_t fileSize(const std::string& path) {
   return info.st_size;
 }
 
-std::string fileReadToEnd(const std::string& path) {
+std::string RawInstanceImpl::fileReadToEnd(absl::string_view path) {
   std::ios::sync_with_stdio(false);
 
   std::ifstream file(path);
@@ -64,7 +64,7 @@ std::string fileReadToEnd(const std::string& path) {
   return file_string.str();
 }
 
-std::string canonicalPath(const std::string& path) {
+std::string RawInstanceImpl::canonicalPath(absl::string_view path) {
   // TODO(htuch): When we are using C++17, switch to std::filesystem::canonical.
   char* resolved_path = ::realpath(path.c_str(), nullptr);
   if (resolved_path == nullptr) {
@@ -75,7 +75,7 @@ std::string canonicalPath(const std::string& path) {
   return resolved_path_string;
 }
 
-bool illegalPath(const std::string& path) {
+bool RawInstanceImpl::illegalPath(absl::string_view path) {
   try {
     const std::string canonical_path = canonicalPath(path);
     // Platform specific path sanity; we provide a convenience to avoid Envoy
@@ -94,19 +94,73 @@ bool illegalPath(const std::string& path) {
   }
 }
 
+FileImplPosix::RawFileImpl(absl::string_view path) : path_(path) {}
+
+FileImplPosix::~RawFileImpl() { close(); }
+
+Api::SysCallIntResult RawFileImpl::open() {
+  const int flags = O_RDWR | O_APPEND | O_CREAT;
+  const int mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+
+  fd_ = ::open(path_.c_str(), flags, mode);
+  return {fd_, errno};
+}
+
+Api::SysCallSizeResult RawFileImpl::write(absl::string_view buffer) {
+  const ssize_t rc = ::write(fd_, buffer.data(), buffer.size());
+  return {rc, errno};
+}
+
+Api::SysCallIntResult RawFileImpl::close() {
+  if (fd_ == -1) {
+    return;
+  }
+  const int rc = ::close(fd_);
+  if (rc == 0) {
+    fd_ = 1;
+  }
+  return {rc, errno};
+}
+
+bool FileImplPosix::isOpen() { return fd_ != -1; }
+
 Instance::Instance(std::chrono::milliseconds file_flush_interval_msec,
-                   Thread::ThreadFactory& thread_factory, Stats::Store& stats_store)
+                   Thread::ThreadFactory& thread_factory, Stats::Store& stats_store,
+                   RawInstace& raw_instance)
     : file_flush_interval_msec_(file_flush_interval_msec),
       file_stats_{FILESYSTEM_STATS(POOL_COUNTER_PREFIX(stats_store, "filesystem."),
                                    POOL_GAUGE_PREFIX(stats_store, "filesystem."))},
-      thread_factory_(thread_factory) {}
+      thread_factory_(thread_factory) raw_instance_(raw_instance) {}
 
-FileSharedPtr Instance::createFile(const std::string& path, Event::Dispatcher& dispatcher,
+FileSharedPtr Instance::createFile(absl::string_view path, Event::Dispatcher& dispatcher,
                                    Thread::BasicLockable& lock,
                                    std::chrono::milliseconds file_flush_interval_msec) {
   return std::make_shared<Filesystem::FileImpl>(path, dispatcher, lock, file_stats_,
                                                 file_flush_interval_msec, thread_factory_);
 };
+
+FileSharedPtr createFile(absl::string_view path, Event::Dispatcher& dispatcher,
+                         Thread::BasicLockable& lock) {
+  return createFile(path, dispatcher, lock, file_flush_interval_msec_);
+}
+
+bool InstanceImpl::fileExists(absl::string_view path) { return raw_instance_.fileExists(path); }
+
+bool InstanceImpl::directoryExists(absl::string_view path) {
+  return raw_instance_.directoryExists(path);
+}
+
+ssize_t InstanceImpl::fileSize(absl::string_view path) { return raw_instance_.fileSize(path); }
+
+std::string InstanceImpl::fileReadToEnd(absl::string_view path) {
+  return raw_instance_.fileReadToEnd(path);
+}
+
+bool InstanceImpl::illegalPath(absl::string_view path) { return raw_instance_.illegalPath(path); }
+
+RawFilePtr InstanceImpl::createRawFile(absl::string_view path) {
+  return raw_instance_.createRawFile(path);
+}
 
 FileImpl::FileImpl(const std::string& path, Event::Dispatcher& dispatcher,
                    Thread::BasicLockable& lock, FileSystemStats& stats,

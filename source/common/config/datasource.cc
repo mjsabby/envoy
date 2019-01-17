@@ -8,10 +8,10 @@ namespace Envoy {
 namespace Config {
 namespace DataSource {
 
-std::string read(const envoy::api::v2::core::DataSource& source, bool allow_empty) {
+std::string read(const envoy::api::v2::core::DataSource& source, bool allow_empty, Api::Api& api) {
   switch (source.specifier_case()) {
   case envoy::api::v2::core::DataSource::kFilename:
-    return Filesystem::fileReadToEnd(source.filename());
+    return api.fileSystem().fileReadToEnd(source.filename());
   case envoy::api::v2::core::DataSource::kInlineBytes:
     return source.inline_bytes();
   case envoy::api::v2::core::DataSource::kInlineString:

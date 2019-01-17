@@ -95,7 +95,8 @@ public:
    *         route's direct_response if specified, or an empty string otherwise.
    * @throw EnvoyException if the route configuration contains an error.
    */
-  static std::string parseDirectResponseBody(const envoy::api::v2::route::Route& route);
+  static std::string parseDirectResponseBody(const envoy::api::v2::route::Route& route,
+                                             Api::Api& api);
 
   /**
    * Returns the HTTP Status Code enum parsed from proto.

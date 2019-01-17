@@ -76,7 +76,8 @@ ConfigUtility::parseDirectResponseCode(const envoy::api::v2::route::Route& route
   return absl::optional<Http::Code>();
 }
 
-std::string ConfigUtility::parseDirectResponseBody(const envoy::api::v2::route::Route& route) {
+std::string ConfigUtility::parseDirectResponseBody(const envoy::api::v2::route::Route& route,
+                                                   Api::Api& api) {
   static const ssize_t MaxBodySize = 4096;
   if (!route.has_direct_response() || !route.direct_response().has_body()) {
     return EMPTY_STRING;
@@ -84,10 +85,10 @@ std::string ConfigUtility::parseDirectResponseBody(const envoy::api::v2::route::
   const auto& body = route.direct_response().body();
   const std::string filename = body.filename();
   if (!filename.empty()) {
-    if (!Filesystem::fileExists(filename)) {
+    if (!api.fileSystem().fileExists(filename)) {
       throw EnvoyException(fmt::format("response body file {} does not exist", filename));
     }
-    ssize_t size = Filesystem::fileSize(filename);
+    const ssize_t size = api.fileSystem().fileSize(filename);
     if (size < 0) {
       throw EnvoyException(fmt::format("cannot determine size of response body file {}", filename));
     }
@@ -95,7 +96,7 @@ std::string ConfigUtility::parseDirectResponseBody(const envoy::api::v2::route::
       throw EnvoyException(fmt::format("response body file {} size is {} bytes; maximum is {}",
                                        filename, size, MaxBodySize));
     }
-    return Filesystem::fileReadToEnd(filename);
+    return api.fileSystem().fileReadToEnd(filename);
   }
   const std::string inline_body(body.inline_bytes().empty() ? body.inline_string()
                                                             : body.inline_bytes());

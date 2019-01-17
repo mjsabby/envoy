@@ -683,9 +683,9 @@ bool ObjectHandler::handleValueEvent(FieldSharedPtr ptr) {
 
 } // namespace
 
-ObjectSharedPtr Factory::loadFromFile(const std::string& file_path) {
+ObjectSharedPtr Factory::loadFromFile(const std::string& file_path, Api::Api& api) {
   try {
-    const std::string contents = Filesystem::fileReadToEnd(file_path);
+    const std::string contents = api.fileSystem().fileReadToEnd(file_path);
     return absl::EndsWith(file_path, ".yaml") ? loadFromYamlString(contents)
                                               : loadFromString(contents);
   } catch (EnvoyException& e) {
