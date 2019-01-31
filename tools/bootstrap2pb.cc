@@ -28,8 +28,8 @@ int main(int argc, char** argv) {
 
   Envoy::PlatformImpl platform_impl_;
   Envoy::Stats::IsolatedStoreImpl stats_store;
-  Envoy::Api::Impl api(std::chrono::milliseconds(1000), platform_impl_.threadFactory(),
-                       stats_store);
+  Envoy::Api::Impl api(std::chrono::milliseconds(1000), platform_impl_.threadFactory(), stats_store,
+                       platform_impl_.rawFileSystem());
 
   envoy::config::bootstrap::v2::Bootstrap bootstrap;
   Envoy::MessageUtil::loadFromFile(argv[1], bootstrap, api);

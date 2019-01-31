@@ -1,5 +1,3 @@
-#include "common/filesystem/raw_instance_impl.h"
-
 #include <dirent.h>
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -16,20 +14,21 @@
 #include "common/common/assert.h"
 #include "common/common/fmt.h"
 #include "common/common/logger.h"
+#include "common/filesystem/raw_instance_impl.h"
 
 #include "absl/strings/match.h"
 
 namespace Envoy {
 namespace Filesystem {
 
-RawFileImpl::RawFileImpl(const std::string& path) : fd_(-1), path_(path) {}
+RawFileImplPosix::RawFileImplPosix(const std::string& path) : fd_(-1), path_(path) {}
 
-RawFileImpl::~RawFileImpl() {
+RawFileImplPosix::~RawFileImplPosix() {
   const auto result = close();
   ASSERT(result.rc_);
 }
 
-Api::SysCallBoolResult RawFileImpl::open() {
+Api::SysCallBoolResult RawFileImplPosix::open() {
   if (isOpen()) {
     return {true, 0};
   }
@@ -44,12 +43,12 @@ Api::SysCallBoolResult RawFileImpl::open() {
   return {true, 0};
 }
 
-Api::SysCallSizeResult RawFileImpl::write(absl::string_view buffer) {
+Api::SysCallSizeResult RawFileImplPosix::write(absl::string_view buffer) {
   const ssize_t rc = ::write(fd_, buffer.data(), buffer.size());
   return {rc, errno};
 }
 
-Api::SysCallBoolResult RawFileImpl::close() {
+Api::SysCallBoolResult RawFileImplPosix::close() {
   if (!isOpen()) {
     return {true, 0};
   }
@@ -63,20 +62,20 @@ Api::SysCallBoolResult RawFileImpl::close() {
   return {true, 0};
 }
 
-bool RawFileImpl::isOpen() { return fd_ != -1; }
+bool RawFileImplPosix::isOpen() { return fd_ != -1; }
 
-std::string RawFileImpl::path() { return path_; }
+std::string RawFileImplPosix::path() { return path_; }
 
-RawFilePtr RawInstanceImpl::createRawFile(const std::string& path) {
-  return std::make_unique<RawFileImpl>(path);
+RawFilePtr RawInstanceImplPosix::createRawFile(const std::string& path) {
+  return std::make_unique<RawFileImplPosix>(path);
 }
 
-bool RawInstanceImpl::fileExists(const std::string& path) {
+bool RawInstanceImplPosix::fileExists(const std::string& path) {
   std::ifstream input_file(path);
   return input_file.is_open();
 }
 
-bool RawInstanceImpl::directoryExists(const std::string& path) {
+bool RawInstanceImplPosix::directoryExists(const std::string& path) {
   DIR* const dir = ::opendir(path.c_str());
   const bool dir_exists = nullptr != dir;
   if (dir_exists) {
@@ -86,7 +85,7 @@ bool RawInstanceImpl::directoryExists(const std::string& path) {
   return dir_exists;
 }
 
-ssize_t RawInstanceImpl::fileSize(const std::string& path) {
+ssize_t RawInstanceImplPosix::fileSize(const std::string& path) {
   struct stat info;
   if (::stat(path.c_str(), &info) != 0) {
     return -1;
@@ -94,7 +93,7 @@ ssize_t RawInstanceImpl::fileSize(const std::string& path) {
   return info.st_size;
 }
 
-std::string RawInstanceImpl::fileReadToEnd(const std::string& path) {
+std::string RawInstanceImplPosix::fileReadToEnd(const std::string& path) {
   std::ios::sync_with_stdio(false);
 
   std::ifstream file(path);
@@ -108,18 +107,7 @@ std::string RawInstanceImpl::fileReadToEnd(const std::string& path) {
   return file_string.str();
 }
 
-Api::SysCallStringResult RawInstanceImpl::canonicalPath(const std::string& path) {
-  // TODO(htuch): When we are using C++17, switch to std::filesystem::canonical.
-  char* resolved_path = ::realpath(path.c_str(), nullptr);
-  if (resolved_path == nullptr) {
-    return {std::string(), errno};
-  }
-  std::string resolved_path_string{resolved_path};
-  ::free(resolved_path);
-  return {resolved_path_string, 0};
-}
-
-bool RawInstanceImpl::illegalPath(const std::string& path) {
+bool RawInstanceImplPosix::illegalPath(const std::string& path) {
   const Api::SysCallStringResult canonical_path = canonicalPath(path);
   if (canonical_path.rc_.empty()) {
     ENVOY_LOG_MISC(debug, "Unable to determine canonical path for {}: {}", path,
@@ -138,6 +126,17 @@ bool RawInstanceImpl::illegalPath(const std::string& path) {
     return true;
   }
   return false;
+}
+
+Api::SysCallStringResult RawInstanceImplPosix::canonicalPath(const std::string& path) {
+  // TODO(htuch): When we are using C++17, switch to std::filesystem::canonical.
+  char* resolved_path = ::realpath(path.c_str(), nullptr);
+  if (resolved_path == nullptr) {
+    return {std::string(), errno};
+  }
+  std::string resolved_path_string{resolved_path};
+  ::free(resolved_path);
+  return {resolved_path_string, 0};
 }
 
 } // namespace Filesystem

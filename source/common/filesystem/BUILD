@@ -52,8 +52,24 @@ envoy_cc_library(
 
 envoy_cc_library(
     name = "raw_instance_lib",
-    srcs = ["raw_instance_impl.cc"],
-    hdrs = ["raw_instance_impl.h"],
+    deps = envoy_cc_platform_dep("raw_instance_lib"),
+)
+
+envoy_cc_win32_library(
+    name = "raw_instance_lib",
+    srcs = ["win32/raw_instance_impl.cc"],
+    hdrs = ["win32/raw_instance_impl.h"],
+    strip_include_prefix = "win32",
+    deps = [
+        "//include/envoy/filesystem:filesystem_interface",
+    ],
+)
+
+envoy_cc_posix_library(
+    name = "raw_instance_lib",
+    srcs = ["posix/raw_instance_impl.cc"],
+    hdrs = ["posix/raw_instance_impl.h"],
+    strip_include_prefix = "posix",
     deps = [
         "//include/envoy/filesystem:filesystem_interface",
     ],

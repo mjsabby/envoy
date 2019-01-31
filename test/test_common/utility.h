@@ -525,6 +525,10 @@ namespace Thread {
 ThreadFactory& threadFactoryForTest();
 } // namespace Thread
 
+namespace Filesystem {
+RawInstance& rawInstanceForTest();
+} // namespace Filesystem
+
 namespace Api {
 ApiPtr createApiForTest(Stats::Store& stat_store);
 } // namespace Api

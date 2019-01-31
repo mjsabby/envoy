@@ -50,10 +50,6 @@ std::string InstanceImpl::fileReadToEnd(const std::string& path) {
   return raw_instance_.fileReadToEnd(path);
 }
 
-Api::SysCallStringResult InstanceImpl::canonicalPath(const std::string& path) {
-  return raw_instance_.canonicalPath(path);
-}
-
 bool InstanceImpl::illegalPath(const std::string& path) { return raw_instance_.illegalPath(path); }
 
 FileImpl::FileImpl(RawFilePtr&& raw_file, Event::Dispatcher& dispatcher,

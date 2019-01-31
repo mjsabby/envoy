@@ -10,9 +10,10 @@ namespace Envoy {
 namespace Api {
 
 Impl::Impl(std::chrono::milliseconds file_flush_interval_msec,
-           Thread::ThreadFactory& thread_factory, Stats::Store& stats_store)
+           Thread::ThreadFactory& thread_factory, Stats::Store& stats_store,
+           Filesystem::RawInstance& raw_instance)
     : thread_factory_(thread_factory),
-      file_system_(file_flush_interval_msec, thread_factory, stats_store, raw_instance_) {}
+      file_system_(file_flush_interval_msec, thread_factory, stats_store, raw_instance) {}
 
 Event::DispatcherPtr Impl::allocateDispatcher(Event::TimeSystem& time_system) {
   return std::make_unique<Event::DispatcherImpl>(time_system, *this);

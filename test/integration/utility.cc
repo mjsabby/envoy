@@ -61,7 +61,8 @@ IntegrationUtil::makeSingleRequest(const Network::Address::InstanceConstSharedPt
                                    const std::string& host, const std::string& content_type) {
 
   NiceMock<Stats::MockIsolatedStatsStore> mock_stats_store;
-  Api::Impl api(std::chrono::milliseconds(9000), Thread::threadFactoryForTest(), mock_stats_store);
+  Api::Impl api(std::chrono::milliseconds(9000), Thread::threadFactoryForTest(), mock_stats_store,
+                Filesystem::rawInstanceForTest());
   Event::GlobalTimeSystem time_system;
   Event::DispatcherPtr dispatcher(api.allocateDispatcher(*time_system));
   std::shared_ptr<Upstream::MockClusterInfo> cluster{new NiceMock<Upstream::MockClusterInfo>()};
