@@ -15,27 +15,55 @@ namespace Filesystem {
 class RawInstanceImplTest : public testing::Test {
 protected:
   int getFd(RawFile* file) {
-    auto file_impl = dynamic_cast<RawFileImpl*>(file);
+#ifdef WIN32
+    auto file_impl = dynamic_cast<RawFileImplWin32*>(file);
+#else
+    auto file_impl = dynamic_cast<RawFileImplPosix*>(file);
+#endif
     RELEASE_ASSERT(file_impl != nullptr, "failed to cast RawFile* to RawFileImpl*");
     return file_impl->fd_;
   }
 
-  RawInstanceImpl raw_instance_;
+#ifdef WIN32
+  RawInstanceImplWin32 raw_instance_;
+#else
+  Api::SysCallStringResult canonicalPath(const std::string& path) {
+    return raw_instance_.canonicalPath(path);
+  }
+  RawInstanceImplPosix raw_instance_;
+#endif
 };
 
 TEST_F(RawInstanceImplTest, fileExists) {
-  EXPECT_TRUE(raw_instance_.fileExists("/dev/null"));
   EXPECT_FALSE(raw_instance_.fileExists("/dev/blahblahblah"));
+#ifdef WIN32
+  const std::string file_path = TestEnvironment::writeStringToFileForTest("test_envoy", "x");
+  EXPECT_TRUE(raw_instance_.fileExists(file_path));
+  EXPECT_TRUE(raw_instance_.fileExists("c:/windows"));
+#else
+  EXPECT_TRUE(raw_instance_.fileExists("/dev/null"));
+  EXPECT_TRUE(raw_instance_.fileExists("/dev"));
+#endif
 }
 
 TEST_F(RawInstanceImplTest, directoryExists) {
-  EXPECT_TRUE(raw_instance_.directoryExists("/dev"));
-  EXPECT_FALSE(raw_instance_.directoryExists("/dev/null"));
   EXPECT_FALSE(raw_instance_.directoryExists("/dev/blahblah"));
+#ifdef WIN32
+  const std::string file_path = TestEnvironment::writeStringToFileForTest("test_envoy", "x");
+  EXPECT_FALSE(raw_instance_.directoryExists(file_path));
+  EXPECT_TRUE(raw_instance_.directoryExists("c:/windows"));
+#else
+  EXPECT_FALSE(raw_instance_.directoryExists("/dev/null"));
+  EXPECT_TRUE(raw_instance_.directoryExists("/dev"));
+#endif
 }
 
 TEST_F(RawInstanceImplTest, fileSize) {
+#ifdef WIN32
+  EXPECT_EQ(0, raw_instance_.fileSize("NUL"));
+#else
   EXPECT_EQ(0, raw_instance_.fileSize("/dev/null"));
+#endif
   EXPECT_EQ(-1, raw_instance_.fileSize("/dev/blahblahblah"));
   const std::string data = "test string\ntest";
   const std::string file_path = TestEnvironment::writeStringToFileForTest("test_envoy", data);
@@ -72,18 +100,30 @@ TEST_F(RawInstanceImplTest, fileReadToEndDoesNotExist) {
                EnvoyException);
 }
 
-TEST_F(RawInstanceImplTest, CanonicalPathSuccess) {
-  EXPECT_EQ("/", raw_instance_.canonicalPath("//").rc_);
-}
+#ifndef WIN32
+TEST_F(RawInstanceImplTest, CanonicalPathSuccess) { EXPECT_EQ("/", canonicalPath("//").rc_); }
+#endif
 
+#ifndef WIN32
 TEST_F(RawInstanceImplTest, CanonicalPathFail) {
-  const Api::SysCallStringResult result = raw_instance_.canonicalPath("/_some_non_existent_file");
+  const Api::SysCallStringResult result = canonicalPath("/_some_non_existent_file");
   EXPECT_TRUE(result.rc_.empty());
   EXPECT_STREQ("No such file or directory", ::strerror(result.errno_));
 }
+#endif
 
 TEST_F(RawInstanceImplTest, IllegalPath) {
   EXPECT_FALSE(raw_instance_.illegalPath("/"));
+  EXPECT_FALSE(raw_instance_.illegalPath("//"));
+#ifdef WIN32
+  EXPECT_FALSE(raw_instance_.illegalPath("/dev"));
+  EXPECT_FALSE(raw_instance_.illegalPath("/dev/"));
+  EXPECT_FALSE(raw_instance_.illegalPath("/proc"));
+  EXPECT_FALSE(raw_instance_.illegalPath("/proc/"));
+  EXPECT_FALSE(raw_instance_.illegalPath("/sys"));
+  EXPECT_FALSE(raw_instance_.illegalPath("/sys/"));
+  EXPECT_FALSE(raw_instance_.illegalPath("/_some_non_existent_file"));
+#else
   EXPECT_TRUE(raw_instance_.illegalPath("/dev"));
   EXPECT_TRUE(raw_instance_.illegalPath("/dev/"));
   EXPECT_TRUE(raw_instance_.illegalPath("/proc"));
@@ -91,6 +131,7 @@ TEST_F(RawInstanceImplTest, IllegalPath) {
   EXPECT_TRUE(raw_instance_.illegalPath("/sys"));
   EXPECT_TRUE(raw_instance_.illegalPath("/sys/"));
   EXPECT_TRUE(raw_instance_.illegalPath("/_some_non_existent_file"));
+#endif
 }
 
 TEST_F(RawInstanceImplTest, ConstructedFileNotOpen) {

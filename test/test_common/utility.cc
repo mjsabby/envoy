@@ -36,6 +36,7 @@
 #include "common/network/utility.h"
 #include "common/stats/stats_options_impl.h"
 #include "common/filesystem/directory.h"
+#include "common/filesystem/raw_instance_impl.h"
 
 #include "test/test_common/printers.h"
 
@@ -398,11 +399,25 @@ ThreadFactory& threadFactoryForTest() {
 
 } // namespace Thread
 
+namespace Filesystem {
+
+// TODO(sesmith177) Tests should get the RawInstance from the same location as the main code
+RawInstance& rawInstanceForTest() {
+#ifdef WIN32
+  static RawInstanceImplWin32* raw_instance = new RawInstanceImplWin32();
+#else
+  static RawInstanceImplPosix* raw_instance = new RawInstanceImplPosix();
+#endif
+  return *raw_instance;
+}
+
+} // namespace Filesystem
+
 namespace Api {
 
 ApiPtr createApiForTest(Stats::Store& stat_store) {
   return std::make_unique<Impl>(std::chrono::milliseconds(1000), Thread::threadFactoryForTest(),
-                                stat_store);
+                                stat_store, Filesystem::rawInstanceForTest());
 }
 
 } // namespace Api

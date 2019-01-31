@@ -47,7 +47,6 @@ public:
   bool directoryExists(const std::string& path) override;
   ssize_t fileSize(const std::string& path) override;
   std::string fileReadToEnd(const std::string& path) override;
-  Api::SysCallStringResult canonicalPath(const std::string& path) override;
   bool illegalPath(const std::string& path) override;
 
 private:
