@@ -47,7 +47,7 @@ void FilePerTapSink::submitBufferedTrace(
       fmt::format("{}_{}.{}", config_.path_prefix(), trace_id, text_format ? "pb_text" : "pb");
   ENVOY_LOG_MISC(debug, "Writing tap for [id={}] to {}", trace_id, path);
   ENVOY_LOG_MISC(trace, "Tap for [id={}]: {}", trace_id, trace->DebugString());
-  std::ofstream proto_stream(path);
+  std::ofstream proto_stream(path, std::ios_base::binary);
   if (text_format) {
     proto_stream << trace->DebugString();
   } else {

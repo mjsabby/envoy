@@ -12,21 +12,23 @@ namespace Network {
  */
 class IoSocketHandle : public IoHandle {
 public:
-  IoSocketHandle(int fd = -1) : fd_(fd) {}
+  IoSocketHandle() { SET_SOCKET_INVALID(fd_); }
+
+  IoSocketHandle(SOCKET_FD fd) : fd_(fd) {}
 
   // TODO(sbelair2) Call close() in destructor
-  ~IoSocketHandle() { ASSERT(fd_ == -1); }
+  ~IoSocketHandle() { ASSERT(SOCKET_INVALID(fd_)); }
 
   // TODO(sbelair2)  To be removed when the fd is fully abstracted from clients.
-  int fd() const override { return fd_; }
+  SOCKET_FD fd() const override { return fd_; }
 
   // Currently this close() is just for the IoHandle, and the close() system call
   // happens elsewhere. In coming changes, the close() syscall will be made from the IoHandle.
   // In particular, the close should also close the fd.
-  void close() override { fd_ = -1; }
+  void close() override { SET_SOCKET_INVALID(fd_); }
 
 private:
-  int fd_;
+  SOCKET_FD fd_;
 };
 typedef std::unique_ptr<IoSocketHandle> IoSocketHandlePtr;
 

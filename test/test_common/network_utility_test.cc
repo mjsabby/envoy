@@ -1,5 +1,7 @@
 #include <string>
 
+#include "common/api/os_sys_calls_impl.h"
+
 #include "test/test_common/environment.h"
 #include "test/test_common/network_utility.h"
 #include "test/test_common/test_base.h"
@@ -31,9 +33,10 @@ INSTANTIATE_TEST_SUITE_P(IpVersions, NetworkUtilityTest,
 TEST_P(NetworkUtilityTest, DISABLED_ValidateBindFreeLoopbackPort) {
   std::map<std::string, size_t> seen;
   const size_t kLimit = 50;
+  auto& os_sys_calls = Api::OsSysCallsSingleton::get();
   for (size_t n = 0; n < kLimit; ++n) {
     auto addr_fd = Network::Test::bindFreeLoopbackPort(version_, Address::SocketType::Stream);
-    close(addr_fd.second);
+    os_sys_calls.closeSocket(addr_fd.second);
     auto addr = addr_fd.first->asString();
     auto search = seen.find(addr);
     if (search != seen.end()) {

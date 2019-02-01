@@ -11,6 +11,15 @@
 #include "common/secret/sds_api.h"
 #include "common/ssl/certificate_validation_context_config_impl.h"
 
+#if defined(WIN32)
+#undef X509_NAME
+#undef X509_EXTENSIONS
+#undef X509_CERT_PAIR
+#undef PKCS7_ISSUER_AND_SERIAL
+#undef OCSP_REQUEST
+#undef OCSP_RESPONSE
+#endif
+
 #include "openssl/ssl.h"
 
 namespace Envoy {

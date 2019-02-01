@@ -42,10 +42,17 @@ TEST_F(AddrFamilyAwareSocketOptionImplTest, V4EmptyOptionNames) {
   IoHandlePtr io_handle = address.socket(Address::SocketType::Stream);
   ScopedIoHandleCloser closer(io_handle);
   EXPECT_CALL(testing::Const(socket_), ioHandle()).WillRepeatedly(testing::ReturnRef(*io_handle));
+
   AddrFamilyAwareSocketOptionImpl socket_option{
       envoy::api::v2::core::SocketOption::STATE_PREBIND, {}, {}, 1};
 
-  EXPECT_LOG_CONTAINS("warning", "Setting option on socket failed: Operation not supported",
+  std::string logline;
+#ifdef WIN32
+  logline = "Setting option on socket failed: 10045";
+#else
+  logline = "Setting option on socket failed: Operation not supported";
+#endif
+  EXPECT_LOG_CONTAINS("warning", logline,
                       EXPECT_FALSE(socket_option.setOption(
                           socket_, envoy::api::v2::core::SocketOption::STATE_PREBIND)));
 }
@@ -56,10 +63,17 @@ TEST_F(AddrFamilyAwareSocketOptionImplTest, V6EmptyOptionNames) {
   IoHandlePtr io_handle = address.socket(Address::SocketType::Stream);
   ScopedIoHandleCloser closer(io_handle);
   EXPECT_CALL(testing::Const(socket_), ioHandle()).WillRepeatedly(testing::ReturnRef(*io_handle));
+
   AddrFamilyAwareSocketOptionImpl socket_option{
       envoy::api::v2::core::SocketOption::STATE_PREBIND, {}, {}, 1};
 
-  EXPECT_LOG_CONTAINS("warning", "Setting option on socket failed: Operation not supported",
+  std::string logline;
+#ifdef WIN32
+  logline = "Setting option on socket failed: 10045";
+#else
+  logline = "Setting option on socket failed: Operation not supported";
+#endif
+  EXPECT_LOG_CONTAINS("warning", logline,
                       EXPECT_FALSE(socket_option.setOption(
                           socket_, envoy::api::v2::core::SocketOption::STATE_PREBIND)));
 }
@@ -129,7 +143,10 @@ TEST_F(AddrFamilyAwareSocketOptionImplTest, V6Precedence) {
 
 // GetSocketOptionName returns the v4 information for a v4 address
 TEST_F(AddrFamilyAwareSocketOptionImplTest, V4GetSocketOptionName) {
-  socket_.local_address_ = Utility::parseInternetAddress("1.2.3.4", 5678);
+  Address::Ipv4Instance address("1.2.3.4", 5678);
+  IoHandlePtr io_handle = address.socket(Address::SocketType::Stream);
+  ScopedIoHandleCloser closer(io_handle);
+  EXPECT_CALL(testing::Const(socket_), ioHandle()).WillRepeatedly(testing::ReturnRef(*io_handle));
 
   AddrFamilyAwareSocketOptionImpl socket_option{envoy::api::v2::core::SocketOption::STATE_PREBIND,
                                                 Network::SocketOptionName(std::make_pair(5, 10)),
@@ -143,7 +160,10 @@ TEST_F(AddrFamilyAwareSocketOptionImplTest, V4GetSocketOptionName) {
 
 // GetSocketOptionName returns the v4 information for a v6 address
 TEST_F(AddrFamilyAwareSocketOptionImplTest, V6GetSocketOptionName) {
-  socket_.local_address_ = Utility::parseInternetAddress("2::1", 5678);
+  Address::Ipv6Instance address("::1:2:3:4", 5678);
+  IoHandlePtr io_handle = address.socket(Address::SocketType::Stream);
+  ScopedIoHandleCloser closer(io_handle);
+  EXPECT_CALL(testing::Const(socket_), ioHandle()).WillRepeatedly(testing::ReturnRef(*io_handle));
 
   AddrFamilyAwareSocketOptionImpl socket_option{envoy::api::v2::core::SocketOption::STATE_PREBIND,
                                                 Network::SocketOptionName(std::make_pair(5, 10)),

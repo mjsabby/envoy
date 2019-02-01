@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include "envoy/common/platform.h"
 #include "envoy/common/pure.h"
 
 namespace Envoy {
@@ -21,7 +22,7 @@ public:
    *
    * TODO(sbelair2) remove fd() method
    */
-  virtual int fd() const PURE;
+  virtual SOCKET_FD fd() const PURE;
 
   /**
    * Clean up IoHandle resources

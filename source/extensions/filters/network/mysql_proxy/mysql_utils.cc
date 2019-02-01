@@ -1,7 +1,5 @@
 #include "extensions/filters/network/mysql_proxy/mysql_utils.h"
 
-#include <arpa/inet.h>
-
 namespace Envoy {
 namespace Extensions {
 namespace NetworkFilters {
@@ -144,7 +142,7 @@ int BufferHelper::peekHdr(Buffer::Instance& buffer, uint64_t& offset, int& len, 
   if (peekUint32(buffer, offset, val) != MYSQL_SUCCESS) {
     return MYSQL_FAILURE;
   }
-  seq = htonl(val) & MYSQL_HDR_SEQ_MASK;
+  seq = htobe32(val) & MYSQL_HDR_SEQ_MASK;
   len = val & MYSQL_HDR_PKT_SIZE_MASK;
   ENVOY_LOG(trace, "mysql_proxy: MYSQL-hdrseq {}, len {}", seq, len);
   return MYSQL_SUCCESS;

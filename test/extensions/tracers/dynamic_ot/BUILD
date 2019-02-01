@@ -20,6 +20,7 @@ envoy_extension_cc_test(
         "@io_opentracing_cpp//mocktracer:libmocktracer_plugin.so",
     ],
     extension_name = "envoy.tracers.dynamic_ot",
+    test_on_windows = False,
     deps = [
         "//source/common/http:header_map_lib",
         "//source/extensions/tracers/dynamic_ot:dynamic_opentracing_driver_lib",
@@ -37,6 +38,7 @@ envoy_extension_cc_test(
         "@io_opentracing_cpp//mocktracer:libmocktracer_plugin.so",
     ],
     extension_name = "envoy.tracers.dynamic_ot",
+    test_on_windows = False,
     deps = [
         "//source/extensions/tracers/dynamic_ot:config",
         "//test/mocks/server:server_mocks",

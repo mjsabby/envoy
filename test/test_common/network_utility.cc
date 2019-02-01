@@ -1,11 +1,14 @@
 #include "test/test_common/network_utility.h"
 
+#if !defined(WIN32)
 #include <netinet/in.h>
 #include <sys/socket.h>
+#endif
 
 #include <cstdint>
 #include <string>
 
+#include "common/api/os_sys_calls_impl.h"
 #include "common/common/assert.h"
 #include "common/common/fmt.h"
 #include "common/network/address_impl.h"
@@ -27,35 +30,42 @@ Address::InstanceConstSharedPtr findOrCheckFreePort(Address::InstanceConstShared
     return nullptr;
   }
   IoHandlePtr io_handle = addr_port->socket(type);
-  ScopedFdCloser fd_closer(io_handle->fd());
+  ScopedSocketCloser fd_closer(io_handle->fd());
   ScopedIoHandleCloser io_handle_closer(io_handle);
   // Not setting REUSEADDR, therefore if the address has been recently used we won't reuse it here.
   // However, because we're going to use the address while checking if it is available, we'll need
   // to set REUSEADDR on listener sockets created by tests using an address validated by this means.
   Api::SysCallIntResult result = addr_port->bind(io_handle->fd());
-  int err;
   const char* failing_fn = nullptr;
   if (result.rc_ != 0) {
-    err = result.errno_;
     failing_fn = "bind";
   } else if (type == Address::SocketType::Stream) {
     // Try listening on the port also, if the type is TCP.
-    if (::listen(io_handle->fd(), 1) != 0) {
-      err = errno;
+    auto& os_sys_calls = Api::OsSysCallsSingleton::get();
+    result = os_sys_calls.listen(io_handle->fd(), 1);
+    if (result.rc_ != 0) {
       failing_fn = "listen";
     }
   }
   if (failing_fn != nullptr) {
-    if (err == EADDRINUSE) {
+#ifdef WIN32
+    if (result.errno_ == WSAEADDRINUSE) {
+#else
+    if (result.errno_ == EADDRINUSE) {
+#endif
       // The port is already in use. Perfectly normal.
       return nullptr;
-    } else if (err == EACCES) {
+#ifdef WIN32
+    } else if (result.errno_ == WSAEACCES) {
+#else
+    } else if (result.errno_ == EACCES) {
+#endif
       // A privileged port, and we don't have privileges. Might want to log this.
       return nullptr;
     }
     // Unexpected failure.
     ADD_FAILURE() << failing_fn << " failed for '" << addr_port->asString()
-                  << "' with error: " << strerror(err) << " (" << err << ")";
+                  << "' with error: " << strerror(result.errno_) << " (" << result.errno_ << ")";
     return nullptr;
   }
   // If the port we bind is zero, then the OS will pick a free port for us (assuming there are
@@ -151,25 +161,29 @@ Address::InstanceConstSharedPtr getAnyAddress(const Address::IpVersion version, 
 bool supportsIpVersion(const Address::IpVersion version) {
   Address::InstanceConstSharedPtr addr = getCanonicalLoopbackAddress(version);
   IoHandlePtr io_handle = addr->socket(Address::SocketType::Stream);
+  auto& os_sys_calls = Api::OsSysCallsSingleton::get();
   if (0 != addr->bind(io_handle->fd()).rc_) {
     // Socket bind failed.
-    RELEASE_ASSERT(::close(io_handle->fd()) == 0, "");
+    auto result = os_sys_calls.closeSocket(io_handle->fd());
+    RELEASE_ASSERT(result.rc_ == 0, "");
     io_handle->close();
     return false;
   }
-  RELEASE_ASSERT(::close(io_handle->fd()) == 0, "");
+  auto result = os_sys_calls.closeSocket(io_handle->fd());
+  RELEASE_ASSERT(result.rc_ == 0, "");
   io_handle->close();
   return true;
 }
 
-std::pair<Address::InstanceConstSharedPtr, int> bindFreeLoopbackPort(Address::IpVersion version,
-                                                                     Address::SocketType type) {
+std::pair<Address::InstanceConstSharedPtr, SOCKET_FD>
+bindFreeLoopbackPort(Address::IpVersion version, Address::SocketType type) {
   Address::InstanceConstSharedPtr addr = getCanonicalLoopbackAddress(version);
   IoHandlePtr io_handle = addr->socket(type);
   ScopedIoHandleCloser closer(io_handle);
   Api::SysCallIntResult result = addr->bind(io_handle->fd());
   if (0 != result.rc_) {
-    close(io_handle->fd());
+    auto& os_sys_calls = Api::OsSysCallsSingleton::get();
+    os_sys_calls.closeSocket(io_handle->fd());
     std::string msg = fmt::format("bind failed for address {} with error: {} ({})",
                                   addr->asString(), strerror(result.errno_), result.errno_);
     ADD_FAILURE() << msg;

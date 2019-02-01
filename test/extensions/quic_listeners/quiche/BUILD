@@ -16,6 +16,7 @@ envoy_cc_test(
     name = "dummy_test",
     srcs = ["dummy_test.cc"],
     external_deps = ["quiche_http2_platform"],
+    test_on_windows = False,
     deps = [
         "//source/extensions/quic_listeners/quiche:dummy_lib",
         "//test/test_common:utility_lib",

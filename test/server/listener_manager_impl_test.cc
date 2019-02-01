@@ -161,7 +161,11 @@ public:
                   bool expect_source_type_test, bool expect_source_type_match) {
     int local_addr_calls = expect_destination_port_match ? 2 : 1;
     if (absl::StartsWith(destination_address, "/")) {
+#if !defined(WIN32)
       local_address_.reset(new Network::Address::PipeInstance(destination_address));
+#else
+      PANIC("unix domain sockets not supported on Windows");
+#endif
     } else {
       if (expect_source_type_test) {
         local_addr_calls += 1;
@@ -195,7 +199,11 @@ public:
 
     if (expect_application_protocol_match && expect_source_type_test) {
       if (absl::StartsWith(source_address, "/")) {
+#if !defined(WIN32)
         remote_address_.reset(new Network::Address::PipeInstance(source_address));
+#else
+        PANIC("unix domain sockets not supported on Windows");
+#endif
       } else {
         remote_address_.reset(new Network::Address::Ipv4Instance(source_address, 111));
       }
@@ -590,8 +598,14 @@ TEST_F(ListenerManagerImplTest, AddListenerOnIpv4OnlySetups) {
 
   ListenerHandle* listener_foo = expectListenerCreate(false);
 
-  EXPECT_CALL(os_sys_calls, socket(AF_INET, _, 0)).WillOnce(Return(Api::SysCallIntResult{5, 0}));
-  EXPECT_CALL(os_sys_calls, socket(AF_INET6, _, 0)).WillOnce(Return(Api::SysCallIntResult{-1, 0}));
+  EXPECT_CALL(os_sys_calls, socket(AF_INET, _, 0)).WillOnce(Return(Api::SysCallSocketResult{5, 0}));
+#if !defined(WIN32)
+  EXPECT_CALL(os_sys_calls, socket(AF_INET6, _, 0))
+      .WillOnce(Return(Api::SysCallSocketResult{-1, 0}));
+#else
+  EXPECT_CALL(os_sys_calls, socket(AF_INET6, _, 0))
+      .WillOnce(Return(Api::SysCallSocketResult{INVALID_SOCKET, 0}));
+#endif
 
   EXPECT_CALL(listener_factory_, createListenSocket(_, _, _, true));
 
@@ -620,8 +634,15 @@ TEST_F(ListenerManagerImplTest, AddListenerOnIpv6OnlySetups) {
 
   ListenerHandle* listener_foo = expectListenerCreate(false);
 
-  EXPECT_CALL(os_sys_calls, socket(AF_INET, _, 0)).WillOnce(Return(Api::SysCallIntResult{-1, 0}));
-  EXPECT_CALL(os_sys_calls, socket(AF_INET6, _, 0)).WillOnce(Return(Api::SysCallIntResult{5, 0}));
+#if !defined(WIN32)
+  EXPECT_CALL(os_sys_calls, socket(AF_INET, _, 0))
+      .WillOnce(Return(Api::SysCallSocketResult{-1, 0}));
+#else
+  EXPECT_CALL(os_sys_calls, socket(AF_INET, _, 0))
+      .WillOnce(Return(Api::SysCallSocketResult{INVALID_SOCKET, 0}));
+#endif
+  EXPECT_CALL(os_sys_calls, socket(AF_INET6, _, 0))
+      .WillOnce(Return(Api::SysCallSocketResult{5, 0}));
 
   EXPECT_CALL(listener_factory_, createListenSocket(_, _, _, true));
 
@@ -1310,10 +1331,12 @@ TEST_F(ListenerManagerImplWithRealFiltersTest, SingleFilterChainWithDestinationP
   EXPECT_EQ(server_names.size(), 1);
   EXPECT_EQ(server_names.front(), "server1.example.com");
 
+#if !defined(WIN32)
   // UDS client - no match.
   filter_chain = findFilterChain(0, false, "/tmp/test.sock", false, "", false, "tls", false, {},
                                  false, "/tmp/test.sock", false, false);
   EXPECT_EQ(filter_chain, nullptr);
+#endif
 }
 
 TEST_F(ListenerManagerImplWithRealFiltersTest, SingleFilterChainWithDestinationIPMatch) {
@@ -1356,10 +1379,12 @@ TEST_F(ListenerManagerImplWithRealFiltersTest, SingleFilterChainWithDestinationI
   EXPECT_EQ(server_names.size(), 1);
   EXPECT_EQ(server_names.front(), "server1.example.com");
 
+#if !defined(WIN32)
   // UDS client - no match.
   filter_chain = findFilterChain(0, true, "/tmp/test.sock", false, "", false, "tls", false, {},
                                  false, "/tmp/test.sock", false, false);
   EXPECT_EQ(filter_chain, nullptr);
+#endif
 }
 
 TEST_F(ListenerManagerImplWithRealFiltersTest, SingleFilterChainWithServerNamesMatch) {
@@ -1532,6 +1557,7 @@ TEST_F(ListenerManagerImplWithRealFiltersTest, SingleFilterChainWithSourceTypeMa
   EXPECT_EQ(server_names.size(), 1);
   EXPECT_EQ(server_names.front(), "server1.example.com");
 
+#if !defined(WIN32)
   // LOCAL UDS client with "http/1.1" ALPN - using 1st filter chain.
   filter_chain = findFilterChain(0, true, "/tmp/test.sock", true, "", true, "tls", true,
                                  {"h2", "http/1.1"}, true, "/tmp/test.sock", true, true);
@@ -1542,6 +1568,7 @@ TEST_F(ListenerManagerImplWithRealFiltersTest, SingleFilterChainWithSourceTypeMa
   server_names = ssl_socket->dnsSansLocalCertificate();
   EXPECT_EQ(server_names.size(), 1);
   EXPECT_EQ(server_names.front(), "server1.example.com");
+#endif
 }
 
 // Define multiple source_type filter chain matches and test against them.
@@ -1692,6 +1719,7 @@ TEST_F(ListenerManagerImplWithRealFiltersTest, MultipleFilterChainsWithDestinati
   EXPECT_EQ(server_names.size(), 2);
   EXPECT_EQ(server_names.front(), "*.example.com");
 
+#if !defined(WIN32)
   // UDS client - using 1st filter chain.
   filter_chain = findFilterChain(0, true, "/tmp/test.sock", true, "", true, "tls", true, {}, true,
                                  "127.0.0.1", false, true);
@@ -1701,6 +1729,7 @@ TEST_F(ListenerManagerImplWithRealFiltersTest, MultipleFilterChainsWithDestinati
   ssl_socket = dynamic_cast<Extensions::TransportSockets::Tls::SslSocket*>(transport_socket.get());
   uri = ssl_socket->uriSanLocalCertificate();
   EXPECT_EQ(uri, "spiffe://lyft.com/test-team");
+#endif
 }
 
 TEST_F(ListenerManagerImplWithRealFiltersTest, MultipleFilterChainsWithDestinationIPMatch) {
@@ -1773,6 +1802,7 @@ TEST_F(ListenerManagerImplWithRealFiltersTest, MultipleFilterChainsWithDestinati
   EXPECT_EQ(server_names.size(), 2);
   EXPECT_EQ(server_names.front(), "*.example.com");
 
+#if !defined(WIN32)
   // UDS client - using 1st filter chain.
   filter_chain = findFilterChain(0, true, "/tmp/test.sock", true, "", true, "tls", true, {}, true,
                                  "/tmp/test.sock", false, true);
@@ -1782,6 +1812,7 @@ TEST_F(ListenerManagerImplWithRealFiltersTest, MultipleFilterChainsWithDestinati
   ssl_socket = dynamic_cast<Extensions::TransportSockets::Tls::SslSocket*>(transport_socket.get());
   uri = ssl_socket->uriSanLocalCertificate();
   EXPECT_EQ(uri, "spiffe://lyft.com/test-team");
+#endif
 }
 
 TEST_F(ListenerManagerImplWithRealFiltersTest, MultipleFilterChainsWithServerNamesMatch) {

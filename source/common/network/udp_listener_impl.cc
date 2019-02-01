@@ -1,6 +1,8 @@
 #include "common/network/udp_listener_impl.h"
 
+#ifndef WIN32
 #include <sys/un.h>
+#endif
 
 #include "envoy/buffer/buffer.h"
 #include "envoy/common/exception.h"
@@ -21,7 +23,11 @@ UdpListenerImpl::UdpListenerImpl(Event::DispatcherImpl& dispatcher, Socket& sock
     : BaseListenerImpl(dispatcher, socket), cb_(cb) {
   file_event_ = dispatcher_.createFileEvent(
       socket.ioHandle().fd(), [this](uint32_t events) -> void { onSocketEvent(events); },
+#ifdef WIN32
+      Event::FileTriggerType::Level, Event::FileReadyType::Read | Event::FileReadyType::Write);
+#else
       Event::FileTriggerType::Edge, Event::FileReadyType::Read | Event::FileReadyType::Write);
+#endif
 
   ASSERT(file_event_);
 
@@ -57,10 +63,20 @@ UdpListenerImpl::ReceiveResult UdpListenerImpl::doRecvFrom(sockaddr_storage& pee
 
   ASSERT(num_slices == 1);
   // TODO(conqerAtapple): Use os_syscalls
+#ifdef WIN32
+  const ssize_t rc =
+      ::recvfrom(socket_.ioHandle().fd(), static_cast<char*>(slice.mem_), read_length, 0,
+                 reinterpret_cast<struct sockaddr*>(&peer_addr), &addr_len);
+#else
   const ssize_t rc = ::recvfrom(socket_.ioHandle().fd(), slice.mem_, read_length, 0,
                                 reinterpret_cast<struct sockaddr*>(&peer_addr), &addr_len);
+#endif
   if (rc < 0) {
+#ifdef WIN32
+    return ReceiveResult{Api::SysCallIntResult{static_cast<int>(rc), WSAGetLastError()}, nullptr};
+#else
     return ReceiveResult{Api::SysCallIntResult{static_cast<int>(rc), errno}, nullptr};
+#endif
   }
 
   slice.len_ = std::min(slice.len_, static_cast<size_t>(rc));
@@ -88,7 +104,11 @@ void UdpListenerImpl::handleReadCallback() {
   do {
     ReceiveResult recv_result = doRecvFrom(addr, addr_len);
     if ((recv_result.result_.rc_ < 0)) {
+#ifdef WIN32
+      if (recv_result.result_.errno_ != WSAEWOULDBLOCK) {
+#else
       if (recv_result.result_.errno_ != EAGAIN) {
+#endif
         cb_.onError(UdpListenerCallbacks::ErrorCode::SyscallError, recv_result.result_.errno_);
       }
       return;
@@ -123,11 +143,15 @@ void UdpListenerImpl::handleReadCallback() {
       const struct sockaddr_in6* sin6 = reinterpret_cast<const struct sockaddr_in6*>(&addr);
       ASSERT(AF_INET6 == sin6->sin6_family);
       if (IN6_IS_ADDR_V4MAPPED(&sin6->sin6_addr)) {
-#if defined(__APPLE__)
+#ifdef __APPLE__
         struct sockaddr_in sin = {
             {}, AF_INET, sin6->sin6_port, {sin6->sin6_addr.__u6_addr.__u6_addr32[3]}, {}};
+#elif WIN32
+        struct in_addr in_v4 = {};
+        in_v4.S_un.S_addr = reinterpret_cast<const uint32_t*>(sin6->sin6_addr.u.Byte)[3];
+        struct sockaddr_in sin = {AF_INET, sin6->sin6_port, in_v4, {}};
 #else
-        struct sockaddr_in sin = {AF_INET, sin6->sin6_port, {sin6->sin6_addr.s6_addr32[3]}, {}};
+      struct sockaddr_in sin = {AF_INET, sin6->sin6_port, {sin6->sin6_addr.s6_addr32[3]}, {}};
 #endif
         peer_address = std::make_shared<Address::Ipv4Instance>(&sin);
       } else {
@@ -156,7 +180,7 @@ void UdpListenerImpl::handleReadCallback() {
     cb_.onData(UdpData{local_address, peer_address, std::move(recv_result.buffer_)});
 
   } while (true);
-}
+} // namespace Network
 
 void UdpListenerImpl::handleWriteCallback() { cb_.onWriteReady(socket_); }
 

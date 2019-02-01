@@ -1,5 +1,3 @@
-#include <pthread.h>
-
 #include "extensions/filters/network/mysql_proxy/mysql_codec.h"
 #include "extensions/filters/network/mysql_proxy/mysql_codec_clogin.h"
 #include "extensions/filters/network/mysql_proxy/mysql_codec_clogin_resp.h"
@@ -13,6 +11,7 @@
 #include "test/test_common/network_utility.h"
 #include "test/test_common/test_base.h"
 
+#include "fmt/printf.h"
 #include "gmock/gmock.h"
 #include "mysql_test_utils.h"
 #include "rapidjson/document.h"
@@ -24,14 +23,21 @@ namespace Extensions {
 namespace NetworkFilters {
 namespace MySQLProxy {
 
+#ifdef WIN32
+const std::string devNull = "NUL";
+#else
+const std::string devNull = "/dev/null";
+#endif
+
 constexpr int SESSIONS = 5;
 
 class MySQLIntegrationTest : public MySQLTestUtils,
                              public BaseIntegrationTest,
                              public TestBaseWithParam<Network::Address::IpVersion> {
   std::string mysqlConfig() {
-    return TestEnvironment::readFileToStringForTest(TestEnvironment::runfilesPath(
-        "test/extensions/filters/network/mysql_proxy/mysql_test_config.yaml"));
+    return fmt::sprintf(TestEnvironment::readFileToStringForTest(TestEnvironment::runfilesPath(
+                            "test/extensions/filters/network/mysql_proxy/mysql_test_config.yaml")),
+                        devNull);
   }
 
 public:

@@ -39,7 +39,7 @@ cmake_external(
     cache_entries = {
         "CARES_SHARED": "no",
         "CARES_STATIC": "on",
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        #"CMAKE_BUILD_TYPE": "RelWithDebInfo",
     },
     cmake_options = ["-GNinja"],
     generate_crosstool_file = select({
@@ -89,7 +89,7 @@ cmake_external(
     cache_entries = {
         "EVENT__DISABLE_OPENSSL": "on",
         "EVENT__DISABLE_REGRESS": "on",
-        "CMAKE_BUILD_TYPE": "Release",
+        #"CMAKE_BUILD_TYPE": "Release",
     },
     cmake_options = ["-GNinja"],
     generate_crosstool_file = select({
@@ -116,7 +116,7 @@ cmake_external(
     cache_entries = {
         "ENABLE_STATIC_LIB": "on",
         "ENABLE_LIB_ONLY": "on",
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        #"CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "CMAKE_INSTALL_LIBDIR": "lib",
     },
     cmake_options = ["-GNinja"],
@@ -144,7 +144,7 @@ cmake_external(
     cache_entries = {
         "YAML_CPP_BUILD_TESTS": "off",
         "YAML_CPP_BUILD_TOOLS": "off",
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        #"CMAKE_BUILD_TYPE": "RelWithDebInfo",
     },
     cmake_options = ["-GNinja"],
     generate_crosstool_file = select({
@@ -167,7 +167,7 @@ cmake_external(
 cmake_external(
     name = "zlib",
     cache_entries = {
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        #"CMAKE_BUILD_TYPE": "RelWithDebInfo",
     },
     cmake_options = ["-GNinja"],
     generate_crosstool_file = select({

@@ -24,6 +24,7 @@ envoy_extension_cc_test(
     ],
     extension_name = "envoy.tracers.zipkin",
     external_deps = ["abseil_optional"],
+    test_on_windows = False,
     deps = [
         "//include/envoy/common:time_interface",
         "//include/envoy/runtime:runtime_interface",
@@ -51,6 +52,7 @@ envoy_extension_cc_test(
     name = "config_test",
     srcs = ["config_test.cc"],
     extension_name = "envoy.tracers.zipkin",
+    test_on_windows = False,
     deps = [
         "//source/extensions/tracers/zipkin:config",
         "//test/mocks/server:server_mocks",
