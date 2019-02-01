@@ -39,7 +39,7 @@ struct RawStatData {
    * and initialization are necessary.
    */
   RawStatData() = delete;
-  ~RawStatData() = delete;
+  //~RawStatData() = delete;
 
   /**
    * @return uint64_t the size of this struct, accounting for the length of

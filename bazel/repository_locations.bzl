@@ -37,10 +37,10 @@ REPOSITORY_LOCATIONS = dict(
         urls = ["https://github.com/c-ares/c-ares/archive/cares-1_15_0.tar.gz"],
     ),
     com_github_circonus_labs_libcircllhist = dict(
-        sha256 = "9949e2864b8ad00ee5c3e9c1c3c01e51b6b68bb442a919652fc66b9776477987",
-        strip_prefix = "libcircllhist-fd8a14463739d247b414825cc56ca3946792a3b9",
-        # 2018-09-17
-        urls = ["https://github.com/circonus-labs/libcircllhist/archive/fd8a14463739d247b414825cc56ca3946792a3b9.tar.gz"],
+        sha256 = "427d3c712d79cb45315b97cd74fcedb0b12e33eca295041770e60bab1142fa82",
+        strip_prefix = "libcircllhist-989ba17c22955952462b6c26dcdcc77c1ab790c7",
+        # 2018-11-06
+        urls = ["https://github.com/greenhouse-org/libcircllhist/archive/989ba17c22955952462b6c26dcdcc77c1ab790c7.tar.gz"],
     ),
     com_github_cyan4973_xxhash = dict(
         sha256 = "19030315f4fc1b4b2cdb9d7a317069a109f90e39d1fe4c9159b7aaa39030eb95",
@@ -219,9 +219,9 @@ REPOSITORY_LOCATIONS = dict(
         urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.16.5/rules_go-0.16.5.tar.gz"],
     ),
     rules_foreign_cc = dict(
-        sha256 = "78cbd1a8134b2f0ead8e637228d8ac1ac7c0ab3f0fbcd149a85e55330697d9a3",
-        strip_prefix = "rules_foreign_cc-216ded8acb95d81e312b228dce3c39872c7a7c34",
-        urls = ["https://github.com/bazelbuild/rules_foreign_cc/archive/216ded8acb95d81e312b228dce3c39872c7a7c34.tar.gz"],
+        sha256 = "92a5669f23711e5db6c7f4511ffdabb0a08a07f22888cc67570185413135eaf3",
+        strip_prefix = "rules_foreign_cc-13419882d68af10d55d3de78888cc18042324176",
+        urls = ["https://github.com/bazelbuild/rules_foreign_cc/archive/13419882d68af10d55d3de78888cc18042324176.tar.gz"],
     ),
     six_archive = dict(
         sha256 = "105f8d68616f8248e24bf0e9372ef04d3cc10104f1980f54d57b2ce73a5ad56a",

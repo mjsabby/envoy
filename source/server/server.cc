@@ -247,7 +247,7 @@ void InstanceImpl::initialize(Options& options,
   failHealthcheck(false);
 
   uint64_t version_int;
-  if (!StringUtil::atoul(VersionInfo::revision().substr(0, 6).c_str(), version_int, 16)) {
+  if (!StringUtil::atoull(VersionInfo::revision().substr(0, 6).c_str(), version_int, 16)) {
     throw EnvoyException("compiled GIT SHA is invalid. Invalid build.");
   }
 
@@ -402,6 +402,7 @@ RunHelper::RunHelper(Instance& instance, Options& options, Event::Dispatcher& di
 
   // Setup signals.
   if (options.signalHandlingEnabled()) {
+#ifndef WIN32
     sigterm_ = dispatcher.listenForSignal(SIGTERM, [&instance]() {
       ENVOY_LOG(warn, "caught SIGTERM");
       instance.shutdown();
@@ -420,6 +421,7 @@ RunHelper::RunHelper(Instance& instance, Options& options, Event::Dispatcher& di
     sig_hup_ = dispatcher.listenForSignal(SIGHUP, []() {
       ENVOY_LOG(warn, "caught and eating SIGHUP. See documentation for how to hot restart.");
     });
+#endif
   }
 
   // Start overload manager before workers.
