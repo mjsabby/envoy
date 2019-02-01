@@ -24,6 +24,7 @@
 #include "envoy/http/codec.h"
 
 #include "common/api/api_impl.h"
+#include "common/api/os_sys_calls_impl.h"
 #include "common/common/empty_string.h"
 #include "common/common/fmt.h"
 #include "common/common/lock_guard.h"
@@ -254,6 +255,23 @@ std::string TestUtility::convertTime(const std::string& input, const std::string
   return TestUtility::formatTime(TestUtility::parseTime(input, input_format), output_format);
 }
 
+SOCKET_FD TestUtility::duplicateSocket(SOCKET_FD sock) {
+#ifdef WIN32
+  WSAPROTOCOL_INFO proto_info;
+  const int rc = ::WSADuplicateSocket(sock, ::GetCurrentProcessId(), &proto_info);
+  RELEASE_ASSERT(!SOCKET_FAILURE(rc),
+                 fmt::format("WSADuplicateSocket failed: {}", ::WSAGetLastError()));
+  const SOCKET_FD dup_socket =
+      ::WSASocket(FROM_PROTOCOL_INFO, FROM_PROTOCOL_INFO, FROM_PROTOCOL_INFO, &proto_info, 0, 0);
+  RELEASE_ASSERT(!SOCKET_INVALID(dup_socket),
+                 fmt::format("WSASocket failed: {}", ::WSAGetLastError()));
+#else
+  const SOCKET_FD dup_socket = ::dup(sock);
+  RELEASE_ASSERT(!SOCKET_INVALID(dup_socket), fmt::format("dup failed: {}", errno));
+#endif
+  return dup_socket;
+}
+
 void ConditionalInitializer::setReady() {
   Thread::LockGuard lock(mutex_);
   EXPECT_FALSE(ready_);
@@ -280,8 +298,9 @@ void ConditionalInitializer::wait() {
   }
 }
 
-ScopedFdCloser::ScopedFdCloser(int fd) : fd_(fd) {}
-ScopedFdCloser::~ScopedFdCloser() { ::close(fd_); }
+ScopedSocketCloser::ScopedSocketCloser(SOCKET_FD fd)
+    : fd_(fd), os_sys_calls_(Api::OsSysCallsSingleton::get()) {}
+ScopedSocketCloser::~ScopedSocketCloser() { os_sys_calls_.closeSocket(fd_); }
 
 ScopedIoHandleCloser::ScopedIoHandleCloser(Network::IoHandlePtr& io_handle)
     : io_handle_(io_handle) {}
@@ -301,7 +320,7 @@ void AtomicFileUpdater::update(const std::string& contents) {
   const std::string target = use_target1_ ? target1_ : target2_;
   use_target1_ = !use_target1_;
   {
-    std::ofstream file(target);
+    std::ofstream file(target, std::ios_base::binary);
     file << contents;
   }
   TestUtility::createSymlink(target, new_link_);

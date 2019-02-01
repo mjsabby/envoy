@@ -17,6 +17,7 @@ envoy_sh_test(
         "//bazel:raw_build_id.ldscript",
         "//source/exe:envoy-static",
     ],
+    test_on_windows = False,
 )
 
 envoy_sh_test(
@@ -38,6 +39,7 @@ envoy_sh_test(
         "//bazel:raw_build_id.ldscript",
         "//source/exe:envoy-static",
     ],
+    test_on_windows = False,
 )
 
 envoy_cc_test(
@@ -56,6 +58,7 @@ envoy_cc_test(
     name = "signals_test",
     srcs = ["signals_test.cc"],
     tags = ["backtrace"],
+    test_on_windows = False,
     deps = [
         "//source/exe:sigaction_lib",
         "//test/test_common:utility_lib",
@@ -66,6 +69,7 @@ envoy_cc_test(
     name = "terminate_handler_test",
     srcs = ["terminate_handler_test.cc"],
     tags = ["backtrace"],
+    test_on_windows = False,
     deps = [
         "//source/exe:terminate_handler_lib",
         "//test/test_common:utility_lib",

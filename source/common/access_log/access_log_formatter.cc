@@ -186,7 +186,7 @@ std::vector<FormatterProviderPtr> AccessLogFormatParser::parse(const std::string
 
       std::smatch m;
       std::string search_space = format.substr(pos);
-      if (!(std::regex_search(search_space, m, command_w_args_regex) || m.position() == 0)) {
+      if (!(std::regex_search(search_space, m, command_w_args_regex) && m.position() == 0)) {
         throw EnvoyException(
             fmt::format("Incorrect configuration: {}. Couldn't find valid command at position {}",
                         format, pos));

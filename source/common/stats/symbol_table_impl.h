@@ -50,7 +50,10 @@ public:
    * to be able to destruct a SymbolEncoding without transferring it
    * we could add a clear(SymbolTable&) method.
    */
+  SymbolEncoding() = default;
   ~SymbolEncoding();
+
+  SymbolEncoding(SymbolEncoding&& rhs) = default;
 
   /**
    * Encodes a token into the vec.

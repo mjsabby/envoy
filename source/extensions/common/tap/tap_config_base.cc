@@ -132,7 +132,7 @@ void FilePerTapSink::submitBufferedTrace(
 
   ENVOY_LOG_MISC(debug, "Writing tap for [id={}] to {}", trace_id, path);
   ENVOY_LOG_MISC(trace, "Tap for [id={}]: {}", trace_id, trace->DebugString());
-  std::ofstream output_file(path);
+  std::ofstream output_file(path, std::ios_base::binary);
 
   switch (format) {
   case envoy::service::tap::v2alpha::OutputSink::PROTO_BINARY:

@@ -1,18 +1,22 @@
 #include "common/network/connection_impl.h"
 
+#if !defined(WIN32)
 #include <netinet/tcp.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+#endif
 
 #include <atomic>
 #include <cstdint>
 #include <memory>
 
 #include "envoy/common/exception.h"
+#include "envoy/common/platform.h"
 #include "envoy/event/timer.h"
 #include "envoy/network/filter.h"
 
+#include "common/api/os_sys_calls_impl.h"
 #include "common/common/assert.h"
 #include "common/common/empty_string.h"
 #include "common/common/enum_to_int.h"
@@ -51,10 +55,11 @@ ConnectionImpl::ConnectionImpl(Event::Dispatcher& dispatcher, ConnectionSocketPt
       write_buffer_(
           dispatcher.getWatermarkFactory().create([this]() -> void { this->onLowWatermark(); },
                                                   [this]() -> void { this->onHighWatermark(); })),
-      dispatcher_(dispatcher), id_(next_global_id_++) {
+      os_sys_calls_(Api::OsSysCallsSingleton::get()), dispatcher_(dispatcher),
+      id_(next_global_id_++) {
   // Treat the lack of a valid fd (which in practice only happens if we run out of FDs) as an OOM
   // condition and just crash.
-  RELEASE_ASSERT(ioHandle().fd() != -1, "");
+  RELEASE_ASSERT(SOCKET_VALID(ioHandle().fd()), "");
 
   if (!connected) {
     connecting_ = true;
@@ -62,15 +67,20 @@ ConnectionImpl::ConnectionImpl(Event::Dispatcher& dispatcher, ConnectionSocketPt
 
   // We never ask for both early close and read at the same time. If we are reading, we want to
   // consume all available data.
+#if !defined(WIN32)
+  Event::FileTriggerType trigger = Event::FileTriggerType::Edge;
+#else
+  Event::FileTriggerType trigger = Event::FileTriggerType::Level;
+#endif
   file_event_ = dispatcher_.createFileEvent(
-      ioHandle().fd(), [this](uint32_t events) -> void { onFileEvent(events); },
-      Event::FileTriggerType::Edge, Event::FileReadyType::Read | Event::FileReadyType::Write);
+      ioHandle().fd(), [this](uint32_t events) -> void { onFileEvent(events); }, trigger,
+      Event::FileReadyType::Read | Event::FileReadyType::Write);
 
   transport_socket_->setTransportSocketCallbacks(*this);
 }
 
 ConnectionImpl::~ConnectionImpl() {
-  ASSERT(ioHandle().fd() == -1 && delayed_close_timer_ == nullptr,
+  ASSERT(SOCKET_INVALID(ioHandle().fd()) && delayed_close_timer_ == nullptr,
          "ConnectionImpl was unexpectedly torn down without being closed.");
 
   // In general we assume that owning code has called close() previously to the destructor being
@@ -93,7 +103,7 @@ void ConnectionImpl::addReadFilter(ReadFilterSharedPtr filter) {
 bool ConnectionImpl::initializeReadFilters() { return filter_manager_.initializeReadFilters(); }
 
 void ConnectionImpl::close(ConnectionCloseType type) {
-  if (ioHandle().fd() == -1) {
+  if (SOCKET_INVALID(ioHandle().fd())) {
     return;
   }
 
@@ -160,7 +170,7 @@ void ConnectionImpl::close(ConnectionCloseType type) {
 }
 
 Connection::State ConnectionImpl::state() const {
-  if (ioHandle().fd() == -1) {
+  if (SOCKET_INVALID(ioHandle().fd())) {
     return State::Closed;
   } else if (delayed_close_) {
     return State::Closing;
@@ -170,7 +180,7 @@ Connection::State ConnectionImpl::state() const {
 }
 
 void ConnectionImpl::closeSocket(ConnectionEvent close_type) {
-  if (ioHandle().fd() == -1) {
+  if (SOCKET_INVALID(ioHandle().fd())) {
     return;
   }
 
@@ -189,6 +199,11 @@ void ConnectionImpl::closeSocket(ConnectionEvent close_type) {
   connection_stats_.reset();
 
   file_event_.reset();
+
+  // shutdown the socket so the other side can read any data we have in flight
+  auto& os_syscalls = Api::OsSysCallsSingleton::get();
+  os_syscalls.shutdown(ioHandle().fd(), ENVOY_SHUT_WR);
+
   socket_->close();
 
   raiseEvent(close_type);
@@ -204,32 +219,45 @@ void ConnectionImpl::noDelay(bool enable) {
   // invalid. For this call instead of plumbing through logic that will immediately indicate that a
   // connect failed, we will just ignore the noDelay() call if the socket is invalid since error is
   // going to be raised shortly anyway and it makes the calling code simpler.
-  if (ioHandle().fd() == -1) {
+  if (SOCKET_INVALID(ioHandle().fd())) {
     return;
   }
 
   // Don't set NODELAY for unix domain sockets
-  sockaddr addr;
+  sockaddr_storage addr;
   socklen_t len = sizeof(addr);
-  int rc = getsockname(ioHandle().fd(), &addr, &len);
-  RELEASE_ASSERT(rc == 0, "");
 
-  if (addr.sa_family == AF_UNIX) {
+  Api::SysCallIntResult result =
+      os_sys_calls_.getsockname(ioHandle().fd(), reinterpret_cast<struct sockaddr*>(&addr), &len);
+
+  RELEASE_ASSERT(result.rc_ == 0, "");
+
+  if (addr.ss_family == AF_UNIX) {
     return;
   }
 
   // Set NODELAY
   int new_value = enable;
-  rc = setsockopt(ioHandle().fd(), IPPROTO_TCP, TCP_NODELAY, &new_value, sizeof(new_value));
-#ifdef __APPLE__
-  if (-1 == rc && errno == EINVAL) {
+  result = os_sys_calls_.setsockopt(ioHandle().fd(), IPPROTO_TCP, TCP_NODELAY, &new_value,
+                                    sizeof(new_value));
+#if defined(__APPLE__)
+  if (SOCKET_FAILURE(result.rc_) && result.errno_ == EINVAL) {
     // Sometimes occurs when the connection is not yet fully formed. Empirically, TCP_NODELAY is
     // enabled despite this result.
     return;
   }
 #endif
+#if defined(WIN32)
+  if (SOCKET_FAILURE(result.rc_)) {
+    if (result.errno_ == WSAEWOULDBLOCK || result.errno_ == WSAEINVAL) {
+      // Sometimes occurs when the connection is not yet fully formed. Empirically, TCP_NODELAY is
+      // enabled despite this result.
+      return;
+    }
+  }
+#endif
 
-  RELEASE_ASSERT(0 == rc, "");
+  RELEASE_ASSERT(0 == result.rc_, "");
 }
 
 uint64_t ConnectionImpl::id() const { return id_; }
@@ -510,7 +538,8 @@ void ConnectionImpl::onWriteReady() {
   if (connecting_) {
     int error;
     socklen_t error_size = sizeof(error);
-    int rc = getsockopt(ioHandle().fd(), SOL_SOCKET, SO_ERROR, &error, &error_size);
+    int rc =
+        os_sys_calls_.getsockopt(ioHandle().fd(), SOL_SOCKET, SO_ERROR, &error, &error_size).rc_;
     ASSERT(0 == rc);
 
     if (error == 0) {
@@ -547,7 +576,7 @@ void ConnectionImpl::onWriteReady() {
       cb(result.bytes_processed_);
 
       // If a callback closes the socket, stop iterating.
-      if (ioHandle().fd() == -1) {
+      if (SOCKET_INVALID(ioHandle().fd())) {
         return;
       }
     }
@@ -643,7 +672,15 @@ void ClientConnectionImpl::connect() {
     ASSERT(connecting_);
   } else {
     ASSERT(result.rc_ == -1);
+#if !defined(WIN32)
     if (result.errno_ == EINPROGRESS) {
+#else
+    // From: https://docs.microsoft.com/en-us/windows/desktop/winsock/windows-sockets-error-codes-2
+    // "It is normal for WSAEWOULDBLOCK to be reported as the result from
+    //  calling connect() on a nonblocking SOCK_STREAM socket, since some
+    //  time must elapse for the connection to be established"
+    if (result.errno_ == WSAEWOULDBLOCK || result.errno_ == WSAEINPROGRESS) {
+#endif
       ASSERT(connecting_);
       ENVOY_CONN_LOG(debug, "connection in progress", *this);
     } else {
@@ -659,7 +696,18 @@ void ClientConnectionImpl::connect() {
   // The local address can only be retrieved for IP connections. Other
   // types, such as UDS, don't have a notion of a local address.
   if (socket_->remoteAddress()->type() == Address::Type::Ip) {
+#ifdef WIN32
+    // On Windows, it is possible for the addressFromFd() to throw an execption
+    // This can happen if the address we are trying to connect to has nothing
+    // listening (i.e. connect will eventually fail with ECONNREFUSED).
+    try {
+      socket_->setLocalAddress(Address::addressFromFd(ioHandle().fd()));
+    } catch (const EnvoyException& e) {
+      ENVOY_CONN_LOG(debug, "couldn't set local address: {}", *this, e.what());
+    }
+#else
     socket_->setLocalAddress(Address::addressFromFd(ioHandle().fd()));
+#endif
   }
 }
 

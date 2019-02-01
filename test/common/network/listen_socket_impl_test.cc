@@ -1,3 +1,6 @@
+#include "envoy/common/platform.h"
+
+#include "common/api/os_sys_calls_impl.h"
 #include "common/network/io_socket_handle_impl.h"
 #include "common/network/listen_socket_impl.h"
 #include "common/network/utility.h"
@@ -48,7 +51,8 @@ protected:
       ASSERT_LT(0U, addr->ip()->port());
 
       // Release the socket and re-bind it.
-      EXPECT_EQ(0, close(addr_fd.second));
+      auto& os_sys_calls = Api::OsSysCallsSingleton::get();
+      EXPECT_EQ(0, os_sys_calls.closeSocket(addr_fd.second).rc_);
 
       auto option = std::make_unique<MockSocketOption>();
       auto options = std::make_shared<std::vector<Network::Socket::OptionConstSharedPtr>>();
@@ -74,7 +78,7 @@ protected:
       // TODO (conqerAtapple): This is unfortunate. We should be able to templatize this
       // instead of if block.
       if (NetworkSocketTrait<Type>::type == Address::SocketType::Stream) {
-        EXPECT_EQ(0, listen(socket1->ioHandle().fd(), 0));
+        EXPECT_EQ(0, os_sys_calls.listen(socket1->ioHandle().fd(), 0).rc_);
       }
 
       EXPECT_EQ(addr->ip()->port(), socket1->localAddress()->ip()->port());
@@ -90,7 +94,8 @@ protected:
       EXPECT_THROW(createListenSocketPtr(addr, options2, true), SocketBindException);
 
       // Test the case of a socket with fd and given address and port.
-      IoHandlePtr dup_handle = std::make_unique<IoSocketHandle>(dup(socket1->ioHandle().fd()));
+      IoHandlePtr dup_handle =
+          std::make_unique<IoSocketHandle>(TestUtility::duplicateSocket(socket1->ioHandle().fd()));
       auto socket3 = createListenSocketPtr(std::move(dup_handle), addr, nullptr);
       EXPECT_EQ(addr->asString(), socket3->localAddress()->asString());
 

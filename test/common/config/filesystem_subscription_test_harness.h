@@ -50,7 +50,12 @@ public:
     const std::string temp_path = TestEnvironment::writeStringToFileForTest("eds.json.tmp", json);
     TestUtility::renameFile(temp_path, path_);
     if (run_dispatcher) {
-      dispatcher_.run(Event::Dispatcher::RunType::NonBlock);
+      // On Windows, it's not guaranteed that the ReadDirectoryChangesW completion routine has run
+      // even though the file move has completed. So run the dispatcher until we pick up the change
+      const int attempts = callbacks_.configUpdateAttempts();
+      while (callbacks_.configUpdateAttempts() < attempts + 1) {
+        dispatcher_.run(Event::Dispatcher::RunType::NonBlock);
+      }
     }
   }
 
@@ -73,7 +78,7 @@ public:
     envoy::api::v2::DiscoveryResponse response_pb;
     EXPECT_TRUE(Protobuf::util::JsonStringToMessage(file_json, &response_pb).ok());
     EXPECT_CALL(callbacks_,
-                onConfigUpdate(
+                onConfigUpdate_(
                     RepeatedProtoEq(
                         Config::Utility::getTypedResources<envoy::api::v2::ClusterLoadAssignment>(
                             response_pb)),
@@ -82,7 +87,7 @@ public:
     if (accept) {
       version_ = version;
     } else {
-      EXPECT_CALL(callbacks_, onConfigUpdateFailed(_));
+      EXPECT_CALL(callbacks_, onConfigUpdateFailed_(_));
     }
     updateFile(file_json);
   }

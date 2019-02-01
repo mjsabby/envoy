@@ -131,6 +131,7 @@ TEST_F(HttpConnectionManagerConfigTest, MiscConfig) {
   EXPECT_EQ(5 * 60 * 1000, config.streamIdleTimeout().count());
 }
 
+#if !defined(WIN32)
 TEST_F(HttpConnectionManagerConfigTest, UnixSocketInternalAddress) {
   const std::string yaml_string = R"EOF(
   stat_prefix: ingress_http
@@ -151,6 +152,7 @@ TEST_F(HttpConnectionManagerConfigTest, UnixSocketInternalAddress) {
   EXPECT_TRUE(config.internalAddressConfig().isInternalAddress(internalIpAddress));
   EXPECT_FALSE(config.internalAddressConfig().isInternalAddress(externalIpAddress));
 }
+#endif
 
 TEST_F(HttpConnectionManagerConfigTest, MaxRequestHeadersSizeDefault) {
   const std::string yaml_string = R"EOF(

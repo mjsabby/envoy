@@ -18,6 +18,8 @@
 #include "test/test_common/utility.h"
 
 #include "absl/synchronization/notification.h"
+#include "fmt/printf.h"
+#include "gtest/gtest.h"
 
 using testing::AssertionFailure;
 using testing::AssertionResult;
@@ -27,10 +29,16 @@ using testing::IsSubstring;
 namespace Envoy {
 namespace {
 
+#ifdef WIN32
+const char devNull[] = "NUL";
+#else
+const char devNull[] = "/dev/null";
+#endif
+
 // TODO(fredlas) Move to test/config/utility.cc once there are other xDS tests that use gRPC.
-const char Config[] = R"EOF(
+const std::string Config = fmt::sprintf(R"EOF(
 admin:
-  access_log_path: /dev/null
+  access_log_path: %s
   address:
     socket_address:
       address: 127.0.0.1
@@ -75,7 +83,9 @@ static_resources:
                 match:
                   prefix: "/"
               domains: "*"
-)EOF";
+)EOF",
+                                        devNull);
+
 const char ClusterName[] = "cluster_0";
 const int UpstreamIndex = 1;
 
