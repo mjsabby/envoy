@@ -40,8 +40,24 @@ envoy_cc_posix_library(
 
 envoy_cc_library(
     name = "filesystem_lib",
-    srcs = ["filesystem_impl.cc"],
-    hdrs = ["filesystem_impl.h"],
+    deps = envoy_cc_platform_dep("filesystem_impl_lib"),
+)
+
+envoy_cc_posix_library(
+    name = "filesystem_impl_lib",
+    srcs = ["posix/filesystem_impl.cc"],
+    hdrs = ["posix/filesystem_impl.h"],
+    strip_include_prefix = "posix",
+    deps = [
+        "//include/envoy/filesystem:filesystem_interface",
+    ],
+)
+
+envoy_cc_win32_library(
+    name = "filesystem_impl_lib",
+    srcs = ["win32/filesystem_impl.cc"],
+    hdrs = ["win32/filesystem_impl.h"],
+    strip_include_prefix = "win32",
     deps = [
         "//include/envoy/filesystem:filesystem_interface",
     ],

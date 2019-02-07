@@ -525,6 +525,10 @@ namespace Thread {
 ThreadFactory& threadFactoryForTest();
 } // namespace Thread
 
+namespace Filesystem {
+Instance& fileSystemForTest();
+} // namespace Filesystem
+
 namespace Api {
 ApiPtr createApiForTest();
 ApiPtr createApiForTest(Event::TimeSystem& time_system);

@@ -5,6 +5,7 @@
 #include <string>
 
 #include "envoy/api/os_sys_calls.h"
+#include "envoy/common/platform.h"
 #include "envoy/common/pure.h"
 
 #include "absl/strings/string_view.h"
@@ -96,12 +97,6 @@ public:
    * Be aware, this is not most highly performing file reading method.
    */
   virtual std::string fileReadToEnd(const std::string& path) PURE;
-
-  /**
-   * @param path some filesystem path.
-   * @return SysCallStringResult containing the canonical path (see realpath(3)).
-   */
-  virtual Api::SysCallStringResult canonicalPath(const std::string& path) PURE;
 
   /**
    * Determine if the path is on a list of paths Envoy will refuse to access. This

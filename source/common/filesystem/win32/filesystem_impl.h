@@ -8,10 +8,10 @@
 namespace Envoy {
 namespace Filesystem {
 
-class FileImpl : public File {
+class FileImplWin32 : public File {
 public:
-  FileImpl(const std::string& path);
-  ~FileImpl();
+  FileImplWin32(const std::string& path);
+  ~FileImplWin32();
 
   // Filesystem::File
   Api::SysCallBoolResult open() override;
@@ -27,7 +27,7 @@ private:
   friend class FileSystemImplTest;
 };
 
-class InstanceImpl : public Instance {
+class InstanceImplWin32 : public Instance {
 public:
   // Filesystem::Instance
   FilePtr createFile(const std::string& path) override;
@@ -35,7 +35,6 @@ public:
   bool directoryExists(const std::string& path) override;
   ssize_t fileSize(const std::string& path) override;
   std::string fileReadToEnd(const std::string& path) override;
-  Api::SysCallStringResult canonicalPath(const std::string& path) override;
   bool illegalPath(const std::string& path) override;
 };
 
