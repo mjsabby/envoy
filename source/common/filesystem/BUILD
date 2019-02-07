@@ -68,7 +68,29 @@ envoy_cc_library(
     srcs = ["file_shared_impl.cc"],
     hdrs = ["file_shared_impl.h"],
     deps = [
+        ":io_file_error_lib",
         "//include/envoy/filesystem:filesystem_interface",
+        "//source/common/common:assert_lib",
+    ],
+)
+
+envoy_cc_win32_library(
+    name = "filesystem_impl_lib",
+    srcs = ["win32/filesystem_impl.cc"],
+    hdrs = ["win32/filesystem_impl.h"],
+    strip_include_prefix = "win32",
+    deps = [
+        ":io_file_error_lib",
+        "//include/envoy/filesystem:filesystem_interface",
+    ],
+)
+
+envoy_cc_library(
+    name = "io_file_error_lib",
+    srcs = ["io_file_error.cc"],
+    hdrs = ["io_file_error.h"],
+    deps = [
+        "//include/envoy/api:io_error_interface",
         "//source/common/common:assert_lib",
     ],
 )

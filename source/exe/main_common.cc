@@ -46,6 +46,12 @@ MainCommonBase::MainCommonBase(const OptionsImpl& options, Event::TimeSystem& ti
                                std::unique_ptr<ProcessContext> process_context)
     : options_(options), component_factory_(component_factory), thread_factory_(thread_factory),
       file_system_(file_system), stats_allocator_(symbol_table_) {
+  Thread::ThreadFactorySingleton::set(&thread_factory_);
+  ares_library_init(ARES_LIB_INIT_ALL);
+  Event::Libevent::Global::initialize();
+  RELEASE_ASSERT(Envoy::Server::validateProtoDescriptors(), "");
+  Http::Http2::initializeNghttp2Logging();
+
   switch (options_.mode()) {
   case Server::Mode::InitOnly:
   case Server::Mode::Serve: {

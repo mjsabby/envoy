@@ -19,13 +19,41 @@ using Envoy::Api::SysCallSizeResult;
 namespace Envoy {
 namespace Network {
 
+Api::IoError::IoErrorCode IoSocketError::errorCode() const {
+  switch (errno_) {
+  case EAGAIN:
+    // EAGAIN should use specific error ENVOY_ERROR_AGAIN.
+    NOT_REACHED_GCOVR_EXCL_LINE;
+  case ENOTSUP:
+    return IoErrorCode::NoSupport;
+  case EAFNOSUPPORT:
+    return IoErrorCode::AddressFamilyNoSupport;
+  case EINPROGRESS:
+    return IoErrorCode::InProgress;
+  case EPERM:
+    return IoErrorCode::Permission;
+  default:
+    return IoErrorCode::UnknownError;
+  }
+}
+
+std::string IoSocketError::errorDetails() const { return ::strerror(errno_); }
+
 IoSocketHandleImpl::~IoSocketHandleImpl() {
   if (fd_ != -1) {
     IoSocketHandleImpl::close();
   }
 }
 
-Api::IoCallUint64Result IoSocketHandleImpl::close() {
+// Deallocate memory only if the error is not ENVOY_ERROR_AGAIN.
+void deleteIoError(Api::IoError* err) {
+  ASSERT(err != nullptr);
+  if (err != ENVOY_ERROR_AGAIN) {
+    delete err;
+  }
+}
+
+Api::IoCallUintResult IoSocketHandleImpl::close() {
   ASSERT(fd_ != -1);
   const int rc = ::close(fd_);
   fd_ = -1;
@@ -300,3 +328,4 @@ Api::IoCallUint64Result IoSocketHandleImpl::recvmsg(Buffer::RawSlice* slices,
 
 } // namespace Network
 } // namespace Envoy
+  return Api::IoCallUint64Result(rc, Api::IoErrorPtr(nullptr, IoSocketError::deleteIoError));

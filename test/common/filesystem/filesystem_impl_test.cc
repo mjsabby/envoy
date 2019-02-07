@@ -3,6 +3,7 @@
 
 #include "common/common/assert.h"
 #include "common/filesystem/filesystem_impl.h"
+#include "common/filesystem/io_file_error.h"
 
 #include "test/test_common/environment.h"
 
@@ -241,8 +242,8 @@ TEST_F(FileSystemImplTest, WriteAfterClose) {
   EXPECT_TRUE(bool_result2.rc_);
   const Api::IoCallSizeResult size_result = file->write(" new data");
   EXPECT_EQ(-1, size_result.rc_);
-  EXPECT_EQ(IoFileError::IoErrorCode::UnknownError, size_result.err_->getErrorCode());
-  EXPECT_EQ("Bad file descriptor", size_result.err_->getErrorDetails());
+  EXPECT_EQ(IoFileError::IoErrorCode::BadHandle, Api::IoError::getErrorCode(*size_result.err_));
+  EXPECT_EQ("Bad file descriptor", Api::IoError::getErrorDetails(*size_result.err_));
 }
 
 } // namespace Filesystem

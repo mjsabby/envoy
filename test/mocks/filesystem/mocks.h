@@ -36,8 +36,14 @@ public:
   Thread::CondVar open_event_;
   Thread::CondVar write_event_;
 
+protected:
+  // Filesystem::File
+  void openFile() override;
+  ssize_t writeFile(absl::string_view buffer) override;
+  bool closeFile() override;
+
 private:
-  bool is_open_;
+  void setFileOpen(bool is_open);
 };
 
 class MockInstance : public Instance {

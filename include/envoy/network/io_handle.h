@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include "envoy/api/io_error.h"
 #include "envoy/common/pure.h"
 

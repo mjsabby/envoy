@@ -8,6 +8,8 @@
 #include "envoy/common/platform.h"
 #include "envoy/common/pure.h"
 
+#include "common/filesystem/io_file_error.h"
+
 #include "absl/strings/string_view.h"
 
 namespace Envoy {
@@ -18,7 +20,9 @@ namespace Filesystem {
  */
 class File {
 public:
-  virtual ~File() = default;
+  File(const std::string& path) : fd_(-1), path_(path) {}
+
+  virtual ~File() {}
 
   /**
    * Open the file with O_RDWR | O_APPEND | O_CREAT
@@ -26,31 +30,55 @@ public:
    *
    * @return bool whether the open succeeded
    */
-  virtual Api::IoCallBoolResult open() PURE;
+  Api::IoCallBoolResult open() {
+    if (isOpen()) {
+      return resultSuccess<bool>(true);
+    }
+
+    openFile();
+    return -1 != fd_ ? resultSuccess<bool>(true) : resultFailure<bool>(false, errno);
+  }
 
   /**
    * Write the buffer to the file. The file must be explicitly opened before writing.
    *
    * @return ssize_t number of bytes written, or -1 for failure
    */
-  virtual Api::IoCallSizeResult write(absl::string_view buffer) PURE;
+  Api::IoCallSizeResult write(absl::string_view buffer) {
+    const ssize_t rc = writeFile(buffer);
+    return -1 != rc ? resultSuccess<ssize_t>(rc) : resultFailure<ssize_t>(rc, errno);
+  };
 
   /**
    * Close the file.
    *
    * @return bool whether the close succeeded
    */
-  virtual Api::IoCallBoolResult close() PURE;
+  Api::IoCallBoolResult close() {
+    ASSERT(isOpen());
+
+    bool success = closeFile();
+    fd_ = -1;
+    return success ? resultSuccess<bool>(true) : resultFailure<bool>(false, errno);
+  }
 
   /**
    * @return bool is the file open
    */
-  virtual bool isOpen() const PURE;
+  bool isOpen() const { return fd_ != -1; };
 
   /**
    * @return string the file path
    */
-  virtual std::string path() const PURE;
+  std::string path() const { return path_; };
+
+protected:
+  virtual void openFile() PURE;
+  virtual ssize_t writeFile(absl::string_view buffer) PURE;
+  virtual bool closeFile() PURE;
+
+  int fd_;
+  const std::string path_;
 };
 
 using FilePtr = std::unique_ptr<File>;

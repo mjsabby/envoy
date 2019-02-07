@@ -324,16 +324,17 @@ TEST_F(AccessLogManagerImplTest, reopenAllFiles) {
   EXPECT_EQ(log, access_log_manager_.createAccessLog("foo"));
   EXPECT_EQ(log2, access_log_manager_.createAccessLog("bar"));
 
-  // Test that reopen reopens all of the files
-  EXPECT_CALL(*file_, write_(_))
-      .WillRepeatedly(Invoke([](absl::string_view data) -> Api::IoCallSizeResult {
-        return Filesystem::resultSuccess<ssize_t>(static_cast<ssize_t>(data.length()));
-      }));
+  EXPECT_CALL(*file_, close_()).Times(2).WillRepeatedly(Return(true));
+  EXPECT_CALL(*file2, close_()).Times(2).WillRepeatedly(Return(true));
 
-  EXPECT_CALL(*file2, write_(_))
-      .WillRepeatedly(Invoke([](absl::string_view data) -> Api::IoCallSizeResult {
-        return Filesystem::resultSuccess<ssize_t>(static_cast<ssize_t>(data.length()));
-      }));
+  // Test that reopen reopens all of the files
+  EXPECT_CALL(*file_, write_(_)).WillRepeatedly(Invoke([](absl::string_view data) -> ssize_t {
+    return static_cast<ssize_t>(data.length());
+  }));
+
+  EXPECT_CALL(*file2, write_(_)).WillRepeatedly(Invoke([](absl::string_view data) -> ssize_t {
+    return static_cast<ssize_t>(data.length());
+  }));
 
   EXPECT_CALL(*file_, close_())
       .InSequence(sq)

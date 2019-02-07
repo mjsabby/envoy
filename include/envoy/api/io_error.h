@@ -9,6 +9,14 @@
 namespace Envoy {
 namespace Api {
 
+class IoError;
+
+// IoErrorCode::Again is used frequently. Define it to be a distinguishable address to avoid
+// frequent memory allocation of IoError instance.
+// If this is used, IoCallResult has to be instantiated with a deleter that does not
+// deallocate memory for this error.
+#define ENVOY_ERROR_AGAIN reinterpret_cast<Api::IoError*>(0x01)
+
 /**
  * Base class for any I/O error.
  */
@@ -25,13 +33,32 @@ public:
     InProgress,
     // Permission denied.
     Permission,
+    // Bad handle
+    BadHandle,
     // Other error codes cannot be mapped to any one above in getErrorCode().
     UnknownError
   };
-  virtual ~IoError() = default;
+  virtual ~IoError() {}
 
-  virtual IoErrorCode getErrorCode() const PURE;
-  virtual std::string getErrorDetails() const PURE;
+  // Map platform specific error into IoErrorCode.
+  // Needed to hide errorCode() in case of ENVOY_ERROR_AGAIN.
+  static IoErrorCode getErrorCode(const IoError& err) {
+    if (&err == ENVOY_ERROR_AGAIN) {
+      return IoErrorCode::Again;
+    }
+    return err.errorCode();
+  }
+
+  static std::string getErrorDetails(const IoError& err) {
+    if (&err == ENVOY_ERROR_AGAIN) {
+      return "Try again later";
+    }
+    return err.errorDetails();
+  }
+
+protected:
+  virtual IoErrorCode errorCode() const PURE;
+  virtual std::string errorDetails() const PURE;
 };
 
 using IoErrorDeleterType = void (*)(IoError*);
@@ -65,7 +92,16 @@ template <typename ReturnValue> struct IoCallResult {
 
   // TODO(danzh): rename it to be more meaningful, i.e. return_value_.
   ReturnValue rc_;
-  IoErrorPtr err_;
+  //TODO(YECHIEL): Probably get rid of the commented out code below
+// template <typename T> struct IoCallResult {
+//   IoCallResult(T rc, IoErrorPtr err) : rc_(rc), err_(std::move(err)) {}
+
+//   IoCallResult(IoCallResult<T>&& result) : rc_(result.rc_), err_(std::move(result.err_)) {}
+
+//   virtual ~IoCallResult() {}
+
+//   T rc_;
+//   IoErrorPtr err_;
 };
 
 using IoCallBoolResult = IoCallResult<bool>;

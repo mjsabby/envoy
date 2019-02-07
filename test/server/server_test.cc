@@ -586,8 +586,13 @@ TEST_P(ServerInstanceImplTest, NoOptionsPassed) {
           options_, test_time_.timeSystem(),
           Network::Address::InstanceConstSharedPtr(new Network::Address::Ipv4Instance("127.0.0.1")),
           hooks_, restart_, stats_store_, fakelock_, component_factory_,
+<<<<<<< HEAD
           std::make_unique<NiceMock<Runtime::MockRandomGenerator>>(), *thread_local_,
           Thread::threadFactoryForTest(), Filesystem::fileSystemForTest(), nullptr)),
+=======
+          std::make_unique<NiceMock<Runtime::MockRandomGenerator>>(), thread_local_,
+          Thread::threadFactoryForTest(), Filesystem::fileSystemForTest())),
+>>>>>>> cf5d1ed7c... filesystem: add Windows implementation -- PR IN PROGRESS
       EnvoyException, "At least one of --config-path and --config-yaml should be non-empty");
 }
 

@@ -40,6 +40,7 @@ public:
                  std::unique_ptr<Runtime::RandomGenerator>&& random_generator,
                  Thread::ThreadFactory& thread_factory, Filesystem::Instance& file_system,
                  std::unique_ptr<ProcessContext> process_context);
+  ~MainCommonBase();
 
   bool run();
 

@@ -6,7 +6,7 @@
 namespace Envoy {
 namespace Filesystem {
 
-MockFile::MockFile() : num_opens_(0), num_writes_(0), is_open_(false) {}
+MockFile::MockFile() : File(""), num_opens_(0), num_writes_(0) {}
 MockFile::~MockFile() {}
 
 Api::IoCallBoolResult MockFile::open() {
@@ -16,8 +16,6 @@ Api::IoCallBoolResult MockFile::open() {
   is_open_ = result.rc_;
   num_opens_++;
   open_event_.notifyOne();
-
-  return result;
 }
 
 Api::IoCallSizeResult MockFile::write(absl::string_view buffer) {
@@ -37,8 +35,7 @@ Api::IoCallBoolResult MockFile::close() {
   Api::IoCallBoolResult result = close_();
   is_open_ = !result.rc_;
 
-  return result;
-}
+void MockFile::setFileOpen(bool is_open) { fd_ = is_open ? 1 : -1; }
 
 MockInstance::MockInstance() = default;
 MockInstance::~MockInstance() = default;
