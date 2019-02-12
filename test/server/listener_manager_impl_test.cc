@@ -2482,7 +2482,11 @@ TEST_F(ListenerManagerImplWithRealFiltersTest, OriginalDstFilter) {
   Network::MockListenerFilterManager manager;
 
   NiceMock<Network::MockListenerFilterCallbacks> callbacks;
-  Network::AcceptedSocketImpl socket(std::make_unique<Network::IoSocketHandle>(),
+#ifdef WIN32
+  Network::AcceptedSocketImpl socket(std::make_unique<Network::IoSocketHandleWin32>(),
+#else
+  Network::AcceptedSocketImpl socket(std::make_unique<Network::IoSocketHandlePosix>(),
+#endif
                                      Network::Address::InstanceConstSharedPtr{
                                          new Network::Address::Ipv4Instance("127.0.0.1", 1234)},
                                      Network::Address::InstanceConstSharedPtr{
@@ -2513,7 +2517,11 @@ TEST_F(ListenerManagerImplWithRealFiltersTest, OriginalDstTestFilter) {
   static int fd;
   fd = -1;
   // temporary io_handle to test result of socket creation
-  Network::IoHandlePtr io_handle_tmp = std::make_unique<Network::IoSocketHandle>(0);
+#ifdef WIN32
+  Network::IoHandlePtr io_handle_tmp = std::make_unique<Network::IoSocketHandleWin32>(0);
+#else
+  Network::IoHandlePtr io_handle_tmp = std::make_unique<Network::IoSocketHandlePosix>(0);
+#endif
   EXPECT_CALL(*listener_factory_.socket_, ioHandle()).WillOnce(ReturnRef(*io_handle_tmp));
 
   class OriginalDstTestConfigFactory : public Configuration::NamedListenerFilterConfigFactory {
@@ -2573,7 +2581,11 @@ TEST_F(ListenerManagerImplWithRealFiltersTest, OriginalDstTestFilter) {
 
   NiceMock<Network::MockListenerFilterCallbacks> callbacks;
   Network::AcceptedSocketImpl socket(
-      std::make_unique<Network::IoSocketHandle>(),
+#ifdef WIN32
+      std::make_unique<Network::IoSocketHandleWin32>(),
+#else
+      std::make_unique<Network::IoSocketHandlePosix>(),
+#endif
       std::make_unique<Network::Address::Ipv4Instance>("127.0.0.1", 1234),
       std::make_unique<Network::Address::Ipv4Instance>("127.0.0.1", 5678));
 
@@ -2656,7 +2668,11 @@ TEST_F(ListenerManagerImplWithRealFiltersTest, OriginalDstTestFilterIPv6) {
   static int fd;
   fd = -1;
   // temporary io_handle to test result of socket creation
-  Network::IoHandlePtr io_handle_tmp = std::make_unique<Network::IoSocketHandle>(0);
+#ifdef WIN32
+  Network::IoHandlePtr io_handle_tmp = std::make_unique<Network::IoSocketHandleWin32>(0);
+#else
+  Network::IoHandlePtr io_handle_tmp = std::make_unique<Network::IoSocketHandlePosix>(0);
+#endif
   EXPECT_CALL(*listener_factory_.socket_, ioHandle()).WillOnce(ReturnRef(*io_handle_tmp));
 
   class OriginalDstTestConfigFactory : public Configuration::NamedListenerFilterConfigFactory {
@@ -2716,7 +2732,11 @@ TEST_F(ListenerManagerImplWithRealFiltersTest, OriginalDstTestFilterIPv6) {
 
   NiceMock<Network::MockListenerFilterCallbacks> callbacks;
   Network::AcceptedSocketImpl socket(
-      std::make_unique<Network::IoSocketHandle>(),
+#ifdef WIN32
+      std::make_unique<Network::IoSocketHandleWin32>(),
+#else
+      std::make_unique<Network::IoSocketHandlePosix>(),
+#endif
       std::make_unique<Network::Address::Ipv6Instance>("::0001", 1234),
       std::make_unique<Network::Address::Ipv6Instance>("::0001", 5678));
 

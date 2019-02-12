@@ -206,7 +206,11 @@ TEST_F(AddrFamilyAwareSocketOptionImplTest, GetSocketOptionCannotDetermineVersio
                                                 Network::SocketOptionName(std::make_pair(6, 11)),
                                                 5};
 
-  IoHandlePtr io_handle = std::make_unique<IoSocketHandle>();
+#ifdef WIN32
+  IoHandlePtr io_handle = std::make_unique<IoSocketHandleWin32>();
+#else
+  IoHandlePtr io_handle = std::make_unique<IoSocketHandlePosix>();
+#endif
   EXPECT_CALL(testing::Const(socket_), ioHandle()).WillOnce(testing::ReturnRef(*io_handle));
   auto result =
       socket_option.getOptionDetails(socket_, envoy::api::v2::core::SocketOption::STATE_PREBIND);

@@ -94,8 +94,13 @@ protected:
       EXPECT_THROW(createListenSocketPtr(addr, options2, true), SocketBindException);
 
       // Test the case of a socket with fd and given address and port.
-      IoHandlePtr dup_handle =
-          std::make_unique<IoSocketHandle>(TestUtility::duplicateSocket(socket1->ioHandle().fd()));
+#ifdef WIN32
+      IoHandlePtr dup_handle = std::make_unique<IoSocketHandleWin32>(
+          TestUtility::duplicateSocket(socket1->ioHandle().fd()));
+#else
+      IoHandlePtr dup_handle = std::make_unique<IoSocketHandlePosix>(
+          TestUtility::duplicateSocket(socket1->ioHandle().fd()));
+#endif
       auto socket3 = createListenSocketPtr(std::move(dup_handle), addr, nullptr);
       EXPECT_EQ(addr->asString(), socket3->localAddress()->asString());
 
@@ -135,7 +140,13 @@ TEST_P(ListenSocketImplTestTcp, BindSpecificPort) { testBindSpecificPort(); }
 class TestListenSocket : public ListenSocketImpl {
 public:
   TestListenSocket(Address::InstanceConstSharedPtr address)
-      : ListenSocketImpl(std::make_unique<Network::IoSocketHandle>(), address) {}
+#ifdef WIN32
+      : ListenSocketImpl(std::make_unique<Network::IoSocketHandleWin32>(), address) {
+  }
+#else
+      : ListenSocketImpl(std::make_unique<Network::IoSocketHandlePosix>(), address) {
+  }
+#endif
   Address::SocketType socketType() const override { return Address::SocketType::Stream; }
 };
 

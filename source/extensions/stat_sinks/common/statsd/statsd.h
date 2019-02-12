@@ -33,8 +33,13 @@ public:
   Writer(Network::Address::InstanceConstSharedPtr address);
   // For testing.
   Writer()
-      : io_handle_(std::make_unique<Network::IoSocketHandle>()),
-        os_sys_calls_(Api::OsSysCallsSingleton::get()) {}
+#ifdef WIN32
+      : io_handle_(std::make_unique<Network::IoSocketHandleWin32>()),
+#else
+      : io_handle_(std::make_unique<Network::IoSocketHandlePosix>()),
+#endif
+        os_sys_calls_(Api::OsSysCallsSingleton::get()) {
+  }
   virtual ~Writer();
 
   virtual void write(const std::string& message);

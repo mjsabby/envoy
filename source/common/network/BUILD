@@ -3,6 +3,9 @@ licenses(["notice"])  # Apache 2
 load(
     "//bazel:envoy_build_system.bzl",
     "envoy_cc_library",
+    "envoy_cc_platform_dep",
+    "envoy_cc_posix_library",
+    "envoy_cc_win32_library",
     "envoy_package",
     "envoy_proto_library",
 )
@@ -14,7 +17,6 @@ envoy_cc_library(
     srcs = ["address_impl.cc"],
     hdrs = [
         "address_impl.h",
-        "io_socket_handle_impl.h",
     ],
     deps = [
         ":io_socket_handle_lib",
@@ -104,7 +106,23 @@ envoy_cc_library(
 
 envoy_cc_library(
     name = "io_socket_handle_lib",
-    hdrs = ["io_socket_handle_impl.h"],
+    deps = envoy_cc_platform_dep("io_socket_handle_impl_lib"),
+)
+
+envoy_cc_posix_library(
+    name = "io_socket_handle_impl_lib",
+    hdrs = ["posix/io_socket_handle_impl.h"],
+    strip_include_prefix = "posix",
+    deps = [
+        "//include/envoy/network:io_handle_interface",
+        "//source/common/common:assert_lib",
+    ],
+)
+
+envoy_cc_win32_library(
+    name = "io_socket_handle_impl_lib",
+    hdrs = ["win32/io_socket_handle_impl.h"],
+    strip_include_prefix = "win32",
     deps = [
         "//include/envoy/network:io_handle_interface",
         "//source/common/common:assert_lib",

@@ -107,7 +107,11 @@ MockFilterChainFactory::MockFilterChainFactory() {
 MockFilterChainFactory::~MockFilterChainFactory() {}
 
 MockListenSocket::MockListenSocket()
-    : io_handle_(std::make_unique<IoSocketHandle>()),
+#ifdef WIN32
+    : io_handle_(std::make_unique<IoSocketHandleWin32>()),
+#else
+    : io_handle_(std::make_unique<IoSocketHandlePosix>()),
+#endif
       local_address_(new Address::Ipv4Instance(80)) {
   ON_CALL(*this, localAddress()).WillByDefault(ReturnRef(local_address_));
   ON_CALL(*this, options()).WillByDefault(ReturnRef(options_));
@@ -124,7 +128,13 @@ MockSocketOption::MockSocketOption() {
 MockSocketOption::~MockSocketOption() {}
 
 MockConnectionSocket::MockConnectionSocket()
-    : io_handle_(std::make_unique<IoSocketHandle>()), local_address_(new Address::Ipv4Instance(80)),
+#ifdef WIN32
+    : io_handle_(std::make_unique<IoSocketHandleWin32>()),
+      local_address_(new Address::Ipv4Instance(80)),
+#else
+    : io_handle_(std::make_unique<IoSocketHandlePosix>()),
+      local_address_(new Address::Ipv4Instance(80)),
+#endif
       remote_address_(new Address::Ipv4Instance(80)) {
   ON_CALL(*this, localAddress()).WillByDefault(ReturnRef(local_address_));
   ON_CALL(*this, remoteAddress()).WillByDefault(ReturnRef(remote_address_));

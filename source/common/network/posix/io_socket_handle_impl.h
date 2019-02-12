@@ -8,29 +8,27 @@ namespace Envoy {
 namespace Network {
 
 /**
- * IoHandle derivative for sockets
+ * IoHandle derivative for POSIX sockets
  */
-class IoSocketHandle : public IoHandle {
+class IoSocketHandlePosix : public IoHandle {
 public:
-  IoSocketHandle() { SET_SOCKET_INVALID(fd_); }
-
-  IoSocketHandle(SOCKET_FD fd) : fd_(fd) {}
+  IoSocketHandlePosix(int fd = -1) : fd_(fd) {}
 
   // TODO(sbelair2) Call close() in destructor
-  ~IoSocketHandle() { ASSERT(SOCKET_INVALID(fd_)); }
+  ~IoSocketHandlePosix() { ASSERT(fd_ == -1); }
 
   // TODO(sbelair2)  To be removed when the fd is fully abstracted from clients.
-  SOCKET_FD fd() const override { return fd_; }
+  int fd() const override { return fd_; }
 
   // Currently this close() is just for the IoHandle, and the close() system call
   // happens elsewhere. In coming changes, the close() syscall will be made from the IoHandle.
   // In particular, the close should also close the fd.
-  void close() override { SET_SOCKET_INVALID(fd_); }
+  void close() override { fd_ = -1; }
 
 private:
-  SOCKET_FD fd_;
+  int fd_;
 };
-typedef std::unique_ptr<IoSocketHandle> IoSocketHandlePtr;
+typedef std::unique_ptr<IoSocketHandlePosix> IoSocketHandlePosixPtr;
 
 } // namespace Network
 } // namespace Envoy

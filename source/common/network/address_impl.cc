@@ -1,12 +1,12 @@
 #include "common/network/address_impl.h"
 
-#if !defined(WIN32)
+#ifdef WIN32
+typedef unsigned int sa_family_t;
+#else
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/un.h>
-#else
-typedef unsigned int sa_family_t;
 #endif
 
 #include <array>
@@ -189,9 +189,15 @@ IoHandlePtr InstanceBase::socketFromSocketType(SocketType socketType) const {
     domain = AF_UNIX;
   }
 
+#ifdef WIN32
   IoHandlePtr io_handle =
-      std::make_unique<IoSocketHandle>(os_sys_calls_.socket(domain, flags, 0).rc_);
+      std::make_unique<IoSocketHandleWin32>(os_sys_calls_.socket(domain, flags, 0).rc_);
   RELEASE_ASSERT(SOCKET_VALID(io_handle->fd()), "");
+#else
+  IoHandlePtr io_handle =
+      std::make_unique<IoSocketHandlePosix>(os_sys_calls_.socket(domain, flags, 0).rc_);
+  RELEASE_ASSERT(SOCKET_VALID(io_handle->fd()), "");
+#endif
 #if defined(__APPLE__) || defined(WIN32)
   // Cannot set SOCK_NONBLOCK as a ::socket flag.
   const int rc = os_sys_calls_.setSocketNonBlocking(io_handle->fd()).rc_;

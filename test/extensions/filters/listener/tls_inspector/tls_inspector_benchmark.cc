@@ -79,7 +79,11 @@ static void BM_TlsInspector(benchmark::State& state) {
   TestThreadsafeSingletonInjector<Api::OsSysCallsImpl> os_calls{&os_sys_calls};
   NiceMock<Stats::MockStore> store;
   ConfigSharedPtr cfg(std::make_shared<Config>(store));
-  Network::IoHandlePtr io_handle = std::make_unique<Network::IoSocketHandle>();
+#ifdef WIN32
+  Network::IoHandlePtr io_handle = std::make_unique<Network::IoSocketHandleWin32>();
+#else
+  Network::IoHandlePtr io_handle = std::make_unique<Network::IoSocketHandlePosix>();
+#endif
   Network::ConnectionSocketImpl socket(std::move(io_handle), nullptr, nullptr);
   NiceMock<FastMockDispatcher> dispatcher;
   FastMockListenerFilterCallbacks cb(socket, dispatcher);

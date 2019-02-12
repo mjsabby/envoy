@@ -16,7 +16,13 @@ namespace {
 class TestTransportSocketCallbacks : public Network::TransportSocketCallbacks {
 public:
   explicit TestTransportSocketCallbacks(Network::Connection& connection)
-      : io_handle_(std::make_unique<Network::IoSocketHandle>(1)), connection_(connection) {}
+#ifdef WIN32
+      : io_handle_(std::make_unique<Network::IoSocketHandleWin32>(1)), connection_(connection) {
+  }
+#else
+      : io_handle_(std::make_unique<Network::IoSocketHandlePosix>(1)), connection_(connection) {
+  }
+#endif
 
   ~TestTransportSocketCallbacks() { io_handle_->close(); }
   Network::IoHandle& ioHandle() override { return *io_handle_; }
