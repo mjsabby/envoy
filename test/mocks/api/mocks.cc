@@ -21,29 +21,9 @@ Event::DispatcherPtr MockApi::allocateDispatcher() {
   return Event::DispatcherPtr{allocateDispatcher_(time_system_)};
 }
 
-MockOsSysCalls::MockOsSysCalls() { num_writes_ = num_open_ = 0; }
+MockOsSysCalls::MockOsSysCalls() {}
 
 MockOsSysCalls::~MockOsSysCalls() {}
-
-SysCallIntResult MockOsSysCalls::open(const std::string& full_path, int flags, int mode) {
-  Thread::LockGuard lock(open_mutex_);
-
-  int rc = open_(full_path, flags, mode);
-  num_open_++;
-  open_event_.notifyOne();
-
-  return SysCallIntResult{rc, errno};
-}
-
-SysCallSizeResult MockOsSysCalls::write(int fd, const void* buffer, size_t num_bytes) {
-  Thread::LockGuard lock(write_mutex_);
-
-  ssize_t rc = write_(fd, buffer, num_bytes);
-  num_writes_++;
-  write_event_.notifyOne();
-
-  return SysCallSizeResult{rc, errno};
-}
 
 SysCallIntResult MockOsSysCalls::setsockopt(int sockfd, int level, int optname, const void* optval,
                                             socklen_t optlen) {

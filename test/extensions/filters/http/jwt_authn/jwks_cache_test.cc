@@ -2,7 +2,6 @@
 #include <thread>
 
 #include "common/protobuf/utility.h"
-#include "common/stats/isolated_store_impl.h"
 
 #include "extensions/filters/http/jwt_authn/jwks_cache.h"
 

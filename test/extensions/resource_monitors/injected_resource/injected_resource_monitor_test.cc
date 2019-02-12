@@ -1,5 +1,4 @@
 #include "common/event/dispatcher_impl.h"
-#include "common/stats/isolated_store_impl.h"
 
 #include "server/resource_monitor_config_impl.h"
 

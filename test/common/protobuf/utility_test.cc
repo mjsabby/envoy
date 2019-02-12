@@ -5,7 +5,6 @@
 
 #include "common/protobuf/protobuf.h"
 #include "common/protobuf/utility.h"
-#include "common/stats/isolated_store_impl.h"
 
 #include "test/proto/deprecated.pb.h"
 #include "test/test_common/environment.h"

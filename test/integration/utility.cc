@@ -60,11 +60,9 @@ IntegrationUtil::makeSingleRequest(const Network::Address::InstanceConstSharedPt
                                    const std::string& body, Http::CodecClient::Type type,
                                    const std::string& host, const std::string& content_type) {
 
-  NiceMock<Stats::MockIsolatedStatsStore> mock_stats_store;
   Event::GlobalTimeSystem time_system;
-  Api::Impl api(std::chrono::milliseconds(9000), Thread::threadFactoryForTest(), mock_stats_store,
-                time_system);
-  Event::DispatcherPtr dispatcher(api.allocateDispatcher());
+  Api::ApiPtr api = Api::createApiForTest(time_system);
+  Event::DispatcherPtr dispatcher(api->allocateDispatcher());
   std::shared_ptr<Upstream::MockClusterInfo> cluster{new NiceMock<Upstream::MockClusterInfo>()};
   Upstream::HostDescriptionConstSharedPtr host_description{
       Upstream::makeTestHostDescription(cluster, "tcp://127.0.0.1:80")};
@@ -111,7 +109,7 @@ IntegrationUtil::makeSingleRequest(uint32_t port, const std::string& method, con
 RawConnectionDriver::RawConnectionDriver(uint32_t port, Buffer::Instance& initial_data,
                                          ReadCallback data_callback,
                                          Network::Address::IpVersion version) {
-  api_ = Api::createApiForTest(stats_store_);
+  api_ = Api::createApiForTest();
   Event::GlobalTimeSystem time_system;
   dispatcher_ = api_->allocateDispatcher();
   callbacks_ = std::make_unique<ConnectionCallbacks>();
