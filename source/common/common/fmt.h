@@ -4,6 +4,12 @@
 #include "fmt/format.h"
 #include "fmt/ostream.h"
 
+// fmt/format.h includes <windows.h>, so undef some interfering symbols
+#ifdef WIN32
+#undef DELETE
+#undef GetMessage
+#endif
+
 // NOLINT(namespace-envoy)
 
 namespace fmt {

@@ -3,6 +3,7 @@ licenses(["notice"])  # Apache 2
 load(
     "//bazel:envoy_build_system.bzl",
     "envoy_cc_binary",
+    "envoy_cc_library",
     "envoy_cc_test",
     "envoy_cc_test_binary",
     "envoy_cc_test_library",
@@ -86,10 +87,16 @@ envoy_cc_test(
     ],
 )
 
+envoy_cc_library(
+    name = "nameser_lib",
+    hdrs = ["nameser.h"],
+)
+
 envoy_cc_test(
     name = "dns_impl_test",
     srcs = ["dns_impl_test.cc"],
     deps = [
+        ":nameser_lib",
         "//include/envoy/event:dispatcher_interface",
         "//include/envoy/network:address_interface",
         "//include/envoy/network:dns_interface",

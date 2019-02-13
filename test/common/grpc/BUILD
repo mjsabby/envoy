@@ -142,6 +142,8 @@ envoy_cc_test_library(
 envoy_cc_test(
     name = "grpc_client_integration_test",
     srcs = ["grpc_client_integration_test.cc"],
+    # should pass, see story #163961506
+    test_on_windows = False,
     deps = [
         ":grpc_client_integration_test_harness_lib",
         "//source/common/grpc:async_client_lib",

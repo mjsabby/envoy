@@ -14,6 +14,7 @@
 #include "envoy/stats/store.h"
 #include "envoy/thread/thread.h"
 
+#include "common/api/os_sys_calls_impl.h"
 #include "common/buffer/buffer_impl.h"
 #include "common/common/c_smart_ptr.h"
 #include "common/common/thread.h"
@@ -469,6 +470,7 @@ public:
     return matcher;
   }
 
+  static SOCKET_FD duplicateSocket(SOCKET_FD sock);
   /**
    * Checks that passed gauges have a value of 0. Gauges can be omitted from
    * this check by modifying the regex that matches gauge names in the
@@ -698,6 +700,7 @@ MATCHER_P2(ProtoEqIgnoringField, expected, ignored_field, "") {
   return equal;
 }
 
+<<<<<<< HEAD
 MATCHER_P(RepeatedProtoEq, expected, "") {
   const bool equal = TestUtility::repeatedPtrFieldEqual(arg, expected);
   if (!equal) {
@@ -712,6 +715,13 @@ MATCHER_P(RepeatedProtoEq, expected, "") {
   }
   return equal;
 }
+=======
+MATCHER_P(ProtoEqRepeatedFieldAsSet, rhs, "") {
+  return TestUtility::protoEqualRepeatedFieldAsSet(arg, rhs);
+}
+
+MATCHER_P(RepeatedProtoEq, rhs, "") { return TestUtility::repeatedPtrFieldEqual(arg, rhs); }
+>>>>>>> Envoy builds on Windows
 
 MATCHER_P(Percent, rhs, "") {
   envoy::type::FractionalPercent expected;

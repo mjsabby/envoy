@@ -1,6 +1,8 @@
 #include "common/network/udp_listener_impl.h"
 
+#ifndef WIN32
 #include <sys/un.h>
+#endif
 
 #include <cerrno>
 #include <csetjmp>
@@ -35,7 +37,12 @@ UdpListenerImpl::UdpListenerImpl(Event::DispatcherImpl& dispatcher, Socket& sock
     : BaseListenerImpl(dispatcher, socket), cb_(cb), time_source_(time_source) {
   file_event_ = dispatcher_.createFileEvent(
       socket.ioHandle().fd(), [this](uint32_t events) -> void { onSocketEvent(events); },
+// libevent only supports level trigger on Windows
+#ifdef WIN32
+      Event::FileTriggerType::Level, Event::FileReadyType::Read | Event::FileReadyType::Write);
+#else
       Event::FileTriggerType::Edge, Event::FileReadyType::Read | Event::FileReadyType::Write);
+#endif
 
   ASSERT(file_event_);
 
@@ -75,6 +82,7 @@ void UdpListenerImpl::handleReadCallback() {
   // TODO(danzh) make this variable configurable to support jumbo frames.
   const uint64_t read_buffer_length = MAX_UDP_PACKET_SIZE;
   do {
+#if 1 //TODO: Pivotal review
     Buffer::InstancePtr buffer = std::make_unique<Buffer::OwnedImpl>();
     Buffer::RawSlice slice;
     const uint64_t num_slices = buffer->reserve(read_buffer_length, &slice, 1);
@@ -93,6 +101,16 @@ void UdpListenerImpl::handleReadCallback() {
                       result.err_->getErrorDetails());
         cb_.onReceiveError(UdpListenerCallbacks::ErrorCode::SyscallError,
                            result.err_->getErrorCode());
+#else //ENVOY
+    ReceiveResult recv_result = doRecvFrom(addr, addr_len);
+    if ((recv_result.result_.rc_ < 0)) {
+#ifdef WIN32
+      if (recv_result.result_.errno_ != WSAEWOULDBLOCK) {
+#else
+      if (recv_result.result_.errno_ != EAGAIN) {
+#endif
+        cb_.onError(UdpListenerCallbacks::ErrorCode::SyscallError, recv_result.result_.errno_);
+#endif
       }
       // Stop reading.
       return;
@@ -118,6 +136,27 @@ void UdpListenerImpl::handleReadCallback() {
       ENVOY_UDP_LOG(debug, "Kernel dropped {} more packets. Consider increase receive buffer size.",
                     delta);
     }
+<<<<<<< HEAD
+=======
+    case AF_INET6: {
+      const struct sockaddr_in6* sin6 = reinterpret_cast<const struct sockaddr_in6*>(&addr);
+      ASSERT(AF_INET6 == sin6->sin6_family);
+      if (IN6_IS_ADDR_V4MAPPED(&sin6->sin6_addr)) {
+#ifdef __APPLE__
+        struct sockaddr_in sin = {
+            {}, AF_INET, sin6->sin6_port, {sin6->sin6_addr.__u6_addr.__u6_addr32[3]}, {}};
+#elif WIN32
+        struct in_addr in_v4 = {};
+        in_v4.S_un.S_addr = reinterpret_cast<const uint32_t*>(sin6->sin6_addr.u.Byte)[3];
+        struct sockaddr_in sin = {AF_INET, sin6->sin6_port, in_v4, {}};
+#else
+      struct sockaddr_in sin = {AF_INET, sin6->sin6_port, {sin6->sin6_addr.s6_addr32[3]}, {}};
+#endif
+        peer_address = std::make_shared<Address::Ipv4Instance>(&sin);
+      } else {
+        peer_address = std::make_shared<Address::Ipv6Instance>(*sin6, true);
+      }
+>>>>>>> Envoy builds on Windows
 
     // Adjust used memory length.
     slice.len_ = std::min(slice.len_, static_cast<size_t>(result.rc_));
@@ -149,9 +188,14 @@ void UdpListenerImpl::handleWriteCallback() {
 
 Event::Dispatcher& UdpListenerImpl::dispatcher() { return dispatcher_; }
 
+<<<<<<< HEAD
 const Address::InstanceConstSharedPtr& UdpListenerImpl::localAddress() const {
   return socket_.localAddress();
 }
+=======
+  } while (true);
+} // namespace Network
+>>>>>>> Envoy builds on Windows
 
 Api::IoCallUint64Result UdpListenerImpl::send(const UdpSendData& send_data) {
   ENVOY_UDP_LOG(trace, "send");

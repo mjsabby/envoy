@@ -2,10 +2,15 @@
 #include <iostream>
 #include <string>
 
+#include "exe/platform_impl.h"
+
 #include "test/tools/router_check/router.h"
 
 int main(int argc, char* argv[]) {
   Envoy::Options options(argc, argv);
+
+  // We need this to ensure WSAStartup is called on Windows
+  Envoy::PlatformImpl platform_impl_;
 
   try {
     Envoy::RouterCheckTool checktool =

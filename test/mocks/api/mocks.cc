@@ -30,8 +30,8 @@ MockOsSysCalls::MockOsSysCalls() = default;
 
 MockOsSysCalls::~MockOsSysCalls() = default;
 
-SysCallIntResult MockOsSysCalls::setsockopt(int sockfd, int level, int optname, const void* optval,
-                                            socklen_t optlen) {
+SysCallIntResult MockOsSysCalls::setsockopt(SOCKET_FD sockfd, int level, int optname,
+                                            const void* optval, socklen_t optlen) {
   ASSERT(optlen == sizeof(int));
 
   // Allow mocking system call failure.
@@ -43,9 +43,13 @@ SysCallIntResult MockOsSysCalls::setsockopt(int sockfd, int level, int optname, 
   return SysCallIntResult{0, 0};
 };
 
-SysCallIntResult MockOsSysCalls::getsockopt(int sockfd, int level, int optname, void* optval,
+SysCallIntResult MockOsSysCalls::getsockopt(SOCKET_FD sockfd, int level, int optname, void* optval,
                                             socklen_t* optlen) {
+#if !defined(WIN32)
   ASSERT(*optlen == sizeof(int));
+#else
+  ASSERT(*optlen == sizeof(int) || *optlen == sizeof(WSAPROTOCOL_INFO));
+#endif
   int val = 0;
   const auto& it = boolsockopts_.find(SockOptKey(sockfd, level, optname));
   if (it != boolsockopts_.end()) {

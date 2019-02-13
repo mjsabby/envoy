@@ -2,6 +2,8 @@
 #include <memory>
 #include <string>
 
+#include "envoy/common/platform.h"
+
 #include "common/buffer/buffer_impl.h"
 #include "common/common/empty_string.h"
 #include "common/common/fmt.h"
@@ -86,7 +88,7 @@ TEST_P(ConnectionImplDeathTest, BadFd) {
       ConnectionImpl(*dispatcher,
                      std::make_unique<ConnectionSocketImpl>(std::move(io_handle), nullptr, nullptr),
                      Network::Test::createRawBufferSocket(), false),
-      ".*assert failure: ioHandle\\(\\).fd\\(\\) != -1.*");
+      ".*assert failure: SOCKET_VALID\\(ioHandle\\(\\)\\.fd\\(\\)\\).*");
 }
 
 class ConnectionImplTest : public testing::TestWithParam<Address::IpVersion> {
@@ -99,9 +101,16 @@ protected:
     }
     listener_ = dispatcher_->createListener(socket_, listener_callbacks_, true, false);
 
+    Network::Address::InstanceConstSharedPtr remote;
+#if !defined(WIN32)
+    remote = socket_.localAddress();
+#else
+    const uint32_t port = socket_.localAddress()->ip()->port();
+    remote = Utility::resolveUrl(
+        fmt::format("tcp://{}:{}", Network::Test::getLoopbackAddressUrlString(GetParam()), port));
+#endif
     client_connection_ = dispatcher_->createClientConnection(
-        socket_.localAddress(), source_address_, Network::Test::createRawBufferSocket(),
-        socket_options_);
+        remote, source_address_, Network::Test::createRawBufferSocket(), socket_options_);
     client_connection_->addConnectionCallbacks(client_callbacks_);
     EXPECT_EQ(nullptr, client_connection_->ssl());
     const Network::ClientConnection& const_connection = *client_connection_;
@@ -526,6 +535,11 @@ TEST_P(ConnectionImplTest, EarlyCloseOnReadDisabledConnection) {
   // close notification and instead gets the close after reading the FIN.
   return;
 #endif
+#if defined(WIN32)
+  // The Windows backend in libevent does not support the EV_CLOSED flag
+  // so it won't detect the early close
+  return;
+#endif
   setUpBasicConnection();
   connect();
 
@@ -690,8 +704,19 @@ TEST_P(ConnectionImplTest, BasicWrite) {
   EXPECT_CALL(*client_write_buffer_, move(_))
       .WillRepeatedly(DoAll(AddBufferToStringWithoutDraining(&data_written),
                             Invoke(client_write_buffer_, &MockWatermarkBuffer::baseMove)));
+#if !defined(WIN32)
   EXPECT_CALL(*client_write_buffer_, write(_))
       .WillOnce(Invoke(client_write_buffer_, &MockWatermarkBuffer::trackWrites));
+#else
+  // on windows, we need to cause the dispatcher to exit. This is because libevent is
+  // level triggered and so the socket is always available for writing. This
+  // means that the dispatcher will never exit
+  EXPECT_CALL(*client_write_buffer_, write(_))
+      .WillOnce(Invoke([&](SOCKET_FD fd) -> Api::SysCallIntResult {
+        dispatcher_->exit();
+        return client_write_buffer_->trackWrites(fd);
+      }));
+#endif
   EXPECT_CALL(*client_write_buffer_, drain(_))
       .WillOnce(Invoke(client_write_buffer_, &MockWatermarkBuffer::trackDrains));
   client_connection_->write(buffer_to_write, false);
@@ -717,8 +742,19 @@ TEST_P(ConnectionImplTest, WriteWithWatermarks) {
   EXPECT_CALL(*client_write_buffer_, move(_))
       .WillRepeatedly(DoAll(AddBufferToStringWithoutDraining(&data_written),
                             Invoke(client_write_buffer_, &MockWatermarkBuffer::baseMove)));
+#if !defined(WIN32)
   EXPECT_CALL(*client_write_buffer_, write(_))
       .WillOnce(Invoke(client_write_buffer_, &MockWatermarkBuffer::trackWrites));
+#else
+  // on windows, we need to cause the dispatcher to exit. This is because libevent is
+  // level triggered and so the socket is always available for writing. This
+  // means that the dispatcher will never exit
+  EXPECT_CALL(*client_write_buffer_, write(_))
+      .WillOnce(Invoke([&](SOCKET_FD fd) -> Api::SysCallIntResult {
+        dispatcher_->exit();
+        return client_write_buffer_->trackWrites(fd);
+      }));
+#endif
   EXPECT_CALL(*client_write_buffer_, drain(_))
       .WillOnce(Invoke(client_write_buffer_, &MockWatermarkBuffer::trackDrains));
   // The write() call on the connection will buffer enough data to bring the connection above the
@@ -739,7 +775,7 @@ TEST_P(ConnectionImplTest, WriteWithWatermarks) {
       .WillRepeatedly(DoAll(AddBufferToStringWithoutDraining(&data_written),
                             Invoke(client_write_buffer_, &MockWatermarkBuffer::baseMove)));
   EXPECT_CALL(*client_write_buffer_, write(_))
-      .WillOnce(Invoke([&](IoHandle& io_handle) -> Api::IoCallUint64Result {
+      .WillOnce(Invoke([&](SOCKET_FD fd) -> Api::IoCallUint64Result {
         dispatcher_->exit();
         return client_write_buffer_->failWrite(io_handle);
       }));
@@ -823,12 +859,25 @@ TEST_P(ConnectionImplTest, WatermarkFuzzing) {
     // drain |bytes_to_flush| before having the buffer failWrite()
     EXPECT_CALL(*client_write_buffer_, move(_))
         .WillOnce(Invoke(client_write_buffer_, &MockWatermarkBuffer::baseMove));
+#if !defined(WIN32)
     EXPECT_CALL(*client_write_buffer_, write(_))
         .WillOnce(
             DoAll(Invoke([&](IoHandle&) -> void { client_write_buffer_->drain(bytes_to_flush); }),
                   Return(testing::ByMove(Api::IoCallUint64Result(
                       bytes_to_flush, Api::IoErrorPtr(nullptr, [](Api::IoError*) {}))))))
         .WillRepeatedly(testing::Invoke(client_write_buffer_, &MockWatermarkBuffer::failWrite));
+#else
+    // on windows, we need to cause the dispatcher to exit. This is because libevent is
+    // level triggered and so the socket is always available for writing. This
+    // means that the dispatcher will never exit
+    EXPECT_CALL(*client_write_buffer_, write(_))
+        .WillOnce(DoAll(Invoke([&](int) -> void {
+                          client_write_buffer_->drain(bytes_to_flush);
+                          dispatcher_->exit();
+                        }),
+                        Return(Api::SysCallIntResult{bytes_to_flush, 0})))
+        .WillRepeatedly(testing::Invoke(client_write_buffer_, &MockWatermarkBuffer::failWrite));
+#endif
     client_connection_->write(buffer_to_write, false);
     dispatcher_->run(Event::Dispatcher::RunType::NonBlock);
   }
@@ -995,10 +1044,11 @@ TEST_P(ConnectionImplTest, FlushWriteCloseTest) {
 // Test that a FlushWriteAndDelay close causes Envoy to flush the write and wait for the client/peer
 // to close (until a configured timeout which is not expected to trigger in this test).
 TEST_P(ConnectionImplTest, FlushWriteAndDelayCloseTest) {
-#ifdef __APPLE__
-  // libevent does not provide early close notifications on the currently supported macOS builds, so
-  // the server connection is never notified of the close. For now, we have chosen to disable tests
-  // that rely on this behavior on macOS (see https://github.com/envoyproxy/envoy/pull/4299).
+#if defined(__APPLE__) || defined(WIN32)
+  // libevent does not provide early close notifications on the currently supported non-Linux
+  // builds, so the server connection is never notified of the close. For now, we have chosen to
+  // disable tests that rely on this behavior on macOS and Windows (see
+  // https://github.com/envoyproxy/envoy/pull/4299).
   return;
 #endif
   setUpBasicConnection();
@@ -1869,9 +1919,17 @@ public:
     dispatcher_ = api_->allocateDispatcher();
     listener_ = dispatcher_->createListener(socket_, listener_callbacks_, true, false);
 
-    client_connection_ = dispatcher_->createClientConnection(
-        socket_.localAddress(), Network::Address::InstanceConstSharedPtr(),
-        Network::Test::createRawBufferSocket(), nullptr);
+    Network::Address::InstanceConstSharedPtr remote;
+#if !defined(WIN32)
+    remote = socket_.localAddress();
+#else
+    uint32_t port = socket_.localAddress()->ip()->port();
+    remote = Utility::resolveUrl(
+        fmt::format("tcp://{}:{}", Network::Test::getLoopbackAddressUrlString(GetParam()), port));
+#endif
+    client_connection_ =
+        dispatcher_->createClientConnection(remote, Network::Address::InstanceConstSharedPtr(),
+                                            Network::Test::createRawBufferSocket(), nullptr);
     client_connection_->addConnectionCallbacks(client_callbacks_);
     client_connection_->connect();
 
@@ -1990,6 +2048,10 @@ protected:
 
 // Validate we skip setting socket options on UDS.
 TEST_F(PipeClientConnectionImplTest, SkipSocketOptions) {
+#if defined(WIN32)
+  // Windows doesn't support UDS
+  return;
+#endif
   auto option = std::make_shared<MockSocketOption>();
   EXPECT_CALL(*option, setOption(_, _)).Times(0);
   auto options = std::make_shared<Socket::Options>();
@@ -2002,6 +2064,10 @@ TEST_F(PipeClientConnectionImplTest, SkipSocketOptions) {
 
 // Validate we skip setting source address.
 TEST_F(PipeClientConnectionImplTest, SkipSourceAddress) {
+#ifdef WIN32
+  // Windows doesn't support UDS
+  return;
+#endif
   ClientConnectionPtr connection = dispatcher_->createClientConnection(
       Utility::resolveUrl("unix://" + path_), Utility::resolveUrl("tcp://1.2.3.4:5"),
       Network::Test::createRawBufferSocket(), nullptr);

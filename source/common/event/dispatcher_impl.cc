@@ -120,7 +120,7 @@ Network::DnsResolverSharedPtr DispatcherImpl::createDnsResolver(
   return Network::DnsResolverSharedPtr{new Network::DnsResolverImpl(*this, resolvers)};
 }
 
-FileEventPtr DispatcherImpl::createFileEvent(int fd, FileReadyCb cb, FileTriggerType trigger,
+FileEventPtr DispatcherImpl::createFileEvent(SOCKET_FD fd, FileReadyCb cb, FileTriggerType trigger,
                                              uint32_t events) {
   ASSERT(isThreadSafe());
   return FileEventPtr{new FileEventImpl(*this, fd, cb, trigger, events)};

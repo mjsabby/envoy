@@ -1,5 +1,8 @@
 #pragma once
 
+// TODO(YAEL) As the IoHandle work progresses, all the SOCKET_FD and releated changes in this file
+// and in other files should disappear
+
 #include <cstdint>
 #include <functional>
 #include <memory>
@@ -7,6 +10,7 @@
 
 #include "envoy/api/os_sys_calls.h"
 #include "envoy/common/exception.h"
+#include "envoy/common/platform.h"
 #include "envoy/common/pure.h"
 #include "envoy/network/io_handle.h"
 
@@ -171,7 +175,7 @@ public:
    * @return a IoCallUint64Result with err_ = nullptr and rc_ = the number of bytes
    * read if successful, or err_ = some IoError for failure. If call failed, rc_ shouldn't be used.
    */
-  virtual Api::IoCallUint64Result read(Network::IoHandle& io_handle, uint64_t max_length) PURE;
+  virtual Api::SysCallIntResult read(SOCKET_FD fd, uint64_t max_length) PURE;
 
   /**
    * Reserve space in the buffer.
@@ -204,7 +208,7 @@ public:
    * written if successful, or err_ = some IoError for failure. If call failed, rc_ shouldn't be
    * used.
    */
-  virtual Api::IoCallUint64Result write(Network::IoHandle& io_handle) PURE;
+  virtual Api::IoCallUint64Result write(SOCKET_FD fd) PURE;
 
   /**
    * Copy an integer out of the buffer.

@@ -19,7 +19,7 @@ public:
   BaseListenerImpl(Event::DispatcherImpl& dispatcher, Socket& socket);
 
 protected:
-  virtual Address::InstanceConstSharedPtr getLocalAddress(int fd);
+  virtual Address::InstanceConstSharedPtr getLocalAddress(SOCKET_FD fd);
 
   Address::InstanceConstSharedPtr local_address_;
   Event::DispatcherImpl& dispatcher_;

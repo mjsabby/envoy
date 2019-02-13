@@ -17,6 +17,8 @@ envoy_sh_test(
         "//bazel:raw_build_id.ldscript",
         "//source/exe:envoy-static",
     ],
+    # won't pass until https://github.com/bazelbuild/bazel/issues/6997 is fixed
+    test_on_windows = False,
 )
 
 envoy_sh_test(
@@ -38,6 +40,8 @@ envoy_sh_test(
         "//bazel:raw_build_id.ldscript",
         "//source/exe:envoy-static",
     ],
+    # won't pass until https://github.com/bazelbuild/bazel/issues/6997 is fixed
+    test_on_windows = False,
 )
 
 envoy_cc_test(

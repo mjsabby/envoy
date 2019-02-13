@@ -1,7 +1,10 @@
 #pragma once
 
+#ifndef WIN32
 #include <netinet/in.h>
 #include <sys/socket.h>
+
+#endif
 
 #include "envoy/api/v2/core/address.pb.h"
 #include "envoy/network/listen_socket.h"

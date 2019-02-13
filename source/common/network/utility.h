@@ -5,6 +5,7 @@
 #include <string>
 
 #include "envoy/api/v2/core/address.pb.h"
+#include "envoy/common/platform.h"
 #include "envoy/network/connection.h"
 
 #include "absl/strings/string_view.h"
@@ -204,7 +205,7 @@ public:
    * @param fd is the descriptor returned by accept()
    * @return the original destination or nullptr if not available.
    */
-  static Address::InstanceConstSharedPtr getOriginalDst(int fd);
+  static Address::InstanceConstSharedPtr getOriginalDst(SOCKET_FD fd);
 
   /**
    * Parses a string containing a comma-separated list of port numbers and/or

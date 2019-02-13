@@ -367,8 +367,8 @@ public:
     return asString() == other.asString();
   }
 
-  MOCK_CONST_METHOD1(bind, Api::SysCallIntResult(int));
-  MOCK_CONST_METHOD1(connect, Api::SysCallIntResult(int));
+  MOCK_CONST_METHOD1(bind, Api::SysCallIntResult(SOCKET_FD));
+  MOCK_CONST_METHOD1(connect, Api::SysCallIntResult(SOCKET_FD));
   MOCK_CONST_METHOD0(ip, Address::Ip*());
   MOCK_CONST_METHOD1(socket, IoHandlePtr(Address::SocketType));
   MOCK_CONST_METHOD0(type, Address::Type());

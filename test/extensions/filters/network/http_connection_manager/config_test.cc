@@ -243,6 +243,7 @@ TEST_F(HttpConnectionManagerConfigTest, SamplingConfigured) {
             config.tracingConfig()->overall_sampling_.denominator());
 }
 
+#if !defined(WIN32)
 TEST_F(HttpConnectionManagerConfigTest, UnixSocketInternalAddress) {
   const std::string yaml_string = R"EOF(
   stat_prefix: ingress_http
@@ -264,6 +265,7 @@ TEST_F(HttpConnectionManagerConfigTest, UnixSocketInternalAddress) {
   EXPECT_TRUE(config.internalAddressConfig().isInternalAddress(internalIpAddress));
   EXPECT_FALSE(config.internalAddressConfig().isInternalAddress(externalIpAddress));
 }
+#endif
 
 TEST_F(HttpConnectionManagerConfigTest, MaxRequestHeadersKbDefault) {
   const std::string yaml_string = R"EOF(

@@ -10,7 +10,11 @@ TEST_F(SocketOptionImplTest, BadFd) {
   absl::string_view zero("\0\0\0\0", 4);
   Api::SysCallIntResult result = SocketOptionImpl::setSocketOption(socket_, {}, zero);
   EXPECT_EQ(-1, result.rc_);
+#if !defined(WIN32)
   EXPECT_EQ(ENOTSUP, result.errno_);
+#else
+  EXPECT_EQ(WSAEOPNOTSUPP, result.errno_);
+#endif
 }
 
 TEST_F(SocketOptionImplTest, HasName) {

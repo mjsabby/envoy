@@ -1005,9 +1005,18 @@ TEST_F(TcpProxyTest, AccessLogBytesRxTxDuration) {
   upstream_callbacks_->onEvent(Network::ConnectionEvent::RemoteClose);
   filter_.reset();
 
-  EXPECT_THAT(access_log_data_,
-              MatchesRegex(
-                  "bytesreceived=1 bytessent=2 datetime=[0-9-]+T[0-9:.]+Z nonzeronum=[1-9][0-9]*"));
+#if !defined(WIN32)
+  std::string logregex =
+      "bytesreceived=1 bytessent=2 datetime=[0-9-]+T[0-9:.]+Z nonzeronum=[1-9][0-9]*";
+#else
+  // googletest regex support on Windows is really limited, so the above doesn't work.
+  // For details, see:
+  // https://github.com/google/googletest/blob/587ceaeaee6c2ccb5e565858d7fe12aaf69795e6/googletest/include/gtest/gtest-death-test.h#L106
+  std::string logregex =
+      "bytesreceived=1 bytessent=2 "
+      "datetime=\\d\\d\\d\\d-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d\\.\\d+Z nonzeronum=\\d+";
+#endif
+  EXPECT_THAT(access_log_data_, MatchesRegex(logregex));
 }
 
 // Tests that upstream flush works properly with no idle timeout configured.

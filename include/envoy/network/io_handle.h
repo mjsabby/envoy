@@ -1,6 +1,7 @@
 #pragma once
 
 #include "envoy/api/io_error.h"
+#include "envoy/common/platform.h"
 #include "envoy/common/pure.h"
 
 namespace Envoy {
@@ -27,7 +28,7 @@ public:
    * TODO(danzh) move it to IoSocketHandle after replacing the calls to it with
    * calls to IoHandle API's everywhere.
    */
-  virtual int fd() const PURE;
+  virtual SOCKET_FD fd() const PURE;
 
   /**
    * Clean up IoHandle resources

@@ -19,19 +19,39 @@ namespace Envoy {
 namespace Network {
 
 IoSocketHandleImpl::~IoSocketHandleImpl() {
+#ifdef WIN32
+  if (socket_descriptor_ != INVALID_SOCKET) {
+    IoSocketHandleImpl::close();
+  }
+#else
   if (fd_ != -1) {
     IoSocketHandleImpl::close();
   }
+#endif
 }
 
 Api::IoCallUint64Result IoSocketHandleImpl::close() {
+#ifdef WIN32
+  ASSERT(socket_descriptor_ != INVALID_SOCKET);
+  const int rc = ::closesocket(socket_descriptor_);
+  socket_descriptor_ = INVALID_SOCKET;
+  // TODO: if (rc == SOCKET_ERROR), error should be ::WSAGetLastError()
+#else
   ASSERT(fd_ != -1);
   const int rc = ::close(fd_);
   fd_ = -1;
+  // TODO: if (rc == -1), error should be errno
+#endif
   return Api::IoCallUint64Result(rc, Api::IoErrorPtr(nullptr, IoSocketError::deleteIoError));
 }
 
-bool IoSocketHandleImpl::isOpen() const { return fd_ != -1; }
+bool IoSocketHandleImpl::isOpen() const {
+#ifdef WIN32
+  return socket_descriptor_ != INVALID_SOCKET;
+#else
+  return fd_ != -1;
+#endif
+}
 
 Api::IoCallUint64Result IoSocketHandleImpl::readv(uint64_t max_length, Buffer::RawSlice* slices,
                                                   uint64_t num_slice) {

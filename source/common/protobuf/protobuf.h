@@ -25,6 +25,12 @@
 #include "google/protobuf/util/type_resolver_util.h"
 #include "google/protobuf/wrappers.pb.h"
 
+#ifdef WIN32
+// one of the above headers includes <windows.h>, so undef some interfering symbols
+#undef DELETE
+#undef GetMessage
+#endif
+
 namespace Envoy {
 
 // All references to google::protobuf in Envoy need to be made via the

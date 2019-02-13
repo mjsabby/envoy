@@ -139,7 +139,7 @@ public:
           .WillOnce(ThrowOnRejectedConfig(accept));
     }
     if (!accept) {
-      EXPECT_CALL(callbacks_, onConfigUpdateFailed(_));
+      EXPECT_CALL(callbacks_, onConfigUpdateFailed_(_));
     }
     EXPECT_CALL(random_gen_, random()).WillOnce(Return(0));
     EXPECT_CALL(*timer_, enableTimer(_));
