@@ -45,7 +45,9 @@ public:
   /**
    * Exposed for testing purposes only (but harmless to call):
    */
-  int loopIntervalForTest() const { return loop_interval_.count(); }
+  // TODO(YAEL) - figure out why do loopIntervalForTest should return long long instead of a fixed
+  // size type
+  long long loopIntervalForTest() const { return loop_interval_.count(); }
   void forceCheckForTest() {
     exit_event_.notifyAll();
     Thread::LockGuard guard(exit_lock_);

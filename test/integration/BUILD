@@ -13,7 +13,9 @@ load(
 load(
     "//source/extensions:all_extensions.bzl",
     "envoy_all_extensions",
+    "envoy_windows_extensions",
 )
+load("//bazel:repositories.bzl", "PPC_SKIP_TARGETS")
 
 envoy_package()
 
@@ -23,6 +25,8 @@ envoy_cc_test(
     data = [
         "//test/config/integration/certs",
     ],
+    # should pass, see story #163962838
+    test_on_windows = False,
     deps = [
         ":http_integration_lib",
         "//source/common/config:protobuf_link_hacks",
@@ -199,6 +203,8 @@ envoy_cc_test(
         "integration_admin_test.cc",
         "integration_admin_test.h",
     ],
+    # should pass, see story #163963060
+    test_on_windows = False,
     deps = [
         ":http_protocol_integration_lib",
         "//include/envoy/http:header_map_interface",
@@ -613,6 +619,8 @@ envoy_cc_test(
         "uds_integration_test.cc",
         "uds_integration_test.h",
     ],
+    # will never pass on Windows (Unix Domain Sockets)
+    test_on_windows = False,
     deps = [
         ":http_integration_lib",
         "//source/common/event:dispatcher_includes",

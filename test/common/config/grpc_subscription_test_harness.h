@@ -104,13 +104,13 @@ public:
         response->add_resources()->PackFrom(*load_assignment);
       }
     }
-    EXPECT_CALL(callbacks_, onConfigUpdate(RepeatedProtoEq(typed_resources), version))
+    EXPECT_CALL(callbacks_, onConfigUpdate_(RepeatedProtoEq(typed_resources), version))
         .WillOnce(ThrowOnRejectedConfig(accept));
     if (accept) {
       expectSendMessage(last_cluster_names_, version);
       version_ = version;
     } else {
-      EXPECT_CALL(callbacks_, onConfigUpdateFailed(_));
+      EXPECT_CALL(callbacks_, onConfigUpdateFailed_(_));
       expectSendMessage(last_cluster_names_, version_, Grpc::Status::GrpcStatus::Internal,
                         "bad config");
     }

@@ -57,9 +57,11 @@ TEST(ResolverTest, FromProtoAddress) {
   ipv6_address.mutable_socket_address()->set_port_value(2);
   EXPECT_EQ("[1::1]:2", resolveProtoAddress(ipv6_address)->asString());
 
+#if !defined(WIN32)
   envoy::api::v2::core::Address pipe_address;
   pipe_address.mutable_pipe()->set_path("/foo/bar");
   EXPECT_EQ("/foo/bar", resolveProtoAddress(pipe_address)->asString());
+#endif
 }
 
 // Validate correct handling of ipv4_compat field.

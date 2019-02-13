@@ -50,7 +50,13 @@ public:
    * to be able to destruct a SymbolEncoding without transferring it
    * we could add a clear(SymbolTable&) method.
    */
+  // TODO(YAEL) - the default ctor may not be necessary
+  SymbolEncoding() = default;
   ~SymbolEncoding();
+
+  // Move constructor added in #163058068
+  // Without this, local variables may be copied on return instead of moved
+  SymbolEncoding(SymbolEncoding&& rhs) = default;
 
   /**
    * Encodes a token into the vec.

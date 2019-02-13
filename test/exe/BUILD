@@ -17,6 +17,8 @@ envoy_sh_test(
         "//bazel:raw_build_id.ldscript",
         "//source/exe:envoy-static",
     ],
+    # won't pass until https://github.com/bazelbuild/bazel/issues/6997 is fixed
+    test_on_windows = False,
 )
 
 envoy_sh_test(
@@ -38,6 +40,8 @@ envoy_sh_test(
         "//bazel:raw_build_id.ldscript",
         "//source/exe:envoy-static",
     ],
+    # won't pass until https://github.com/bazelbuild/bazel/issues/6997 is fixed
+    test_on_windows = False,
 )
 
 envoy_cc_test(
@@ -56,6 +60,8 @@ envoy_cc_test(
     name = "signals_test",
     srcs = ["signals_test.cc"],
     tags = ["backtrace"],
+    # won't pass -- no signals on Windows
+    test_on_windows = False,
     deps = [
         "//source/exe:sigaction_lib",
         "//test/test_common:utility_lib",

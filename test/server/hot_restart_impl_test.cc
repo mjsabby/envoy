@@ -39,13 +39,18 @@ public:
     }));
     EXPECT_CALL(os_sys_calls_, bind(_, _, _));
     EXPECT_CALL(options_, statsOptions()).WillRepeatedly(ReturnRef(stats_options_));
-
+    EXPECT_CALL(os_sys_calls_, socket(_, _, _))
+        .WillRepeatedly(
+            Invoke([this](int domain, int type, int protocol) -> Api::SysCallSocketResult {
+              return os_sys_calls_actual_.socket(domain, type, protocol);
+            }));
     // Test we match the correct stat with empty-slots before, after, or both.
     hot_restart_ = std::make_unique<HotRestartImpl>(options_);
     hot_restart_->drainParentListeners();
   }
 
   Api::MockOsSysCalls os_sys_calls_;
+  Api::OsSysCallsImpl os_sys_calls_actual_{};
   TestThreadsafeSingletonInjector<Api::OsSysCallsImpl> os_calls{&os_sys_calls_};
   NiceMock<MockOptions> options_;
   Stats::StatsOptionsImpl stats_options_;
