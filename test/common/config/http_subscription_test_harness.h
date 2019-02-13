@@ -117,10 +117,10 @@ public:
     Http::HeaderMapPtr response_headers{new Http::TestHeaderMapImpl{{":status", "200"}}};
     Http::MessagePtr message{new Http::ResponseMessageImpl(std::move(response_headers))};
     message->body() = std::make_unique<Buffer::OwnedImpl>(response_json);
-    EXPECT_CALL(callbacks_, onConfigUpdate(RepeatedProtoEq(response_pb.resources()), version))
+    EXPECT_CALL(callbacks_, onConfigUpdate_(RepeatedProtoEq(response_pb.resources()), version))
         .WillOnce(ThrowOnRejectedConfig(accept));
     if (!accept) {
-      EXPECT_CALL(callbacks_, onConfigUpdateFailed(_));
+      EXPECT_CALL(callbacks_, onConfigUpdateFailed_(_));
     }
     EXPECT_CALL(random_gen_, random()).WillOnce(Return(0));
     EXPECT_CALL(*timer_, enableTimer(_));

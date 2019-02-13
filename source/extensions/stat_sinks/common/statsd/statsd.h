@@ -1,5 +1,6 @@
 #pragma once
 
+#include "envoy/common/platform.h"
 #include "envoy/local_info/local_info.h"
 #include "envoy/network/connection.h"
 #include "envoy/stats/histogram.h"
@@ -11,6 +12,7 @@
 #include "envoy/thread_local/thread_local.h"
 #include "envoy/upstream/cluster_manager.h"
 
+#include "common/api/os_sys_calls_impl.h"
 #include "common/buffer/buffer_impl.h"
 #include "common/common/macros.h"
 #include "common/network/io_socket_handle_impl.h"
@@ -30,7 +32,9 @@ class Writer : public ThreadLocal::ThreadLocalObject {
 public:
   Writer(Network::Address::InstanceConstSharedPtr address);
   // For testing.
-  Writer() : io_handle_(std::make_unique<Network::IoSocketHandleImpl>()) {}
+  Writer()
+      : io_handle_(std::make_unique<Network::IoSocketHandleImpl>()),
+        os_sys_calls_(Api::OsSysCallsSingleton::get()) {}
   virtual ~Writer();
 
   virtual void write(const std::string& message);
@@ -39,6 +43,7 @@ public:
 
 private:
   Network::IoHandlePtr io_handle_;
+  Api::OsSysCallsImpl& os_sys_calls_;
 };
 
 /**

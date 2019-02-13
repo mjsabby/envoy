@@ -12,13 +12,21 @@ namespace Network {
  */
 class IoSocketHandleImpl : public IoHandle {
 public:
+#ifdef WIN32
+  explicit IoSocketHandleImpl(SOCKET socket_descriptor = INVALID_SOCKET)
+      : socket_descriptor_(socket_descriptor) {}
+#else
   explicit IoSocketHandleImpl(int fd = -1) : fd_(fd) {}
-
+#endif
   // Close underlying socket if close() hasn't been call yet.
   ~IoSocketHandleImpl() override;
 
   // TODO(sbelair2)  To be removed when the fd is fully abstracted from clients.
+#ifdef WIN32
+  SOCKET fd() const override { return socket_descriptor_; }
+#else
   int fd() const override { return fd_; }
+#endif
 
   Api::IoCallUint64Result close() override;
 
@@ -30,10 +38,14 @@ public:
   Api::IoCallUint64Result writev(const Buffer::RawSlice* slices, uint64_t num_slice) override;
 
 private:
+#ifdef WIN32
+  SOCKET socket_descriptor_;
+#else
   // Converts a SysCallSizeResult to IoCallUint64Result.
   Api::IoCallUint64Result sysCallResultToIoCallResult(const Api::SysCallSizeResult& result);
 
   int fd_;
+#endif
 };
 
 } // namespace Network

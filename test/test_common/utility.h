@@ -15,6 +15,7 @@
 #include "envoy/stats/store.h"
 #include "envoy/thread/thread.h"
 
+#include "common/api/os_sys_calls_impl.h"
 #include "common/buffer/buffer_impl.h"
 #include "common/common/block_memory_hash_set.h"
 #include "common/common/c_smart_ptr.h"
@@ -194,6 +195,21 @@ public:
   }
 
   /**
+   * Compare two protos of the same type for equality, comparing repeated fields as sets
+   *
+   * @param lhs proto on LHS.
+   * @param rhs proto on RHS.
+   * @return bool indicating whether the protos are equal.
+   */
+  static bool protoEqualRepeatedFieldAsSet(const Protobuf::Message& lhs,
+                                           const Protobuf::Message& rhs) {
+    Protobuf::util::MessageDifferencer md;
+    md.set_repeated_field_comparison(
+        Protobuf::util::MessageDifferencer::RepeatedFieldComparison::AS_SET);
+    return md.Compare(lhs, rhs);
+  }
+
+  /**
    * Split a string.
    * @param source supplies the string to split.
    * @param split supplies the char to split on.
@@ -352,6 +368,7 @@ public:
     return matcher;
   }
 
+  static SOCKET_FD duplicateSocket(SOCKET_FD sock);
   /**
    * Checks that passed gauges have a value of 0. Gauges can be omitted from
    * this check by modifying the regex that matches gauge names in the
@@ -533,6 +550,10 @@ MATCHER_P(HeaderMapEqualIgnoreOrder, rhs, "") {
 }
 
 MATCHER_P(ProtoEq, rhs, "") { return TestUtility::protoEqual(arg, rhs); }
+
+MATCHER_P(ProtoEqRepeatedFieldAsSet, rhs, "") {
+  return TestUtility::protoEqualRepeatedFieldAsSet(arg, rhs);
+}
 
 MATCHER_P(RepeatedProtoEq, rhs, "") { return TestUtility::repeatedPtrFieldEqual(arg, rhs); }
 

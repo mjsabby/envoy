@@ -1,6 +1,8 @@
 #include "common/grpc/common.h"
 
+#ifndef WIN32
 #include <arpa/inet.h>
+#endif
 
 #include <cstdint>
 #include <cstring>

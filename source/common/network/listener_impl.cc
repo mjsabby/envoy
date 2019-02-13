@@ -1,6 +1,8 @@
 #include "common/network/listener_impl.h"
 
+#ifndef WIN32
 #include <sys/un.h>
+#endif
 
 #include "envoy/common/exception.h"
 
@@ -78,7 +80,11 @@ ListenerImpl::ListenerImpl(Event::DispatcherImpl& dispatcher, Socket& socket, Li
 void ListenerImpl::errorCallback(evconnlistener*, void*) {
   // We should never get an error callback. This can happen if we run out of FDs or memory. In those
   // cases just crash.
+#ifdef WIN32
+  PANIC(fmt::format("listener accept failure: {}", WSAGetLastError()));
+#else
   PANIC(fmt::format("listener accept failure: {}", strerror(errno)));
+#endif
 }
 
 void ListenerImpl::enable() {

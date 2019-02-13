@@ -264,18 +264,33 @@ TEST_P(TcpProxyIntegrationTest, AccessLog) {
   } while (log_result.empty());
 
   // Regex matching localhost:port
+#if !defined(WIN32)
   const std::string ip_port_regex = (GetParam() == Network::Address::IpVersion::v4)
                                         ? R"EOF(127\.0\.0\.1:[0-9]+)EOF"
                                         : R"EOF(\[::1\]:[0-9]+)EOF";
+#else
+  // googletest regex doesn't support [0-9] on Windows.
+  // For details, see:
+  // https://github.com/google/googletest/blob/587ceaeaee6c2ccb5e565858d7fe12aaf69795e6/googletest/include/gtest/gtest-death-test.h#L106
+  const std::string ip_port_regex = (GetParam() == Network::Address::IpVersion::v4)
+                                        ? R"EOF(127\.0\.0\.1:\d+)EOF"
+                                        : R"EOF(\[::1\]:\d+)EOF";
+#endif
 
   const std::string ip_regex =
       (GetParam() == Network::Address::IpVersion::v4) ? R"EOF(127\.0\.0\.1)EOF" : R"EOF(::1)EOF";
 
   // Test that all three addresses were populated correctly. Only check the first line of
   // log output for simplicity.
-  EXPECT_THAT(log_result,
-              MatchesRegex(fmt::format("upstreamlocal={0} upstreamhost={0} downstream={1}\n.*",
-                                       ip_port_regex, ip_regex)));
+#if !defined(WIN32)
+  std::string regex =
+      fmt::format("upstreamlocal={0} upstreamhost={0} downstream={1}\n.*", ip_port_regex, ip_regex);
+#else
+  // logline ends in \r\n on Windows
+  std::string regex = fmt::format("upstreamlocal={0} upstreamhost={0} downstream={1}\r\n.*",
+                                  ip_port_regex, ip_regex);
+#endif
+  EXPECT_THAT(log_result, MatchesRegex(regex));
 }
 
 // Test that the server shuts down without crashing when connections are open.

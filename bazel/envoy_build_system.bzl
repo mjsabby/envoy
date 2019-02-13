@@ -335,6 +335,8 @@ def envoy_cc_library(
         include_prefix = envoy_include_prefix(native.package_name()),
         alwayslink = 1,
         linkstatic = 1,
+        # TODO: As a part of #164317493, replace this select statement below
+        # with linkstame = linkstamp,
         linkstamp = select({
             repository + "//bazel:windows_x86_64": None,
             "//conditions:default": linkstamp,
@@ -408,6 +410,8 @@ def envoy_cc_fuzz_test(name, corpus, deps = [], tags = [], **kwargs):
         # No fuzzing on macOS.
         deps = select({
             "@envoy//bazel:apple": ["//test:dummy_main"],
+            # needed for test_on_windows, see #164309012
+            "@envoy//bazel:windows_x86_64": ["//test:dummy_main"],
             "//conditions:default": [
                 ":" + test_lib_name,
                 "//test/fuzz:main",
@@ -443,7 +447,9 @@ def envoy_cc_test(
         args = [],
         shard_count = None,
         coverage = True,
-        local = False):
+        local = False,
+        # needed for test_on_windows, see #164309012
+        test_on_windows = True):
     test_lib_tags = []
     if coverage:
         test_lib_tags.append("coverage_test_lib")
@@ -456,6 +462,10 @@ def envoy_cc_test(
         repository = repository,
         tags = test_lib_tags,
     )
+
+    # needed for test_on_windows, see #164309012
+    if test_on_windows:
+        tags = tags + ["windows_test"]
     native.cc_test(
         name = name,
         copts = envoy_copts(repository, test = True),
@@ -558,6 +568,9 @@ def envoy_sh_test(
         srcs = [],
         data = [],
         coverage = True,
+        # needed for test_on_windows, see #164309012
+        test_on_windows = True,
+        tags = [],
         **kargs):
     if coverage:
         test_runner_cc = name + "_test_runner.cc"
@@ -575,11 +588,17 @@ def envoy_sh_test(
             tags = ["coverage_test_lib"],
             deps = ["//test/test_common:environment_lib"],
         )
+
+    # needed for test_on_windows, see #164309012
+    if test_on_windows:
+        tags = tags + ["windows_test"]
     native.sh_test(
         name = name,
         srcs = ["//bazel:sh_test_wrapper.sh"],
         data = srcs + data,
         args = srcs,
+        # needed for test_on_windows, see #164309012
+        tags = tags,
         **kargs
     )
 

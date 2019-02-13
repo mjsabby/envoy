@@ -2,6 +2,7 @@
 
 #include "envoy/event/file_event.h"
 
+#include "common/api/os_sys_calls_impl.h"
 #include "common/event/dispatcher_impl.h"
 #include "common/stats/isolated_store_impl.h"
 
@@ -17,41 +18,59 @@ namespace {
 
 class FileEventImplTest : public testing::Test {
 public:
-  FileEventImplTest() : api_(Api::createApiForTest()), dispatcher_(api_->allocateDispatcher()) {}
+  FileEventImplTest()
+      : api_(Api::createApiForTest()), dispatcher_(api_->allocateDispatcher()),
+        os_sys_calls_(Api::OsSysCallsSingleton::get()) {}
 
   void SetUp() override {
-    int rc = socketpair(AF_UNIX, SOCK_DGRAM, 0, fds_);
-    ASSERT_EQ(0, rc);
+#ifdef WIN32
+    ASSERT_EQ(0, os_sys_calls_.socketpair(AF_INET, SOCK_STREAM, 0, fds_).rc_);
+#else
+    ASSERT_EQ(0, os_sys_calls_.socketpair(AF_UNIX, SOCK_DGRAM, 0, fds_).rc_);
+#endif
     int data = 1;
-    rc = write(fds_[1], &data, sizeof(data));
-    ASSERT_EQ(sizeof(data), static_cast<size_t>(rc));
+
+    const Api::SysCallSizeResult result = os_sys_calls_.writeSocket(fds_[1], &data, sizeof(data));
+    ASSERT_EQ(sizeof(data), static_cast<size_t>(result.rc_));
   }
 
   void TearDown() override {
-    close(fds_[0]);
-    close(fds_[1]);
+#ifdef WIN32
+    ::closesocket(fds_[0]);
+    ::closesocket(fds_[1]);
+#else
+    ::close(fds_[0]);
+    ::close(fds_[1]);
+#endif
   }
 
 protected:
-  int fds_[2];
+  SOCKET_FD fds_[2];
   Api::ApiPtr api_;
   DispatcherPtr dispatcher_;
+  Api::OsSysCalls& os_sys_calls_;
 };
 
-class FileEventImplActivateTest : public testing::TestWithParam<Network::Address::IpVersion> {};
+class FileEventImplActivateTest : public testing::TestWithParam<Network::Address::IpVersion> {
+public:
+  FileEventImplActivateTest() : os_sys_calls_(Api::OsSysCallsSingleton::get()) {}
+
+protected:
+  Api::OsSysCalls& os_sys_calls_;
+};
 
 INSTANTIATE_TEST_SUITE_P(IpVersions, FileEventImplActivateTest,
                          testing::ValuesIn(TestEnvironment::getIpVersionsForTest()),
                          TestUtility::ipTestParamsToString);
 
 TEST_P(FileEventImplActivateTest, Activate) {
-  int fd;
+  SOCKET_FD fd;
   if (GetParam() == Network::Address::IpVersion::v4) {
-    fd = socket(AF_INET, SOCK_STREAM, 0);
+    fd = os_sys_calls_.socket(AF_INET, SOCK_STREAM, 0).rc_;
   } else {
-    fd = socket(AF_INET6, SOCK_STREAM, 0);
+    fd = os_sys_calls_.socket(AF_INET6, SOCK_STREAM, 0).rc_;
   }
-  ASSERT_NE(-1, fd);
+  ASSERT_TRUE(SOCKET_VALID(fd));
 
   Api::ApiPtr api = Api::createApiForTest();
   DispatcherPtr dispatcher(api->allocateDispatcher());
@@ -61,6 +80,12 @@ TEST_P(FileEventImplActivateTest, Activate) {
   EXPECT_CALL(write_event, ready()).Times(1);
   ReadyWatcher closed_event;
   EXPECT_CALL(closed_event, ready()).Times(1);
+
+#ifdef WIN32
+  const FileTriggerType trigger = FileTriggerType::Level;
+#else
+  const FileTriggerType trigger = FileTriggerType::Edge;
+#endif
 
   Event::FileEventPtr file_event = dispatcher->createFileEvent(
       fd,
@@ -77,15 +102,23 @@ TEST_P(FileEventImplActivateTest, Activate) {
           closed_event.ready();
         }
       },
-      FileTriggerType::Edge, FileReadyType::Read | FileReadyType::Write | FileReadyType::Closed);
+      trigger, FileReadyType::Read | FileReadyType::Write | FileReadyType::Closed);
 
   file_event->activate(FileReadyType::Read | FileReadyType::Write | FileReadyType::Closed);
   dispatcher->run(Event::Dispatcher::RunType::NonBlock);
 
-  close(fd);
+#ifdef WIN32
+  ::closesocket(fd);
+#else
+  ::close(fd);
+#endif
 }
 
 TEST_F(FileEventImplTest, EdgeTrigger) {
+#ifdef WIN32
+  // libevent on Windows doesn't support edge trigger
+  return;
+#endif
   ReadyWatcher read_event;
   EXPECT_CALL(read_event, ready()).Times(1);
   ReadyWatcher write_event;
@@ -140,18 +173,27 @@ TEST_F(FileEventImplTest, SetEnabled) {
   ReadyWatcher write_event;
   EXPECT_CALL(write_event, ready()).Times(2);
 
-  Event::FileEventPtr file_event = dispatcher_->createFileEvent(
-      fds_[0],
-      [&](uint32_t events) -> void {
-        if (events & FileReadyType::Read) {
-          read_event.ready();
-        }
+#ifdef WIN32
+  const FileTriggerType trigger = FileTriggerType::Level;
+#else
+  const FileTriggerType trigger = FileTriggerType::Edge;
+#endif
+  Event::FileEventPtr file_event =
+      dispatcher_->createFileEvent(fds_[0],
+                                   [&](uint32_t events) -> void {
+                                     if (events & FileReadyType::Read) {
+                                       read_event.ready();
+                                     }
 
-        if (events & FileReadyType::Write) {
-          write_event.ready();
-        }
-      },
-      FileTriggerType::Edge, FileReadyType::Read | FileReadyType::Write);
+                                     if (events & FileReadyType::Write) {
+                                       write_event.ready();
+                                     }
+#ifdef WIN32
+                                     dispatcher_->exit();
+                                     return;
+#endif
+                                   },
+                                   trigger, FileReadyType::Read | FileReadyType::Write);
 
   file_event->setEnabled(FileReadyType::Read);
   dispatcher_->run(Event::Dispatcher::RunType::NonBlock);

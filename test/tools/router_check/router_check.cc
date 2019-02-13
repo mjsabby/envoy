@@ -2,12 +2,17 @@
 #include <iostream>
 #include <string>
 
+#include "exe/platform_impl.h"
+
 #include "test/tools/router_check/router.h"
 
 int main(int argc, char* argv[]) {
   if (argc < 3 || argc > 4) {
     return EXIT_FAILURE;
   }
+
+  // We need this to ensure WSAStartup is called on Windows
+  Envoy::PlatformImpl platform_impl_;
 
   try {
     Envoy::RouterCheckTool checktool = Envoy::RouterCheckTool::create(argv[1]);

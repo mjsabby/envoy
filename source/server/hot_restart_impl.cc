@@ -155,9 +155,9 @@ int HotRestartImpl::bindDomainSocket(uint64_t id) {
   Api::OsSysCalls& os_sys_calls = Api::OsSysCallsSingleton::get();
   // This actually creates the socket and binds it. We use the socket in datagram mode so we can
   // easily read single messages.
-  int fd = socket(AF_UNIX, SOCK_DGRAM | SOCK_NONBLOCK, 0);
+  SOCKET_FD fd = os_sys_calls.socket(AF_UNIX, SOCK_DGRAM | SOCK_NONBLOCK, 0).rc_;
   sockaddr_un address = createDomainSocketAddress(id);
-  Api::SysCallIntResult result =
+  const Api::SysCallIntResult result =
       os_sys_calls.bind(fd, reinterpret_cast<sockaddr*>(&address), sizeof(address));
   if (result.rc_ != 0) {
     throw EnvoyException(

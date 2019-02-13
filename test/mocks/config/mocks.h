@@ -26,15 +26,38 @@ public:
   }
   template <class T> static std::string resourceName_(const T& resource) { return resource.name(); }
 
+  int configUpdateAttempts() { return config_update_attempts_; }
+
+  void onConfigUpdate(const Protobuf::RepeatedPtrField<ProtobufWkt::Any>& resources,
+                      const std::string& version_info) {
+    config_update_attempts_++;
+    onConfigUpdate_(resources, version_info);
+  }
+
+  void onConfigUpdate(const Protobuf::RepeatedPtrField<envoy::api::v2::Resource>& added_resources,
+                      const Protobuf::RepeatedPtrField<std::string>& removed_resources,
+                      const std::string& system_version_info) {
+    config_update_attempts_++;
+    onConfigUpdate_(added_resources, removed_resources, system_version_info);
+  }
+
+  void onConfigUpdateFailed(const EnvoyException* e) {
+    config_update_attempts_++;
+    onConfigUpdateFailed_(e);
+  }
+
   // TODO(fredlas) deduplicate
-  MOCK_METHOD2_T(onConfigUpdate, void(const Protobuf::RepeatedPtrField<ProtobufWkt::Any>& resources,
+  MOCK_METHOD2_T(onConfigUpdate_, void(const Protobuf::RepeatedPtrField<ProtobufWkt::Any>& resources,
                                       const std::string& version_info));
-  MOCK_METHOD3_T(onConfigUpdate,
+  MOCK_METHOD3_T(onConfigUpdate_,
                  void(const Protobuf::RepeatedPtrField<envoy::api::v2::Resource>& added_resources,
                       const Protobuf::RepeatedPtrField<std::string>& removed_resources,
                       const std::string& system_version_info));
-  MOCK_METHOD1_T(onConfigUpdateFailed, void(const EnvoyException* e));
+  MOCK_METHOD1_T(onConfigUpdateFailed_, void(const EnvoyException* e));
   MOCK_METHOD1_T(resourceName, std::string(const ProtobufWkt::Any& resource));
+
+private:
+  int config_update_attempts_ = 0;
 };
 
 class MockSubscription : public Subscription {
