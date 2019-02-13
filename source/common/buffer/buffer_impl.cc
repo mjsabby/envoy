@@ -124,21 +124,21 @@ void OwnedImpl::move(Instance& rhs, uint64_t length) {
   static_cast<LibEventInstance&>(rhs).postProcess();
 }
 
-Api::SysCallIntResult OwnedImpl::read(int fd, uint64_t max_length) {
+Api::SysCallIntResult OwnedImpl::read(SOCKET_FD fd, uint64_t max_length) {
   if (max_length == 0) {
     return {0, 0};
   }
   constexpr uint64_t MaxSlices = 2;
   RawSlice slices[MaxSlices];
   const uint64_t num_slices = reserve(max_length, slices, MaxSlices);
-  STACK_ARRAY(iov, iovec, num_slices);
+  STACK_ARRAY(iov, IOVEC, num_slices);
   uint64_t num_slices_to_read = 0;
   uint64_t num_bytes_to_read = 0;
   for (; num_slices_to_read < num_slices && num_bytes_to_read < max_length; num_slices_to_read++) {
-    iov[num_slices_to_read].iov_base = slices[num_slices_to_read].mem_;
+    IOVEC_SET_BASE(iov[num_slices_to_read], slices[num_slices_to_read].mem_);
     const size_t slice_length = std::min(slices[num_slices_to_read].len_,
                                          static_cast<size_t>(max_length - num_bytes_to_read));
-    iov[num_slices_to_read].iov_len = slice_length;
+    IOVEC_SET_LEN(iov[num_slices_to_read], slice_length);
     num_bytes_to_read += slice_length;
   }
   ASSERT(num_slices_to_read <= MaxSlices);
@@ -184,16 +184,16 @@ ssize_t OwnedImpl::search(const void* data, uint64_t size, size_t start) const {
   return result_ptr.pos;
 }
 
-Api::SysCallIntResult OwnedImpl::write(int fd) {
+Api::SysCallIntResult OwnedImpl::write(SOCKET_FD fd) {
   constexpr uint64_t MaxSlices = 16;
   RawSlice slices[MaxSlices];
   const uint64_t num_slices = std::min(getRawSlices(slices, MaxSlices), MaxSlices);
-  STACK_ARRAY(iov, iovec, num_slices);
+  STACK_ARRAY(iov, IOVEC, num_slices);
   uint64_t num_slices_to_write = 0;
   for (uint64_t i = 0; i < num_slices; i++) {
     if (slices[i].mem_ != nullptr && slices[i].len_ != 0) {
-      iov[num_slices_to_write].iov_base = slices[i].mem_;
-      iov[num_slices_to_write].iov_len = slices[i].len_;
+      IOVEC_SET_BASE(iov[num_slices_to_write], slices[i].mem_);
+      IOVEC_SET_LEN(iov[num_slices_to_write], slices[i].len_);
       num_slices_to_write++;
     }
   }

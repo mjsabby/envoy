@@ -15,6 +15,8 @@ envoy_extension_cc_test(
     name = "config_test",
     srcs = ["config_test.cc"],
     extension_name = "envoy.stat_sinks.hystrix",
+    # not used in CF, so we haven't put the effort in to fix
+    test_on_windows = False,
     deps = [
         "//include/envoy/registry",
         "//source/common/protobuf:utility_lib",
@@ -30,6 +32,8 @@ envoy_extension_cc_test(
     name = "hystrix_test",
     srcs = ["hystrix_test.cc"],
     extension_name = "envoy.stat_sinks.hystrix",
+    # not used in CF, so we haven't put the effort in to fix
+    test_on_windows = False,
     deps = [
         "//source/common/stats:stats_lib",
         "//source/extensions/stat_sinks/hystrix:hystrix_lib",

@@ -26,11 +26,27 @@ public:
   }
   template <class T> static std::string resourceName_(const T& resource) { return resource.name(); }
 
-  MOCK_METHOD2_T(onConfigUpdate,
+  int configUpdateAttempts() { return config_update_attempts_; }
+
+  void onConfigUpdate(const typename SubscriptionCallbacks<ResourceType>::ResourceVector& resources,
+                      const std::string& version_info) {
+    config_update_attempts_++;
+    onConfigUpdate_(resources, version_info);
+  }
+
+  void onConfigUpdateFailed(const EnvoyException* e) {
+    config_update_attempts_++;
+    onConfigUpdateFailed_(e);
+  }
+
+  MOCK_METHOD2_T(onConfigUpdate_,
                  void(const typename SubscriptionCallbacks<ResourceType>::ResourceVector& resources,
                       const std::string& version_info));
-  MOCK_METHOD1_T(onConfigUpdateFailed, void(const EnvoyException* e));
+  MOCK_METHOD1_T(onConfigUpdateFailed_, void(const EnvoyException* e));
   MOCK_METHOD1_T(resourceName, std::string(const ProtobufWkt::Any& resource));
+
+private:
+  int config_update_attempts_ = 0;
 };
 
 template <class ResourceType> class MockSubscription : public Subscription<ResourceType> {

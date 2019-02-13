@@ -1,5 +1,6 @@
 #include <array>
 
+#include "common/api/os_sys_calls_impl.h"
 #include "common/buffer/buffer_impl.h"
 #include "common/buffer/watermark_buffer.h"
 
@@ -168,8 +169,13 @@ TEST_F(WatermarkBufferTest, MoveOneByte) {
 }
 
 TEST_F(WatermarkBufferTest, WatermarkFdFunctions) {
-  int pipe_fds[2] = {0, 0};
+  SOCKET_FD pipe_fds[2] = {0, 0};
+#ifdef WIN32
+  auto& os_sys_calls = Api::OsSysCallsSingleton::get();
+  ASSERT_EQ(0, os_sys_calls.socketpair(AF_INET, SOCK_STREAM, 0, pipe_fds).rc_);
+#else
   ASSERT_EQ(0, pipe(pipe_fds));
+#endif
 
   buffer_.add(TEN_BYTES, 10);
   buffer_.add(TEN_BYTES, 10);
@@ -196,6 +202,11 @@ TEST_F(WatermarkBufferTest, WatermarkFdFunctions) {
   }
   EXPECT_EQ(2, times_high_watermark_called_);
   EXPECT_EQ(20, buffer_.length());
+
+#ifdef WIN32
+  EXPECT_EQ(0, ::closesocket(pipe_fds[0]));
+  EXPECT_EQ(0, ::closesocket(pipe_fds[1]));
+#endif
 }
 
 TEST_F(WatermarkBufferTest, MoveWatermarks) {

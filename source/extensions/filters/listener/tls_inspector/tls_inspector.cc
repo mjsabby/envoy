@@ -1,6 +1,8 @@
 #include "extensions/filters/listener/tls_inspector/tls_inspector.h"
 
+#ifndef WIN32
 #include <arpa/inet.h>
+#endif
 
 #include <cstdint>
 #include <string>

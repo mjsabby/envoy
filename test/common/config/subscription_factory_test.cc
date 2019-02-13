@@ -184,7 +184,7 @@ TEST_F(SubscriptionFactoryTest, FilesystemSubscription) {
   auto* watcher = new Filesystem::MockWatcher();
   EXPECT_CALL(dispatcher_, createFilesystemWatcher_()).WillOnce(Return(watcher));
   EXPECT_CALL(*watcher, addWatch(test_path, _, _));
-  EXPECT_CALL(callbacks_, onConfigUpdateFailed(_));
+  EXPECT_CALL(callbacks_, onConfigUpdateFailed_(_));
   subscriptionFromConfigSource(config)->start({"foo"}, callbacks_);
 }
 
@@ -301,7 +301,7 @@ TEST_F(SubscriptionFactoryTest, GrpcSubscription) {
       }));
   EXPECT_CALL(random_, random());
   EXPECT_CALL(dispatcher_, createTimer_(_));
-  EXPECT_CALL(callbacks_, onConfigUpdateFailed(_));
+  EXPECT_CALL(callbacks_, onConfigUpdateFailed_(_));
   subscriptionFromConfigSource(config)->start({"static_cluster"}, callbacks_);
 }
 

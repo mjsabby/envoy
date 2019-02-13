@@ -199,6 +199,7 @@ TEST_F(OriginalDstClusterTest, NoContext) {
     EXPECT_EQ(host, nullptr);
   }
 
+#if !defined(WIN32)
   // No host for non-IP address
   {
     NiceMock<Network::MockConnection> connection;
@@ -212,6 +213,7 @@ TEST_F(OriginalDstClusterTest, NoContext) {
     HostConstSharedPtr host = lb.chooseHost(&lb_context);
     EXPECT_EQ(host, nullptr);
   }
+#endif
 }
 
 TEST_F(OriginalDstClusterTest, Membership) {
@@ -620,6 +622,7 @@ TEST_F(OriginalDstClusterTest, UseHttpHeaderDisabled) {
   HostConstSharedPtr host2 = lb.chooseHost(&lb_context2);
   EXPECT_EQ(host2, nullptr);
 
+#if !defined(WIN32)
   // Downstream connection over Unix Domain Socket, HTTP header override ignored.
   NiceMock<Network::MockConnection> connection3;
   connection3.local_address_ = std::make_shared<Network::Address::PipeInstance>("unix://foo");
@@ -630,6 +633,7 @@ TEST_F(OriginalDstClusterTest, UseHttpHeaderDisabled) {
   EXPECT_CALL(dispatcher_, post(_)).Times(0);
   HostConstSharedPtr host3 = lb.chooseHost(&lb_context3);
   EXPECT_EQ(host3, nullptr);
+#endif
 }
 
 } // namespace

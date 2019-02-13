@@ -50,7 +50,10 @@ ContextImpl::ContextImpl(Stats::Scope& scope, const Envoy::Ssl::ContextConfig& c
     : scope_(scope), stats_(generateStats(scope)), time_source_(time_source),
       tls_max_version_(config.maxProtocolVersion()) {
   const auto tls_certificates = config.tlsCertificates();
-  tls_contexts_.resize(std::max(1UL, tls_certificates.size()));
+  // TODO(YAEL) - check if we can get rid of one as an intermediate variable
+  // and just use 1ULL on the next line
+  const size_t one = 1;
+  tls_contexts_.resize(std::max(one, tls_certificates.size()));
 
   for (auto& ctx : tls_contexts_) {
     ctx.ssl_ctx_.reset(SSL_CTX_new(TLS_method()));
