@@ -103,7 +103,7 @@ public:
         response->add_resources()->PackFrom(*load_assignment);
       }
     }
-    EXPECT_CALL(callbacks_, onConfigUpdate(RepeatedProtoEq(response->resources()), version))
+    EXPECT_CALL(callbacks_, onConfigUpdate_(RepeatedProtoEq(response->resources()), version))
         .WillOnce(ThrowOnRejectedConfig(accept));
     if (accept) {
       expectSendMessage(last_cluster_names_, version, false);

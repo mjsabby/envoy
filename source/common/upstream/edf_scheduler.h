@@ -12,10 +12,23 @@ namespace Upstream {
 // tests, so we can kill trace debug here.
 #define EDF_DEBUG 0
 
+// TODO(YAEL) figure out why these macros need separate implementations
+#ifdef WIN32
+
+#if EDF_DEBUG
+#define EDF_TRACE(...) ENVOY_LOG_MISC(trace, __VA_ARGS__)
+#else
+#define EDF_TRACE(...)
+#endif
+
+#else
+
 #if EDF_DEBUG
 #define EDF_TRACE(fmt...) ENVOY_LOG_MISC(trace, fmt)
 #else
 #define EDF_TRACE(fmt...)
+#endif
+
 #endif
 
 // Earliest Deadline First (EDF) scheduler

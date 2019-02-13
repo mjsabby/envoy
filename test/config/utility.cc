@@ -16,13 +16,20 @@
 #include "test/test_common/utility.h"
 
 #include "absl/strings/str_replace.h"
+#include "fmt/printf.h"
 #include "gtest/gtest.h"
 
 namespace Envoy {
 
-const std::string ConfigHelper::BASE_CONFIG = R"EOF(
+#ifdef WIN32
+const std::string devNull = "NUL";
+#else
+const std::string devNull = "/dev/null";
+#endif
+
+const std::string ConfigHelper::BASE_CONFIG = fmt::sprintf(R"EOF(
 admin:
-  access_log_path: /dev/null
+  access_log_path: %s
   address:
     socket_address:
       address: 127.0.0.1
@@ -52,7 +59,8 @@ static_resources:
       socket_address:
         address: 127.0.0.1
         port_value: 0
-)EOF";
+)EOF",
+                                                           devNull);
 
 const std::string ConfigHelper::BASE_UDP_LISTENER_CONFIG = R"EOF(
 admin:

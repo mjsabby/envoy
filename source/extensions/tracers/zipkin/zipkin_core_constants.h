@@ -6,6 +6,10 @@
 
 #include "common/singleton/const_singleton.h"
 
+#ifdef WIN32
+#undef ERROR
+#endif
+
 namespace Envoy {
 namespace Extensions {
 namespace Tracers {

@@ -1,4 +1,7 @@
+#if !defined(WIN32)
 #include <sys/un.h>
+
+#endif
 
 #include <iostream>
 #include <string>
@@ -103,7 +106,9 @@ TEST(IsInRange, Various) {
     EXPECT_TRUE(rng.isInRange(Ipv4Instance("9.255.255.255")));
     EXPECT_TRUE(rng.isInRange(Ipv4Instance("0.0.0.0")));
     EXPECT_FALSE(rng.isInRange(Ipv6Instance("::")));
+#if !defined(WIN32)
     EXPECT_FALSE(rng.isInRange(PipeInstance("foo")));
+#endif
   }
 
   {
@@ -128,7 +133,9 @@ TEST(IsInRange, Various) {
     EXPECT_TRUE(rng.isInRange(Ipv6Instance("::1")));
     EXPECT_TRUE(rng.isInRange(Ipv6Instance("2001::")));
     EXPECT_FALSE(rng.isInRange(Ipv4Instance("0.0.0.0")));
+#if !defined(WIN32)
     EXPECT_FALSE(rng.isInRange(PipeInstance("foo")));
+#endif
   }
 
   {
@@ -484,7 +491,9 @@ TEST(IpListTest, Normal) {
   EXPECT_FALSE(wl.contains(Address::Ipv4Instance("10.16.0.0")));
 
   EXPECT_FALSE(wl.contains(Address::Ipv6Instance("::1")));
+#if !defined(WIN32)
   EXPECT_FALSE(wl.contains(Address::PipeInstance("foo")));
+#endif
 }
 
 TEST(IpListTest, AddressVersionMix) {
@@ -518,7 +527,9 @@ TEST(IpListTest, AddressVersionMix) {
   EXPECT_TRUE(wl.contains(Address::Ipv6Instance("::1")));
   EXPECT_FALSE(wl.contains(Address::Ipv6Instance("::")));
 
+#if !defined(WIN32)
   EXPECT_FALSE(wl.contains(Address::PipeInstance("foo")));
+#endif
 }
 
 TEST(IpListTest, MatchAny) {
@@ -541,7 +552,9 @@ TEST(IpListTest, MatchAny) {
   EXPECT_TRUE(wl.contains(Address::Ipv4Instance("1.1.1.1")));
 
   EXPECT_FALSE(wl.contains(Address::Ipv6Instance("::1")));
+#if !defined(WIN32)
   EXPECT_FALSE(wl.contains(Address::PipeInstance("foo")));
+#endif
 }
 
 TEST(IpListTest, MatchAnyAll) {
@@ -569,7 +582,9 @@ TEST(IpListTest, MatchAnyAll) {
   EXPECT_TRUE(wl.contains(Address::Ipv6Instance("2001:db8:85a3::")));
   EXPECT_TRUE(wl.contains(Address::Ipv6Instance("ffee::")));
 
+#if !defined(WIN32)
   EXPECT_FALSE(wl.contains(Address::PipeInstance("foo")));
+#endif
 }
 
 } // namespace

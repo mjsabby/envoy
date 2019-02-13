@@ -12,7 +12,9 @@ load(
 load(
     "//source/extensions:all_extensions.bzl",
     "envoy_all_extensions",
+    "envoy_windows_extensions",
 )
+load("//bazel:repositories.bzl", "PPC_SKIP_TARGETS")
 
 envoy_package()
 
@@ -131,6 +133,8 @@ envoy_cc_test(
 envoy_cc_test(
     name = "overload_manager_impl_test",
     srcs = ["overload_manager_impl_test.cc"],
+    # should pass, see story #163960604
+    test_on_windows = False,
     deps = [
         "//include/envoy/registry",
         "//source/common/stats:isolated_store_lib",
@@ -238,7 +242,11 @@ envoy_cc_fuzz_test(
         "//test/mocks/stats:stats_mocks",
         "//test/test_common:environment_lib",
         "//test/test_common:test_time_lib",
-    ] + envoy_all_extensions(),
+    ] + select({
+        "//bazel:windows_x86_64": envoy_windows_extensions(),
+        "//bazel:linux_ppc": envoy_all_extensions(PPC_SKIP_TARGETS),
+        "//conditions:default": envoy_all_extensions(),
+    }),
 )
 
 filegroup(

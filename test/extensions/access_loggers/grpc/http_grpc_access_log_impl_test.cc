@@ -111,6 +111,7 @@ response: {{}}
 };
 
 // Test HTTP log marshalling.
+#if !defined(WIN32)
 TEST_F(HttpGrpcAccessLogTest, Marshalling) {
   InSequence s;
 
@@ -522,6 +523,7 @@ response: {}
     access_log_->log(nullptr, nullptr, nullptr, stream_info);
   }
 }
+#endif
 
 // Test HTTP log marshalling with additional headers.
 TEST_F(HttpGrpcAccessLogTest, MarshallingAdditionalHeaders) {

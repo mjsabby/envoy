@@ -98,7 +98,12 @@ TEST_F(InjectedResourceMonitorTest, ReportsErrorForOutOfRangePressure) {
 }
 
 TEST_F(InjectedResourceMonitorTest, ReportsErrorOnFileRead) {
+#ifdef WIN32
+  // at the moment, no invalid paths on Windows
+  EXPECT_CALL(cb_, onFailure(ExceptionContains("unable to read file")));
+#else
   EXPECT_CALL(cb_, onFailure(ExceptionContains("Invalid path")));
+#endif
   monitor_->updateResourceUsage(cb_);
 }
 

@@ -1,7 +1,5 @@
 #include "common/network/base_listener_impl.h"
 
-#include <sys/un.h>
-
 #include "envoy/common/exception.h"
 
 #include "common/common/assert.h"
@@ -16,7 +14,7 @@
 namespace Envoy {
 namespace Network {
 
-Address::InstanceConstSharedPtr BaseListenerImpl::getLocalAddress(int fd) {
+Address::InstanceConstSharedPtr BaseListenerImpl::getLocalAddress(SOCKET_FD fd) {
   return Address::addressFromFd(fd);
 }
 

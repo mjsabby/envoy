@@ -16,7 +16,7 @@ namespace Event {
  */
 class FileEventImpl : public FileEvent, ImplBase {
 public:
-  FileEventImpl(DispatcherImpl& dispatcher, int fd, FileReadyCb cb, FileTriggerType trigger,
+  FileEventImpl(DispatcherImpl& dispatcher, SOCKET_FD fd, FileReadyCb cb, FileTriggerType trigger,
                 uint32_t events);
 
   // Event::FileEvent
@@ -28,7 +28,7 @@ private:
 
   FileReadyCb cb_;
   event_base* base_;
-  int fd_;
+  SOCKET_FD fd_;
   FileTriggerType trigger_;
 };
 

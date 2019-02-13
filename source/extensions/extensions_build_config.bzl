@@ -143,13 +143,16 @@ EXTENSIONS = {
     "envoy.retry_priorities.previous_priorities":       "//source/extensions/retry/priority/previous_priorities:config",
 }
 
+# Almost all of these are commented out due to https://github.com/bazelbuild/bazel/issues/5163
+# TODO(YAEL) Once that issue is resolved, convert this whitelist of WINDOWS_EXTENSIONS to a blacklist
+# instead and update the .bzl files accordingly
 WINDOWS_EXTENSIONS = {
     #
     # Access loggers
     #
 
-    "envoy.access_loggers.file":                        "//source/extensions/access_loggers/file:config",
-    #"envoy.access_loggers.http_grpc":                   "//source/extensions/access_loggers/grpc:http_config",
+    #"envoy.access_loggers.file":                        "//source/extensions/access_loggers/file:config",
+    #"envoy.access_loggers.http_grpc":                   "//source/extensions/access_loggers/http_grpc:config",
 
     #
     # gRPC Credentials Plugins
@@ -191,22 +194,22 @@ WINDOWS_EXTENSIONS = {
 
     # NOTE: The proxy_protocol filter is implicitly loaded if proxy_protocol functionality is
     #       configured on the listener. Do not remove it in that case or configs will fail to load.
-    "envoy.filters.listener.proxy_protocol":            "//source/extensions/filters/listener/proxy_protocol:config",
+    #"envoy.filters.listener.proxy_protocol":            "//source/extensions/filters/listener/proxy_protocol:config",
 
     # NOTE: The original_dst filter is implicitly loaded if original_dst functionality is
     #       configured on the listener. Do not remove it in that case or configs will fail to load.
     #"envoy.filters.listener.original_dst":              "//source/extensions/filters/listener/original_dst:config",
 
-    "envoy.filters.listener.tls_inspector":             "//source/extensions/filters/listener/tls_inspector:config",
+    #"envoy.filters.listener.tls_inspector":             "//source/extensions/filters/listener/tls_inspector:config",
 
     #
     # Network filters
     #
 
-    "envoy.filters.network.client_ssl_auth":            "//source/extensions/filters/network/client_ssl_auth:config",
+    #"envoy.filters.network.client_ssl_auth":            "//source/extensions/filters/network/client_ssl_auth:config",
     #"envoy.filters.network.echo":                       "//source/extensions/filters/network/echo:config",
     #"envoy.filters.network.ext_authz":                  "//source/extensions/filters/network/ext_authz:config",
-    #"envoy.filters.network.http_connection_manager":    "//source/extensions/filters/network/http_connection_manager:config",
+    "envoy.filters.network.http_connection_manager":    "//source/extensions/filters/network/http_connection_manager:config",
     #"envoy.filters.network.mongo_proxy":                "//source/extensions/filters/network/mongo_proxy:config",
     #"envoy.filters.network.mysql_proxy":                "//source/extensions/filters/network/mysql_proxy:config",
     #"envoy.filters.network.redis_proxy":                "//source/extensions/filters/network/redis_proxy:config",

@@ -1,3 +1,8 @@
+#ifdef WIN32
+#include <windows.h>
+
+#endif
+
 #include <cstdint>
 #include <fstream>
 
@@ -143,7 +148,11 @@ TEST_F(WatcherImplTest, ParentDirectoryRemoved) {
 TEST_F(WatcherImplTest, RootDirectoryPath) {
   Filesystem::WatcherPtr watcher = dispatcher_->createFilesystemWatcher();
 
+#if !defined(WIN32)
   EXPECT_NO_THROW(watcher->addWatch("/", Watcher::Events::MovedTo, [&](uint32_t) -> void {}));
+#else
+  EXPECT_NO_THROW(watcher->addWatch("c:\\foo", Watcher::Events::MovedTo, [&](uint32_t) -> void {}));
+#endif
 }
 
 } // namespace Filesystem

@@ -1,8 +1,11 @@
 #pragma once
 
+#ifndef WIN32
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <sys/socket.h>
+
+#endif
 
 #include "envoy/api/os_sys_calls.h"
 #include "envoy/network/listen_socket.h"

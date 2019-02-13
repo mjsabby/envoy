@@ -213,6 +213,7 @@ actions:
               testing::ContainerEq(descriptors_));
 }
 
+#if !defined(WIN32)
 TEST_F(ThriftRateLimitPolicyEntryTest, RemoteAddressActionNoDescriptorIfPipeAddr) {
   std::string yaml = R"EOF(
 actions:
@@ -225,6 +226,7 @@ actions:
   rate_limit_entry_->populateDescriptors(route_, descriptors_, "", metadata_, pipe_address);
   EXPECT_TRUE(descriptors_.empty());
 }
+#endif
 
 TEST_F(ThriftRateLimitPolicyEntryTest, SourceClusterAction) {
   std::string yaml = R"EOF(

@@ -20,6 +20,16 @@
 #include "absl/types/optional.h"
 #include "openssl/ssl.h"
 
+// TODO(YAEL) - figure out why these are undef
+#ifdef WIN32
+#undef X509_NAME
+#undef X509_EXTENSIONS
+#undef X509_CERT_PAIR
+#undef PKCS7_ISSUER_AND_SERIAL
+#undef OCSP_REQUEST
+#undef OCSP_RESPONSE
+#endif
+
 namespace Envoy {
 #ifndef OPENSSL_IS_BORINGSSL
 #error Envoy requires BoringSSL

@@ -1,4 +1,7 @@
+#ifndef WIN32
 #include <sys/socket.h>
+
+#endif
 
 #include "common/network/addr_family_aware_socket_option_impl.h"
 #include "common/network/io_socket_handle_impl.h"
@@ -15,12 +18,13 @@ protected:
   void SetUp() override {
     EXPECT_CALL(os_sys_calls_, socket)
         .WillRepeatedly(Invoke([](int domain, int type, int protocol) {
-          return Api::SysCallIntResult{::socket(domain, type, protocol), 0};
+          return Api::SysCallSocketResult{::socket(domain, type, protocol), 0};
         }));
     EXPECT_CALL(os_sys_calls_, close(_)).Times(testing::AnyNumber());
   }
 };
 
+#ifndef WIN32
 // We fail to set the option when the underlying setsockopt syscall fails.
 TEST_F(AddrFamilyAwareSocketOptionImplTest, SetOptionFailure) {
   AddrFamilyAwareSocketOptionImpl socket_option{envoy::api::v2::core::SocketOption::STATE_PREBIND,
@@ -40,6 +44,7 @@ TEST_F(AddrFamilyAwareSocketOptionImplTest, SetOptionFailure) {
                             socket_, envoy::api::v2::core::SocketOption::STATE_PREBIND)));
   }
 }
+#endif
 
 // If a platform supports IPv4 socket option variant for an IPv4 address, it works
 TEST_F(AddrFamilyAwareSocketOptionImplTest, SetOptionSuccess) {
@@ -60,10 +65,17 @@ TEST_F(AddrFamilyAwareSocketOptionImplTest, V4EmptyOptionNames) {
   Address::Ipv4Instance address("1.2.3.4", 5678);
   IoHandlePtr io_handle = address.socket(Address::SocketType::Stream);
   EXPECT_CALL(testing::Const(socket_), ioHandle()).WillRepeatedly(testing::ReturnRef(*io_handle));
+
   AddrFamilyAwareSocketOptionImpl socket_option{
       envoy::api::v2::core::SocketOption::STATE_PREBIND, {}, {}, 1};
 
-  EXPECT_LOG_CONTAINS("warning", "Failed to set unsupported option on socket",
+  std::string logline;
+#ifdef WIN32
+  logline = "Setting option on socket failed: 10045";
+#else
+  logline = "Failed to set unsupported option on socket";
+#endif
+  EXPECT_LOG_CONTAINS("warning", logline,
                       EXPECT_FALSE(socket_option.setOption(
                           socket_, envoy::api::v2::core::SocketOption::STATE_PREBIND)));
 }
@@ -73,10 +85,17 @@ TEST_F(AddrFamilyAwareSocketOptionImplTest, V6EmptyOptionNames) {
   Address::Ipv6Instance address("::1:2:3:4", 5678);
   IoHandlePtr io_handle = address.socket(Address::SocketType::Stream);
   EXPECT_CALL(testing::Const(socket_), ioHandle()).WillRepeatedly(testing::ReturnRef(*io_handle));
+
   AddrFamilyAwareSocketOptionImpl socket_option{
       envoy::api::v2::core::SocketOption::STATE_PREBIND, {}, {}, 1};
 
-  EXPECT_LOG_CONTAINS("warning", "Failed to set unsupported option on socket",
+  std::string logline;
+#ifdef WIN32
+  logline = "Setting option on socket failed: 10045";
+#else
+  logline = "Failed to set unsupported option on socket";
+#endif
+  EXPECT_LOG_CONTAINS("warning", logline,
                       EXPECT_FALSE(socket_option.setOption(
                           socket_, envoy::api::v2::core::SocketOption::STATE_PREBIND)));
 }
@@ -140,7 +159,9 @@ TEST_F(AddrFamilyAwareSocketOptionImplTest, V6Precedence) {
 
 // GetSocketOptionName returns the v4 information for a v4 address
 TEST_F(AddrFamilyAwareSocketOptionImplTest, V4GetSocketOptionName) {
-  socket_.local_address_ = Utility::parseInternetAddress("1.2.3.4", 5678);
+  Address::Ipv4Instance address("1.2.3.4", 5678);
+  IoHandlePtr io_handle = address.socket(Address::SocketType::Stream);
+  EXPECT_CALL(testing::Const(socket_), ioHandle()).WillRepeatedly(testing::ReturnRef(*io_handle));
 
   AddrFamilyAwareSocketOptionImpl socket_option{envoy::api::v2::core::SocketOption::STATE_PREBIND,
                                                 ENVOY_MAKE_SOCKET_OPTION_NAME(5, 10),
@@ -153,7 +174,9 @@ TEST_F(AddrFamilyAwareSocketOptionImplTest, V4GetSocketOptionName) {
 
 // GetSocketOptionName returns the v4 information for a v6 address
 TEST_F(AddrFamilyAwareSocketOptionImplTest, V6GetSocketOptionName) {
-  socket_.local_address_ = Utility::parseInternetAddress("2::1", 5678);
+  Address::Ipv6Instance address("::1:2:3:4", 5678);
+  IoHandlePtr io_handle = address.socket(Address::SocketType::Stream);
+  EXPECT_CALL(testing::Const(socket_), ioHandle()).WillRepeatedly(testing::ReturnRef(*io_handle));
 
   AddrFamilyAwareSocketOptionImpl socket_option{envoy::api::v2::core::SocketOption::STATE_PREBIND,
                                                 ENVOY_MAKE_SOCKET_OPTION_NAME(5, 10),

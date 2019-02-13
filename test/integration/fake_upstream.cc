@@ -344,6 +344,7 @@ AssertionResult FakeHttpConnection::waitForNewStream(Event::Dispatcher& client_d
   return AssertionSuccess();
 }
 
+#ifndef WIN32
 FakeUpstream::FakeUpstream(const std::string& uds_path, FakeHttpConnection::Type type,
                            Event::TestTimeSystem& time_system)
     : FakeUpstream(Network::Test::createRawBufferSocketFactory(),
@@ -352,6 +353,7 @@ FakeUpstream::FakeUpstream(const std::string& uds_path, FakeHttpConnection::Type
                    type, time_system, false) {
   ENVOY_LOG(info, "starting fake server on unix domain socket {}", uds_path);
 }
+#endif
 
 static Network::SocketPtr
 makeTcpListenSocket(const Network::Address::InstanceConstSharedPtr& address) {
@@ -360,7 +362,12 @@ makeTcpListenSocket(const Network::Address::InstanceConstSharedPtr& address) {
 
 static Network::SocketPtr makeTcpListenSocket(uint32_t port, Network::Address::IpVersion version) {
   return makeTcpListenSocket(
+#ifdef WIN32
+      Network::Utility::parseInternetAddress(Network::Test::getLoopbackAddressString(version),
+                                             port));
+#else
       Network::Utility::parseInternetAddress(Network::Test::getAnyAddressString(version), port));
+#endif
 }
 
 FakeUpstream::FakeUpstream(const Network::Address::InstanceConstSharedPtr& address,
