@@ -23,6 +23,7 @@ namespace Envoy {
  * where state "leaks" across tests.
  *
  * */
+template <class T> class TestThreadsafeSingletonInjector;
 template <class T> class ThreadSafeSingleton {
 public:
   static T& get() {

@@ -4,6 +4,7 @@
 #include "envoy/network/connection.h"
 #include "envoy/network/transport_socket.h"
 
+#include "common/api/os_sys_calls_impl.h"
 #include "common/common/logger.h"
 
 namespace Envoy {
@@ -11,6 +12,7 @@ namespace Network {
 
 class RawBufferSocket : public TransportSocket, protected Logger::Loggable<Logger::Id::connection> {
 public:
+  RawBufferSocket() : os_sys_calls_(Api::OsSysCallsSingleton::get()) {}
   // Network::TransportSocket
   void setTransportSocketCallbacks(TransportSocketCallbacks& callbacks) override;
   std::string protocol() const override;
@@ -25,6 +27,7 @@ public:
 private:
   TransportSocketCallbacks* callbacks_{};
   bool shutdown_{};
+  Api::OsSysCallsImpl& os_sys_calls_;
 };
 
 class RawBufferSocketFactory : public TransportSocketFactory {

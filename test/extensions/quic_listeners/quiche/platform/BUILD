@@ -16,6 +16,8 @@ envoy_cc_test(
     name = "http2_platform_test",
     srcs = ["http2_platform_test.cc"],
     external_deps = ["quiche_http2_platform"],
+    # not used in CF, so we haven't put the effort in to fix
+    test_on_windows = False,
     deps = [
         "//source/extensions/quic_listeners/quiche/platform:flags_impl_lib",
         "//test/test_common:logging_lib",
@@ -34,6 +36,8 @@ envoy_cc_test(
     copts = ["-Wno-unused-parameter"],
     data = ["//test/extensions/transport_sockets/tls/test_data:certs"],
     external_deps = ["quiche_quic_platform"],
+    # not used in CF, so we haven't put the effort in to fix
+    test_on_windows = False,
     deps = [
         ":quic_platform_epoll_clock_lib",
         "//source/common/memory:stats_lib",
@@ -66,6 +70,8 @@ envoy_cc_test(
     name = "spdy_platform_test",
     srcs = ["spdy_platform_test.cc"],
     external_deps = ["quiche_spdy_platform"],
+    # not used in CF, so we haven't put the effort in to fix
+    test_on_windows = False,
     deps = [
         "//source/extensions/quic_listeners/quiche/platform:flags_impl_lib",
         "//test/test_common:logging_lib",

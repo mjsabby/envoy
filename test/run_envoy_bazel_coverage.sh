@@ -28,7 +28,7 @@ if [[ $# -gt 0 ]]; then
 elif [[ -n "${COVERAGE_TARGET}" ]]; then
   COVERAGE_TARGETS=${COVERAGE_TARGET}
 else
-  COVERAGE_TARGETS=//test/...
+  COVERAGE_TARGETS=//test/coverage:coverage_tests
 fi
 
 # This is where we are going to copy the .gcno files into.
@@ -58,7 +58,8 @@ BAZEL_BUILD_OPTIONS="${BAZEL_BUILD_OPTIONS} -c dbg --copt=-DNDEBUG"
 # https://github.com/bazelbuild/bazel/issues/1118). This works today as we have
 # a single coverage test binary and do not require the "bazel coverage" support
 # for collecting multiple traces and glueing them together.
-"${BAZEL_COVERAGE}" test //test/coverage:coverage_tests ${BAZEL_BUILD_OPTIONS} \
+"${BAZEL_COVERAGE}" --batch test "${COVERAGE_TARGET}" ${BAZEL_TEST_OPTIONS} \
+  --experimental_cc_skylark_api_enabled_packages=@rules_foreign_cc//tools/build_defs,tools/build_defs \
   --cache_test_results=no --cxxopt="--coverage" --cxxopt="-DENVOY_CONFIG_COVERAGE=1" \
   --linkopt="--coverage" --define ENVOY_CONFIG_COVERAGE=1 --test_output=streamed \
   --strategy=Genrule=standalone --spawn_strategy=standalone --test_timeout=4000 \

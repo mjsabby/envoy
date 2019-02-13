@@ -1,6 +1,7 @@
 #include "common/network/addr_family_aware_socket_option_impl.h"
 
 #include "envoy/common/exception.h"
+#include "envoy/common/platform.h"
 
 #include "common/api/os_sys_calls_impl.h"
 #include "common/common/assert.h"
@@ -18,7 +19,34 @@ Address::IpVersion getVersionFromAddress(Address::InstanceConstSharedPtr addr) {
   throw EnvoyException("Unable to set socket option on non-IP sockets");
 }
 
+// TODO (YAEL): getVersionFromSocket should probably use the IoHandle in some way
+// e.g. just return socket.ioHandle().getVersion() or something to that effect
+// Then all this code would live in the appropriate IoHandle
 absl::optional<Address::IpVersion> getVersionFromSocket(const Socket& socket) {
+#ifdef WIN32
+  // getsockname will fail with WSAEINVAL if the socket has not yet been bound or connected
+  if (SOCKET_INVALID(socket.ioHandle().fd())) {
+    return absl::nullopt;
+  }
+
+  WSAPROTOCOL_INFO info;
+  int info_size = sizeof(info);
+  auto& os_sys_calls = Api::OsSysCallsSingleton::get();
+  const Api::SysCallIntResult result =
+      os_sys_calls.getsockopt(socket.ioHandle().fd(), SOL_SOCKET, SO_PROTOCOL_INFO,
+                              reinterpret_cast<char*>(&info), &info_size);
+  if (SOCKET_FAILURE(result.rc_)) {
+    return absl::nullopt;
+  }
+
+  if (info.iAddressFamily == AF_INET) {
+    return absl::optional<Address::IpVersion>(Network::Address::IpVersion::v4);
+  } else if (info.iAddressFamily == AF_INET6) {
+    return absl::optional<Address::IpVersion>(Network::Address::IpVersion::v6);
+  } else {
+    return absl::nullopt;
+  }
+#else
   try {
     // We have local address when the socket is used in a listener but have to
     // infer the IP from the socket FD when initiating connections.
@@ -33,8 +61,8 @@ absl::optional<Address::IpVersion> getVersionFromSocket(const Socket& socket) {
     // Ignore, we get here because we failed in getsockname().
     // TODO(htuch): We should probably clean up this logic to avoid relying on exceptions.
   }
-
   return absl::nullopt;
+#endif
 }
 
 absl::optional<std::reference_wrapper<SocketOptionImpl>>

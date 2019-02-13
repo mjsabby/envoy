@@ -117,7 +117,7 @@ public:
    * @param events supplies a logical OR of FileReadyType events that the file event should
    *               initially listen on.
    */
-  virtual FileEventPtr createFileEvent(int fd, FileReadyCb cb, FileTriggerType trigger,
+  virtual FileEventPtr createFileEvent(SOCKET_FD fd, FileReadyCb cb, FileTriggerType trigger,
                                        uint32_t events) PURE;
 
   /**

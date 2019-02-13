@@ -15,7 +15,7 @@ TEST_F(GrpcSubscriptionImplTest, StreamCreationFailure) {
   InSequence s;
   EXPECT_CALL(*async_client_, startRaw(_, _, _)).WillOnce(Return(nullptr));
 
-  EXPECT_CALL(callbacks_, onConfigUpdateFailed(_));
+  EXPECT_CALL(callbacks_, onConfigUpdateFailed_(_));
   EXPECT_CALL(random_, random());
   EXPECT_CALL(*timer_, enableTimer(_));
   subscription_->start({"cluster0", "cluster1"});
@@ -37,6 +37,10 @@ TEST_F(GrpcSubscriptionImplTest, StreamCreationFailure) {
 TEST_F(GrpcSubscriptionImplTest, RemoteStreamClose) {
   startSubscription({"cluster0", "cluster1"});
   verifyStats(1, 0, 0, 0, 0);
+#ifdef PIVOTAL //TODO: Pivotal review
+  Http::HeaderMapPtr trailers{new Http::TestHeaderMapImpl{}};
+  subscription_->grpcMux().onReceiveTrailingMetadata(std::move(trailers));
+#endif  
   EXPECT_CALL(callbacks_, onConfigUpdateFailed(_));
   EXPECT_CALL(*timer_, enableTimer(_));
   EXPECT_CALL(random_, random());

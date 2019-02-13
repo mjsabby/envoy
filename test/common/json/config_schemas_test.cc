@@ -19,8 +19,22 @@ namespace Json {
 namespace {
 
 std::vector<std::string> generateTestInputs() {
+#if !defined(WIN32)
   TestEnvironment::exec({TestEnvironment::runfilesPath(
       "test/common/json/config_schemas_test_data/generate_test_data")});
+#else
+  std::string script = TestEnvironment::runfilesPath(
+      "test/common/json/config_schemas_test_data/generate_test_data.py");
+
+  std::stringstream cmd;
+  cmd << "bash -c \"PYTHONPATH=$(dirname " << script << ")"
+      << "python " << script << "\"";
+
+  if (::system(cmd.str().c_str()) != 0) {
+    std::cerr << "Failed " << cmd.str() << "\n";
+    RELEASE_ASSERT(false, "");
+  }
+#endif
 
   std::string test_path = TestEnvironment::temporaryDirectory() + "/config_schemas_test";
   auto file_list = TestUtility::listFiles(test_path, false);
