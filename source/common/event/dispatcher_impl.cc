@@ -100,7 +100,7 @@ Network::DnsResolverSharedPtr DispatcherImpl::createDnsResolver(
   return Network::DnsResolverSharedPtr{new Network::DnsResolverImpl(*this, resolvers)};
 }
 
-FileEventPtr DispatcherImpl::createFileEvent(int fd, FileReadyCb cb, FileTriggerType trigger,
+FileEventPtr DispatcherImpl::createFileEvent(SOCKET_FD fd, FileReadyCb cb, FileTriggerType trigger,
                                              uint32_t events) {
   ASSERT(isThreadSafe());
   return FileEventPtr{new FileEventImpl(*this, fd, cb, trigger, events)};
@@ -167,8 +167,16 @@ void DispatcherImpl::run(RunType type) {
   // not guarantee that events are run in any particular order. So even if we post() and call
   // event_base_once() before some other event, the other event might get called first.
   runPostCallbacks();
-
-  event_base_loop(base_.get(), type == RunType::NonBlock ? EVLOOP_NONBLOCK : 0);
+#if !defined(WIN32)
+  int flags = type == RunType::NonBlock ? EVLOOP_NONBLOCK : 0;
+#else
+  // On Windows, EVLOOP_NONBLOCK will cause the libevent event_base_loop to run forever.
+  // This is becase libevent only supports level triggering on Windows, and so the write
+  // event callbacks will trigger every time through the loop. Adding EVLOOP_ONCE ensures the
+  // loop will run at most once
+  int flags = type == RunType::NonBlock ? EVLOOP_NONBLOCK | EVLOOP_ONCE : 0;
+#endif
+  event_base_loop(base_.get(), flags);
 }
 
 void DispatcherImpl::runPostCallbacks() {

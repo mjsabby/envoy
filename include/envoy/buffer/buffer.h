@@ -7,6 +7,7 @@
 
 #include "envoy/api/os_sys_calls.h"
 #include "envoy/common/exception.h"
+#include "envoy/common/platform.h"
 #include "envoy/common/pure.h"
 
 #include "common/common/byte_order.h"
@@ -170,7 +171,7 @@ public:
    * @return a Api::SysCallIntResult with rc_ = the number of bytes read if successful, or rc_ = -1
    *   for failure. If the call is successful, errno_ shouldn't be used.
    */
-  virtual Api::SysCallIntResult read(int fd, uint64_t max_length) PURE;
+  virtual Api::SysCallIntResult read(SOCKET_FD fd, uint64_t max_length) PURE;
 
   /**
    * Reserve space in the buffer.
@@ -202,7 +203,7 @@ public:
    * @return a Api::SysCallIntResult with rc_ = the number of bytes written if successful, or rc_ =
    * -1 for failure. If the call is successful, errno_ shouldn't be used.
    */
-  virtual Api::SysCallIntResult write(int fd) PURE;
+  virtual Api::SysCallIntResult write(SOCKET_FD fd) PURE;
 
   /**
    * Copy an integer out of the buffer.

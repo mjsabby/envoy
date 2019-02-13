@@ -1,6 +1,14 @@
 #pragma once
 
+#if !defined(WIN32)
 #include <netdb.h>
+
+#else
+#include <WinSock2.h>
+// <winsock.h> includes <windows.h>, so undef some interfering symbols
+#undef DELETE
+#undef GetMessage
+#endif
 
 #include <cstdint>
 #include <string>

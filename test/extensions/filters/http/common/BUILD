@@ -33,6 +33,8 @@ envoy_extension_cc_test(
         "jwks_fetcher_test.cc",
     ],
     extension_name = "envoy.filters.http.jwt_authn",
+    # not used in CF, so we haven't put the effort in to fix
+    test_on_windows = False,
     deps = [
         "//source/extensions/filters/http/common:jwks_fetcher_lib",
         "//test/extensions/filters/http/common:mock_lib",

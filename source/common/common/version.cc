@@ -5,8 +5,15 @@
 #include "common/common/fmt.h"
 #include "common/common/macros.h"
 
+#ifdef WIN32
+// The reason we have this #ifdef on Windows is that build linkstamping doesn't work,
+// see: https://github.com/bazelbuild/bazel/issues/6997
+const char build_scm_revision[] = "aabbccdd";
+const char build_scm_status[] = "FixMe";
+#else
 extern const char build_scm_revision[];
 extern const char build_scm_status[];
+#endif
 
 namespace Envoy {
 const std::string& VersionInfo::revision() {
