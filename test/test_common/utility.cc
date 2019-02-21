@@ -433,8 +433,6 @@ bool TestHeaderMapImpl::has(const LowerCaseString& key) { return get(key) != nul
 
 } // namespace Http
 
-<<<<<<< HEAD
-=======
 namespace Stats {
 
 MockedTestAllocator::MockedTestAllocator(const StatsOptions& stats_options)
@@ -483,7 +481,6 @@ Instance& fileSystemForTest() {
 
 } // namespace Filesystem
 
->>>>>>> cf5d1ed7c... filesystem: add Windows implementation -- PR IN PROGRESS
 namespace Api {
 
 class TestImplProvider {

@@ -59,6 +59,11 @@ def _filter_windows_keys(cache_entries = {}):
     # rules_foreign_cc will figure it out for us
     return {key: cache_entries[key] for key in cache_entries.keys() if key != "CMAKE_BUILD_TYPE"}
 
+def filter_windows_keys(cache_entries = {}):
+    # On Windows, we don't want to explicitly set CMAKE_BUILD_TYPE,
+    # rules_foreign_cc will figure it out for us
+    return {key: cache_entries[key] for key in cache_entries.keys() if key != "CMAKE_BUILD_TYPE"}
+
 # External CMake C++ library targets should be specified with this function. This defaults
 # to building the dependencies with ninja
 def envoy_cmake_external(
