@@ -5,7 +5,7 @@
 #include "fmt/ostream.h"
 
 // fmt/format.h includes <windows.h>, so undef some interfering symbols
-#if defined(WIN32)
+#ifdef WIN32
 #undef DELETE
 #undef GetMessage
 #endif

@@ -15,6 +15,9 @@ using ssize_t = int64_t;
 #error Envoy is not supported on 32-bit Windows
 #endif
 
+// This is needed so the OsSysCalls interface compiles on Windows. Specifically, shmOpen takes
+// mode_t as an argument. Note that the Windows implementation just PANICs, since shm_open is not
+// a function that exists.
 using mode_t = uint32_t;
 
 #else
@@ -22,6 +25,7 @@ using mode_t = uint32_t;
 
 #endif
 
+// TODO(YAEL) As the IoHandle work progresses, all the macros below should disappear
 // Macros that depend on the OS
 #ifdef WIN32
 #include <winsock2.h>

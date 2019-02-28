@@ -4,7 +4,8 @@
 
 #include "common/common/perf_annotation.h"
 
-#if !defined(WIN32)
+// unistd.h doesn't exist on windows
+#ifndef WIN32
 #include <unistd.h>
 #endif
 

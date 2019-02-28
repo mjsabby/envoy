@@ -410,6 +410,7 @@ def envoy_cc_fuzz_test(name, corpus, deps = [], tags = [], **kwargs):
         # No fuzzing on macOS.
         deps = select({
             "@bazel_tools//tools/osx:darwin": ["//test:dummy_main"],
+            # needed for test_on_windows, see #164309012
             "@envoy//bazel:windows_x86_64": ["//test:dummy_main"],
             "//conditions:default": [
                 ":" + test_lib_name,
@@ -447,6 +448,7 @@ def envoy_cc_test(
         shard_count = None,
         coverage = True,
         local = False,
+        # needed for test_on_windows, see #164309012
         test_on_windows = True):
     test_lib_tags = []
     if coverage:
@@ -460,6 +462,7 @@ def envoy_cc_test(
         repository = repository,
         tags = test_lib_tags,
     )
+    # needed for test_on_windows, see #164309012
     if test_on_windows:
         tags = tags + ["windows_test"]
     native.cc_test(
@@ -565,6 +568,7 @@ def envoy_sh_test(
         srcs = [],
         data = [],
         coverage = True,
+        # needed for test_on_windows, see #164309012
         test_on_windows = True,
         tags = [],
         **kargs):
@@ -584,6 +588,7 @@ def envoy_sh_test(
             tags = ["coverage_test_lib"],
             deps = ["//test/test_common:environment_lib"],
         )
+    # needed for test_on_windows, see #164309012
     if test_on_windows:
         tags = tags + ["windows_test"]
     native.sh_test(
@@ -591,6 +596,7 @@ def envoy_sh_test(
         srcs = ["//bazel:sh_test_wrapper.sh"],
         data = srcs + data,
         args = srcs,
+        # needed for test_on_windows, see #164309012
         tags = tags,
         **kargs
     )

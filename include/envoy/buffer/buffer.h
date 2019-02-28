@@ -1,5 +1,8 @@
 #pragma once
 
+// TODO(YAEL) As the IoHandle work progresses, all the SOCKET_FD and releated changes in this file
+// and in other files should disappear 
+
 #include <cstdint>
 #include <functional>
 #include <memory>

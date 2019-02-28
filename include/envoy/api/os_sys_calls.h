@@ -1,5 +1,8 @@
 #pragma once
 
+// TODO(YAEL) As the IoHandle work progresses, all the SOCKET_FD and releated macros (such as IOVEC)
+// in all files should disappear 
+
 #ifndef WIN32
 
 #include <sys/ioctl.h>
@@ -8,6 +11,11 @@
 #include <sys/uio.h>    // for iovec
 
 #else
+// TODO(YAEL) - PR this changes, if needed, after IoHandle is done.
+// (this was already PR'd with comment in other files
+// https://github.com/envoyproxy/envoy/blob/b09a6d4a33137c5547fb6aec03bdaa07214b260f/source/common/filesystem/win32/directory_iterator_impl.h#L6-L11)
+// notice that this change should be PR'd in other files as well
+
 #include <ws2tcpip.h>
 // <ws2tcpip.h> includes <windows.h>, so undef some interfering symbols
 #undef DELETE
