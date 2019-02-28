@@ -238,6 +238,8 @@ envoy_cc_test(
         "http2_integration_test.cc",
         "http2_integration_test.h",
     ],
+    # passes but it's flaky, see story #163964376
+    test_on_windows = False,
     deps = [
         ":http_integration_lib",
         "//source/common/buffer:buffer_lib",
@@ -381,6 +383,8 @@ envoy_cc_test(
     # As this test has many pauses for idle timeouts, it takes a while to run.
     # Shard it enough to bring the run time in line with other integration tests.
     shard_count = 2,
+    # passes but it's flaky, see story #164138845
+    test_on_windows = False,
     deps = [
         ":http_protocol_integration_lib",
         "//test/test_common:test_time_lib",
