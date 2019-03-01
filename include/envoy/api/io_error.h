@@ -77,10 +77,18 @@ template <typename T> struct IoCallResult {
 
   virtual ~IoCallResult() {}
 
+  IoCallResult& operator=(IoCallResult&& result) {
+    rc_ = result.rc_;
+    err_ = std::move(result.err_);
+    return *this;
+  }
+
   T rc_;
   IoErrorPtr err_;
 };
 
+using IoCallBoolResult = IoCallResult<bool>;
+using IoCallSizeResult = IoCallResult<ssize_t>;
 using IoCallUintResult = IoCallResult<uint64_t>;
 
 } // namespace Api
