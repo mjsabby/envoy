@@ -13,7 +13,6 @@ namespace Event {
 FileEventImpl::FileEventImpl(DispatcherImpl& dispatcher, SOCKET_FD fd, FileReadyCb cb,
                              FileTriggerType trigger, uint32_t events)
     : cb_(cb), base_(&dispatcher.base()), fd_(fd), trigger_(trigger) {
-// TODO(YAEL) - PR story #164317693
 #ifdef WIN32
   RELEASE_ASSERT(trigger_ == FileTriggerType::Level,
                  "libevent does not support edge triggers on Windows");

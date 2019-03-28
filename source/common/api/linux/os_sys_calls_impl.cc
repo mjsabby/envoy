@@ -44,6 +44,12 @@ SysCallSizeResult OsSysCallsImpl::recv(SOCKET_FD socket, void* buffer, size_t le
   return {rc, errno};
 }
 
+SysCallSizeResult OsSysCallsImpl::recvfrom(int sockfd, void* buffer, size_t length, int flags,
+                                           struct sockaddr* addr, socklen_t* addrlen) {
+  const ssize_t rc = ::recvfrom(sockfd, buffer, length, flags, addr, addrlen);
+  return {rc, errno};
+}
+
 SysCallIntResult OsSysCallsImpl::close(SOCKET_FD fd) {
   const int rc = ::close(fd);
   return {rc, errno};

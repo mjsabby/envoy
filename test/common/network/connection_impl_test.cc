@@ -770,9 +770,9 @@ TEST_P(ConnectionImplTest, WriteWithWatermarks) {
       .WillRepeatedly(DoAll(AddBufferToStringWithoutDraining(&data_written),
                             Invoke(client_write_buffer_, &MockWatermarkBuffer::baseMove)));
   EXPECT_CALL(*client_write_buffer_, write(_))
-      .WillOnce(Invoke([&](SOCKET_FD fd) -> Api::SysCallIntResult {
+      .WillOnce(Invoke([&](SOCKET_FD fd) -> Api::IoCallUint64Result {
         dispatcher_->exit();
-        return client_write_buffer_->failWrite(fd);
+        return client_write_buffer_->failWrite(io_handle);
       }));
   // The write() call on the connection will buffer enough data to bring the connection above the
   // high watermark and as the data will not flush it should not return below the watermark.
@@ -856,8 +856,10 @@ TEST_P(ConnectionImplTest, WatermarkFuzzing) {
         .WillOnce(Invoke(client_write_buffer_, &MockWatermarkBuffer::baseMove));
 #if !defined(WIN32)
     EXPECT_CALL(*client_write_buffer_, write(_))
-        .WillOnce(DoAll(Invoke([&](int) -> void { client_write_buffer_->drain(bytes_to_flush); }),
-                        Return(Api::SysCallIntResult{bytes_to_flush, 0})))
+        .WillOnce(
+            DoAll(Invoke([&](IoHandle&) -> void { client_write_buffer_->drain(bytes_to_flush); }),
+                  Return(testing::ByMove(Api::IoCallUint64Result(
+                      bytes_to_flush, Api::IoErrorPtr(nullptr, [](Api::IoError*) {}))))))
         .WillRepeatedly(testing::Invoke(client_write_buffer_, &MockWatermarkBuffer::failWrite));
 #else
     // on windows, we need to cause the dispatcher to exit. This is because libevent is

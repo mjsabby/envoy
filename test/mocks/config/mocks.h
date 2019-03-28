@@ -34,14 +34,26 @@ public:
     onConfigUpdate_(resources, version_info);
   }
 
+  void onConfigUpdate(const Protobuf::RepeatedPtrField<envoy::api::v2::Resource>& added_resources,
+                      const Protobuf::RepeatedPtrField<std::string>& removed_resources,
+                      const std::string& system_version_info)) {
+    config_update_attempts_++;
+    onConfigUpdate_(added_resources, removed_resources, system_version_info);
+  }
+
   void onConfigUpdateFailed(const EnvoyException* e) {
     config_update_attempts_++;
     onConfigUpdateFailed_(e);
   }
 
+  // TODO(fredlas) deduplicate
   MOCK_METHOD2_T(onConfigUpdate_,
                  void(const typename SubscriptionCallbacks<ResourceType>::ResourceVector& resources,
                       const std::string& version_info));
+  MOCK_METHOD3_T(onConfigUpdate_,
+                 void(const Protobuf::RepeatedPtrField<envoy::api::v2::Resource>& added_resources,
+                      const Protobuf::RepeatedPtrField<std::string>& removed_resources,
+                      const std::string& system_version_info));
   MOCK_METHOD1_T(onConfigUpdateFailed_, void(const EnvoyException* e));
   MOCK_METHOD1_T(resourceName, std::string(const ProtobufWkt::Any& resource));
 

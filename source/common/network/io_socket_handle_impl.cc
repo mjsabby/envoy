@@ -4,85 +4,17 @@
 
 #include <iostream>
 
-#include "common/common/assert.h"
+#include "envoy/buffer/buffer.h"
+
+#include "common/api/os_sys_calls_impl.h"
+#include "common/common/stack_array.h"
+#include "common/network/io_socket_error_impl.h"
 
 using Envoy::Api::SysCallIntResult;
 using Envoy::Api::SysCallSizeResult;
 
 namespace Envoy {
 namespace Network {
-
-Api::IoError::IoErrorCode IoSocketError::errorCode() const {
-#ifdef WIN32
-  switch (errno_) {
-  case WSAEWOULDBLOCK:
-    // WSAEWOULDBLOCK should use specific error ENVOY_ERROR_AGAIN.
-    NOT_REACHED_GCOVR_EXCL_LINE;
-  case WSAEOPNOTSUPP:
-    return IoErrorCode::NoSupport;
-  case WSAEAFNOSUPPORT:
-    return IoErrorCode::AddressFamilyNoSupport;
-  case WSAEINPROGRESS:
-    return IoErrorCode::InProgress;
-  case WSAEACCES:
-    return IoErrorCode::Permission;
-  default:
-    return IoErrorCode::UnknownError;
-  }
-#else
-  switch (errno_) {
-  case EAGAIN:
-    // EAGAIN should use specific error ENVOY_ERROR_AGAIN.
-    NOT_REACHED_GCOVR_EXCL_LINE;
-  case ENOTSUP:
-    return IoErrorCode::NoSupport;
-  case EAFNOSUPPORT:
-    return IoErrorCode::AddressFamilyNoSupport;
-  case EINPROGRESS:
-    return IoErrorCode::InProgress;
-  case EPERM:
-    return IoErrorCode::Permission;
-  default:
-    return IoErrorCode::UnknownError;
-  }
-#endif
-}
-
-std::string IoSocketError::errorDetails() const {
-#ifdef WIN32
-  DWORD flags =
-      FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS;
-
-  char* buffer;
-
-  DWORD rc =
-      ::FormatMessage(flags, nullptr, errno_, 0, reinterpret_cast<LPTSTR>(&buffer), 0, nullptr);
-  ASSERT(rc != 0);
-  std::string ret(buffer);
-  ::LocalFree(buffer);
-  return ret;
-#else
-  return ::strerror(errno_);
-#endif
-}
-
-using IoSocketErrorPtr = std::unique_ptr<IoSocketError, Api::IoErrorDeleterType>;
-
-// Deallocate memory only if the error is not ENVOY_ERROR_AGAIN.
-void deleteIoError(Api::IoError* err) {
-  ASSERT(err != nullptr);
-  if (err != ENVOY_ERROR_AGAIN) {
-    delete err;
-  }
-}
-
-template <typename T> Api::IoCallResult<T> resultFailure(T result, int sys_errno) {
-  return {result, IoSocketErrorPtr(new IoSocketError(sys_errno), deleteIoError)};
-}
-
-template <typename T> Api::IoCallResult<T> resultSuccess(T result) {
-  return {result, IoSocketErrorPtr(nullptr, [](Api::IoError*) { NOT_REACHED_GCOVR_EXCL_LINE; })};
-}
 
 IoSocketHandleImpl::~IoSocketHandleImpl() {
 #ifdef WIN32
@@ -96,19 +28,19 @@ IoSocketHandleImpl::~IoSocketHandleImpl() {
 #endif
 }
 
-Api::IoCallUintResult IoSocketHandleImpl::close() {
+Api::IoCallUint64Result IoSocketHandleImpl::close() {
 #ifdef WIN32
   ASSERT(socket_descriptor_ != INVALID_SOCKET);
   const int rc = ::closesocket(socket_descriptor_);
   socket_descriptor_ = INVALID_SOCKET;
-  return rc != SOCKET_ERROR ? resultSuccess<uint64_t>(rc)
-                            : resultFailure<uint64_t>(rc, ::WSAGetLastError());
+  // TODO: if (rc == SOCKET_ERROR), error should be ::WSAGetLastError()
 #else
   ASSERT(fd_ != -1);
   const int rc = ::close(fd_);
   fd_ = -1;
-  return rc != -1 ? resultSuccess<uint64_t>(rc) : resultFailure<uint64_t>(rc, errno);
+  // TODO: if (rc == -1), error should be errno
 #endif
+  return Api::IoCallUint64Result(rc, Api::IoErrorPtr(nullptr, IoSocketError::deleteIoError));
 }
 
 bool IoSocketHandleImpl::isOpen() const {
@@ -117,6 +49,60 @@ bool IoSocketHandleImpl::isOpen() const {
 #else
   return fd_ != -1;
 #endif
+}
+
+Api::IoCallUint64Result IoSocketHandleImpl::readv(uint64_t max_length, Buffer::RawSlice* slices,
+                                                  uint64_t num_slice) {
+  STACK_ARRAY(iov, iovec, num_slice);
+  uint64_t num_slices_to_read = 0;
+  uint64_t num_bytes_to_read = 0;
+  for (; num_slices_to_read < num_slice && num_bytes_to_read < max_length; num_slices_to_read++) {
+    iov[num_slices_to_read].iov_base = slices[num_slices_to_read].mem_;
+    const size_t slice_length = std::min(slices[num_slices_to_read].len_,
+                                         static_cast<size_t>(max_length - num_bytes_to_read));
+    iov[num_slices_to_read].iov_len = slice_length;
+    num_bytes_to_read += slice_length;
+  }
+  ASSERT(num_bytes_to_read <= max_length);
+  auto& os_syscalls = Api::OsSysCallsSingleton::get();
+  const Api::SysCallSizeResult result =
+      os_syscalls.readv(fd_, iov.begin(), static_cast<int>(num_slices_to_read));
+  return sysCallResultToIoCallResult(result);
+}
+
+Api::IoCallUint64Result IoSocketHandleImpl::writev(const Buffer::RawSlice* slices,
+                                                   uint64_t num_slice) {
+  STACK_ARRAY(iov, iovec, num_slice);
+  uint64_t num_slices_to_write = 0;
+  for (uint64_t i = 0; i < num_slice; i++) {
+    if (slices[i].mem_ != nullptr && slices[i].len_ != 0) {
+      iov[num_slices_to_write].iov_base = slices[i].mem_;
+      iov[num_slices_to_write].iov_len = slices[i].len_;
+      num_slices_to_write++;
+    }
+  }
+  if (num_slices_to_write == 0) {
+    return Api::ioCallUint64ResultNoError();
+  }
+  auto& os_syscalls = Api::OsSysCallsSingleton::get();
+  const Api::SysCallSizeResult result = os_syscalls.writev(fd_, iov.begin(), num_slices_to_write);
+  return sysCallResultToIoCallResult(result);
+}
+
+Api::IoCallUint64Result
+IoSocketHandleImpl::sysCallResultToIoCallResult(const Api::SysCallSizeResult& result) {
+  if (result.rc_ >= 0) {
+    // Return nullptr as IoError upon success.
+    return Api::IoCallUint64Result(result.rc_,
+                                   Api::IoErrorPtr(nullptr, IoSocketError::deleteIoError));
+  }
+  return Api::IoCallUint64Result(
+      /*rc=*/0,
+      (result.errno_ == EAGAIN
+           // EAGAIN is frequent enough that its memory allocation should be avoided.
+           ? Api::IoErrorPtr(IoSocketError::getIoSocketEagainInstance(),
+                             IoSocketError::deleteIoError)
+           : Api::IoErrorPtr(new IoSocketError(result.errno_), IoSocketError::deleteIoError)));
 }
 
 } // namespace Network

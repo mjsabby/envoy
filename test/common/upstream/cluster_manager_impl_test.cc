@@ -13,6 +13,7 @@
 #include "common/network/transport_socket_options_impl.h"
 #include "common/network/utility.h"
 #include "common/singleton/manager_impl.h"
+#include "common/upstream/cluster_factory_impl.h"
 #include "common/upstream/cluster_manager_impl.h"
 
 #include "extensions/transport_sockets/tls/context_manager_impl.h"
@@ -61,10 +62,10 @@ public:
         .WillByDefault(Invoke([&](const envoy::api::v2::Cluster& cluster, ClusterManager& cm,
                                   Outlier::EventLoggerSharedPtr outlier_event_logger,
                                   bool added_via_api) -> ClusterSharedPtr {
-          return ClusterImplBase::create(cluster, cm, stats_, tls_, dns_resolver_,
-                                         ssl_context_manager_, runtime_, random_, dispatcher_,
-                                         log_manager_, local_info_, admin_, singleton_manager_,
-                                         outlier_event_logger, added_via_api, *api_);
+          return ClusterFactoryImplBase::create(
+              cluster, cm, stats_, tls_, dns_resolver_, ssl_context_manager_, runtime_, random_,
+              dispatcher_, log_manager_, local_info_, admin_, singleton_manager_,
+              outlier_event_logger, added_via_api, *api_);
         }));
   }
 
@@ -156,17 +157,15 @@ public:
 // it with the right values at the right times.
 class MockedUpdatedClusterManagerImpl : public TestClusterManagerImpl {
 public:
-  MockedUpdatedClusterManagerImpl(const envoy::config::bootstrap::v2::Bootstrap& bootstrap,
-                                  ClusterManagerFactory& factory, Stats::Store& stats,
-                                  ThreadLocal::Instance& tls, Runtime::Loader& runtime,
-                                  Runtime::RandomGenerator& random,
-                                  const LocalInfo::LocalInfo& local_info,
-                                  AccessLog::AccessLogManager& log_manager,
-                                  Event::Dispatcher& main_thread_dispatcher, Server::Admin& admin,
-                                  Api::Api& api, MockLocalClusterUpdate& local_cluster_update,
-                                  MockLocalHostsRemoved& local_hosts_removed)
+  MockedUpdatedClusterManagerImpl(
+      const envoy::config::bootstrap::v2::Bootstrap& bootstrap, ClusterManagerFactory& factory,
+      Stats::Store& stats, ThreadLocal::Instance& tls, Runtime::Loader& runtime,
+      Runtime::RandomGenerator& random, const LocalInfo::LocalInfo& local_info,
+      AccessLog::AccessLogManager& log_manager, Event::Dispatcher& main_thread_dispatcher,
+      Server::Admin& admin, Api::Api& api, MockLocalClusterUpdate& local_cluster_update,
+      MockLocalHostsRemoved& local_hosts_removed, Http::Context& http_context)
       : TestClusterManagerImpl(bootstrap, factory, stats, tls, runtime, random, local_info,
-                               log_manager, main_thread_dispatcher, admin, api, http_context_),
+                               log_manager, main_thread_dispatcher, admin, api, http_context),
         local_cluster_update_(local_cluster_update), local_hosts_removed_(local_hosts_removed) {}
 
 protected:
@@ -180,7 +179,6 @@ protected:
     local_hosts_removed_.post(hosts_removed);
   }
 
-  Http::ContextImpl http_context_;
   MockLocalClusterUpdate& local_cluster_update_;
   MockLocalHostsRemoved& local_hosts_removed_;
 };
@@ -235,7 +233,7 @@ public:
     cluster_manager_ = std::make_unique<MockedUpdatedClusterManagerImpl>(
         bootstrap, factory_, factory_.stats_, factory_.tls_, factory_.runtime_, factory_.random_,
         factory_.local_info_, log_manager_, factory_.dispatcher_, admin_, *api_,
-        local_cluster_update_, local_hosts_removed_);
+        local_cluster_update_, local_hosts_removed_, http_context_);
   }
 
   void checkStats(uint64_t added, uint64_t modified, uint64_t removed, uint64_t active,
@@ -607,8 +605,7 @@ TEST_F(ClusterManagerImplTest, RingHashLoadBalancerInitialization) {
       "name": "redis_cluster",
       "lb_type": "ring_hash",
       "ring_hash_lb_config": {
-        "minimum_ring_size": 125,
-        "use_std_hash": true
+        "minimum_ring_size": 125
       },
       "connect_timeout_ms": 250,
       "type": "static",
@@ -636,8 +633,6 @@ TEST_F(ClusterManagerImplTest, RingHashLoadBalancerV2Initialization) {
       dns_lookup_family: V4_ONLY
       ring_hash_lb_config:
         minimum_ring_size: 125
-        deprecated_v1:
-          use_std_hash: true
   )EOF";
   create(parseBootstrapFromV2Yaml(yaml));
 }
@@ -916,6 +911,7 @@ version_info: version3
 static_clusters:
   - cluster:
       name: "cds_cluster"
+      type: "STATIC"
       connect_timeout: 0.25s
       hosts:
       - socket_address:
@@ -927,6 +923,7 @@ static_clusters:
       nanos: 234000000
   - cluster:
       name: "fake_cluster"
+      type: "STATIC"
       connect_timeout: 0.25s
       hosts:
       - socket_address:
@@ -938,6 +935,7 @@ static_clusters:
       nanos: 234000000
   - cluster:
       name: "fake_cluster2"
+      type: "STATIC"
       connect_timeout: 0.25s
       hosts:
       - socket_address:
@@ -951,6 +949,7 @@ dynamic_active_clusters:
   - version_info: "version1"
     cluster:
       name: "cluster3"
+      type: "STATIC"
       connect_timeout: 0.25s
       hosts:
       - socket_address:
@@ -963,6 +962,7 @@ dynamic_active_clusters:
   - version_info: "version2"
     cluster:
       name: "cluster4"
+      type: "STATIC"
       connect_timeout: 0.25s
       hosts:
       - socket_address:
@@ -975,6 +975,7 @@ dynamic_active_clusters:
   - version_info: "version3"
     cluster:
       name: "cluster5"
+      type: "STATIC"
       connect_timeout: 0.25s
       hosts:
       - socket_address:
@@ -1088,6 +1089,7 @@ dynamic_warming_clusters:
   - version_info: "version1"
     cluster:
       name: "fake_cluster"
+      type: STATIC
       connect_timeout: 0.25s
       hosts:
       - socket_address:
@@ -1686,7 +1688,6 @@ TEST_F(ClusterManagerImplTest, DynamicHostRemove) {
   // drain callbacks, etc.
   dns_timer_->callback_();
   dns_callback(TestUtility::makeDnsResponse({"127.0.0.2", "127.0.0.3"}));
-
   factory_.tls_.shutdownThread();
 }
 
@@ -1913,7 +1914,6 @@ TEST_F(ClusterManagerImplTest, DynamicHostRemoveWithTls) {
   // drain callbacks, etc.
   dns_timer_->callback_();
   dns_callback(TestUtility::makeDnsResponse({"127.0.0.2", "127.0.0.3"}));
-
   factory_.tls_.shutdownThread();
 }
 

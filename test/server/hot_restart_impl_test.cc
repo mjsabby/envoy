@@ -45,10 +45,11 @@ public:
               return os_sys_calls_actual_.socket(domain, type, protocol);
             }));
     // Test we match the correct stat with empty-slots before, after, or both.
-    hot_restart_ = std::make_unique<HotRestartImpl>(options_);
+    hot_restart_ = std::make_unique<HotRestartImpl>(options_, symbol_table_);
     hot_restart_->drainParentListeners();
   }
 
+  Stats::FakeSymbolTableImpl symbol_table_;
   Api::MockOsSysCalls os_sys_calls_;
   Api::OsSysCallsImpl os_sys_calls_actual_{};
   TestThreadsafeSingletonInjector<Api::OsSysCallsImpl> os_calls{&os_sys_calls_};
@@ -136,7 +137,7 @@ TEST_F(HotRestartImplTest, crossAlloc) {
   EXPECT_CALL(os_sys_calls_, mmap(_, _, _, _, _, _))
       .WillOnce(Return(Api::SysCallPtrResult{buffer_.data(), 0}));
   EXPECT_CALL(os_sys_calls_, bind(_, _, _));
-  HotRestartImpl hot_restart2(options_);
+  HotRestartImpl hot_restart2(options_, symbol_table_);
   Stats::RawStatData* stat1_prime = hot_restart2.statsAllocator().alloc("stat1");
   Stats::RawStatData* stat3_prime = hot_restart2.statsAllocator().alloc("stat3");
   Stats::RawStatData* stat5_prime = hot_restart2.statsAllocator().alloc("stat5");

@@ -5,16 +5,9 @@
 namespace Envoy {
 namespace Filesystem {
 
-Api::IoError::IoErrorCode IoFileError::errorCode() const {
-  switch (errno_) {
-  case EBADF:
-    return IoErrorCode::BadHandle;
-  default:
-    return IoErrorCode::UnknownError;
-  }
-}
+Api::IoError::IoErrorCode IoFileError::getErrorCode() const { return IoErrorCode::UnknownError; }
 
-std::string IoFileError::errorDetails() const { return ::strerror(errno_); }
+std::string IoFileError::getErrorDetails() const { return ::strerror(errno_); }
 
 Api::IoCallBoolResult FileSharedImpl::open() {
   if (isOpen()) {

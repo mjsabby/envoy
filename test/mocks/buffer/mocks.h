@@ -4,6 +4,7 @@
 
 #include "common/buffer/buffer_impl.h"
 #include "common/buffer/watermark_buffer.h"
+#include "common/network/io_socket_error_impl.h"
 
 #include "test/test_common/printers.h"
 #include "test/test_common/utility.h"
@@ -18,7 +19,7 @@ public:
   MockBufferBase();
   MockBufferBase(std::function<void()> below_low, std::function<void()> above_high);
 
-  MOCK_METHOD1(write, Api::SysCallIntResult(SOCKET_FD fd));
+  MOCK_METHOD1(write, Api::IoCallUint64Result(SOCKET_FD fd));
   MOCK_METHOD1(move, void(Buffer::Instance& rhs));
   MOCK_METHOD2(move, void(Buffer::Instance& rhs, uint64_t length));
   MOCK_METHOD1(drain, void(uint64_t size));
@@ -26,9 +27,9 @@ public:
   void baseMove(Buffer::Instance& rhs) { BaseClass::move(rhs); }
   void baseDrain(uint64_t size) { BaseClass::drain(size); }
 
-  Api::SysCallIntResult trackWrites(SOCKET_FD fd) {
-    Api::SysCallIntResult result = BaseClass::write(fd);
-    if (result.rc_ > 0) {
+  Api::IoCallUint64Result trackWrites(SOCKET_FD fd) {
+    Api::IoCallUint64Result result = BaseClass::write(fd);
+    if (result.ok() && result.rc_ > 0) {
       bytes_written_ += result.rc_;
     }
     return result;
@@ -40,12 +41,15 @@ public:
   }
 
   // A convenience function to invoke on write() which fails the write with EAGAIN.
-  Api::SysCallIntResult failWrite(SOCKET_FD) {
-#if !defined(WIN32)
-    return {-1, EAGAIN};
+  Api::IoCallUint64Result failWrite(SOCKET_FD) {
+#ifndef(WIN32)
+    Network::IoSocketError *err = Network::IoSocketError::getIoSocketEagainInstance();
 #else
-    return {-1, WSAEWOULDBLOCK};
+    Network::IoSocketError *err = new Network::IoSocketError(WSAEWOULDBLOCK);
 #endif
+    return Api::IoCallUint64Result(
+      /*rc=*/0,
+      Api::IoErrorPtr(err, [](Api::IoError*) {}));
   }
 
   int bytes_written() const { return bytes_written_; }

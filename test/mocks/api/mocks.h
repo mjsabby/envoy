@@ -10,7 +10,12 @@
 
 #include "common/api/os_sys_calls_impl.h"
 
+#if defined(__linux__)
+#include "common/api/os_sys_calls_impl_linux.h"
+#endif
+
 #include "test/mocks/filesystem/mocks.h"
+#include "test/mocks/stats/mocks.h"
 #include "test/test_common/test_time.h"
 
 #include "gmock/gmock.h"
@@ -37,6 +42,7 @@ public:
 
   testing::NiceMock<Filesystem::MockInstance> file_system_;
   Event::GlobalTimeSystem time_system_;
+  testing::NiceMock<Stats::MockIsolatedStatsStore> stats_store_;
 };
 
 class MockOsSysCalls : public OsSysCallsImpl {
@@ -54,11 +60,13 @@ public:
   MOCK_METHOD3(connect,
                SysCallIntResult(SOCKET_FD sockfd, const sockaddr* addr, socklen_t addrlen));
   MOCK_METHOD3(ioctl, SysCallIntResult(SOCKET_FD sockfd, unsigned long int request, void* argp));
+  MOCK_METHOD1(close, SysCallIntResult(SOCKET_FD fd));
   MOCK_METHOD3(writeSocket, SysCallSizeResult(SOCKET_FD, const void*, size_t));
   MOCK_METHOD3(writev, SysCallSizeResult(SOCKET_FD, IOVEC*, int));
   MOCK_METHOD3(readv, SysCallSizeResult(SOCKET_FD, IOVEC*, int));
   MOCK_METHOD4(recv, SysCallSizeResult(SOCKET_FD socket, void* buffer, size_t length, int flags));
-  MOCK_METHOD1(close, SysCallIntResult(SOCKET_FD fd));
+  MOCK_METHOD6(recvfrom, SysCallSizeResult(SOCKET_FD sockfd, void* buffer, size_t length, int flags,
+                                           struct sockaddr* addr, socklen_t* addrlen));
   MOCK_METHOD3(shmOpen, SysCallIntResult(const char*, int, mode_t));
   MOCK_METHOD1(shmUnlink, SysCallIntResult(const char*));
   MOCK_METHOD2(ftruncate, SysCallIntResult(int fd, off_t length));
@@ -83,6 +91,14 @@ public:
   using SockOptKey = std::tuple<SOCKET_FD, int, int>;
   std::map<SockOptKey, bool> boolsockopts_;
 };
+
+#if defined(__linux__)
+class MockLinuxOsSysCalls : public LinuxOsSysCallsImpl {
+public:
+  // Api::LinuxOsSysCalls
+  MOCK_METHOD3(sched_getaffinity, SysCallIntResult(pid_t pid, size_t cpusetsize, cpu_set_t* mask));
+};
+#endif
 
 } // namespace Api
 } // namespace Envoy

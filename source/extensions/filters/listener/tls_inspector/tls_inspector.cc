@@ -18,7 +18,6 @@
 
 #include "extensions/transport_sockets/well_known_names.h"
 
-#include "openssl/bytestring.h"
 #include "openssl/ssl.h"
 
 namespace Envoy {
