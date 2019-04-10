@@ -60,6 +60,12 @@ SysCallSizeResult OsSysCallsImpl::recv(SOCKET_FD socket, void* buffer, size_t le
   return {rc, ::WSAGetLastError()};
 }
 
+SysCallSizeResult OsSysCallsImpl::recvfrom(SOCKET_FD sockfd, void* buffer, size_t length, int flags,
+                                           struct sockaddr* addr, socklen_t* addrlen) {
+  const ssize_t rc = ::recvfrom(sockfd, static_cast<char*>(buffer), length, flags, addr, addrlen);
+  return {rc, ::WSAGetLastError()};
+}
+
 SysCallIntResult OsSysCallsImpl::close(SOCKET_FD fd) {
   const int rc = ::closesocket(fd);
   return {rc, ::WSAGetLastError()};

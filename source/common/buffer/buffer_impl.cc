@@ -362,15 +362,15 @@ void OwnedImpl::move(Instance& rhs, uint64_t length) {
   }
 }
 
-Api::IoCallUint64Result OwnedImpl::read(SOCKET_FD fd, uint64_t max_length) {
+// TODO: YECHIEL - FIX THIS MERGE
+#ifdef WIN32
+Api::IoCallUint64Result OwnedImpl::read(SOCKET_HANDLE fd, uint64_t max_length) {
   if (max_length == 0) {
     return Api::ioCallUint64ResultNoError();
   }
   constexpr uint64_t MaxSlices = 2;
   RawSlice slices[MaxSlices];
   const uint64_t num_slices = reserve(max_length, slices, MaxSlices);
-  // TODO: YECHIEL - FIX THIS MERGE
-#ifdef(WIN32)
   STACK_ARRAY(iov, IOVEC, num_slices);
   uint64_t num_slices_to_read = 0;
   uint64_t num_bytes_to_read = 0;
@@ -402,8 +402,16 @@ Api::IoCallUint64Result OwnedImpl::read(SOCKET_FD fd, uint64_t max_length) {
   ASSERT(num_slices_to_commit <= num_slices);
   commit(slices, num_slices_to_commit);
   return {static_cast<int>(result.rc_), result.errno_};
+}
 #else
-  Api::IoCallUint64Result result = io_handle.readv(max_length, slices, num_slices);
+Api::IoCallUint64Result OwnedImpl::read(SOCKET_HANDLE fd, uint64_t max_length) {
+  if (max_length == 0) {
+    return Api::ioCallUint64ResultNoError();
+  }
+  constexpr uint64_t MaxSlices = 2;
+  RawSlice slices[MaxSlices];
+  const uint64_t num_slices = reserve(max_length, slices, MaxSlices);
+  Api::IoCallUint64Result result = fd.readv(max_length, slices, num_slices);
   if (old_impl_) {
     if (!result.ok()) {
       return result;
@@ -430,8 +438,8 @@ Api::IoCallUint64Result OwnedImpl::read(SOCKET_FD fd, uint64_t max_length) {
     commit(slices, num_slices);
   }
   return result;
-#endif
 }
+#endif
 
 uint64_t OwnedImpl::reserve(uint64_t length, RawSlice* iovecs, uint64_t num_iovecs) {
   if (num_iovecs == 0 || length == 0) {
@@ -571,7 +579,7 @@ ssize_t OwnedImpl::search(const void* data, uint64_t size, size_t start) const {
 }
 
   // TODO: YECHIEL - FIX THIS MERGE
-#ifdef(WIN32)
+#ifdef WIN32
 Api::SysCallIntResult OwnedImpl::write(SOCKET_FD fd) {
   constexpr uint64_t MaxSlices = 16;
   RawSlice slices[MaxSlices];
@@ -591,6 +599,10 @@ Api::SysCallIntResult OwnedImpl::write(SOCKET_FD fd) {
   auto& os_syscalls = Api::OsSysCallsSingleton::get();
   const Api::SysCallSizeResult result = os_syscalls.writev(fd, iov.begin(), num_slices_to_write);
   if (result.rc_ > 0) {
+    drain(static_cast<uint64_t>(result.rc_));
+  }
+  return result;
+}
 #else
 Api::IoCallUint64Result OwnedImpl::write(Network::IoHandle& io_handle) {
   constexpr uint64_t MaxSlices = 16;
@@ -598,11 +610,11 @@ Api::IoCallUint64Result OwnedImpl::write(Network::IoHandle& io_handle) {
   const uint64_t num_slices = std::min(getRawSlices(slices, MaxSlices), MaxSlices);
   Api::IoCallUint64Result result = io_handle.writev(slices, num_slices);
   if (result.ok() && result.rc_ > 0) {
-#endif
     drain(static_cast<uint64_t>(result.rc_));
   }
   return result;
 }
+#endif
 
 OwnedImpl::OwnedImpl() : old_impl_(use_old_impl_) {
   if (old_impl_) {

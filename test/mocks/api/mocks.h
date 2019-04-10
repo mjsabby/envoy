@@ -10,10 +10,6 @@
 
 #include "common/api/os_sys_calls_impl.h"
 
-#if defined(__linux__)
-#include "common/api/os_sys_calls_impl_linux.h"
-#endif
-
 #include "test/mocks/filesystem/mocks.h"
 #include "test/mocks/stats/mocks.h"
 #include "test/test_common/test_time.h"

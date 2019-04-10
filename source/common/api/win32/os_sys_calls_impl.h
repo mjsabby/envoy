@@ -17,6 +17,8 @@ public:
   SysCallSizeResult writev(SOCKET_FD fd, IOVEC* iovec, int num_iovec) override;
   SysCallSizeResult readv(SOCKET_FD fd, IOVEC* iovec, int num_iovec) override;
   SysCallSizeResult recv(SOCKET_FD socket, void* buffer, size_t length, int flags) override;
+  SysCallSizeResult recvfrom(SOCKET_FD sockfd, void* buffer, size_t length, int flags,
+                             struct sockaddr* addr, socklen_t* addrlen) override;
   SysCallIntResult close(SOCKET_FD fd) override;
   SysCallIntResult shmOpen(const char* name, int oflag, mode_t mode) override;
   SysCallIntResult shmUnlink(const char* name) override;
