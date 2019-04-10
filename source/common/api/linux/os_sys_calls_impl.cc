@@ -2,6 +2,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <sched.h>
 
 #include "common/api/os_sys_calls_impl.h"
 
@@ -41,6 +42,12 @@ SysCallSizeResult OsSysCallsImpl::readv(SOCKET_FD fd, IOVEC* iovec, int num_iove
 
 SysCallSizeResult OsSysCallsImpl::recv(SOCKET_FD socket, void* buffer, size_t length, int flags) {
   const ssize_t rc = ::recv(socket, buffer, length, flags);
+  return {rc, errno};
+}
+
+SysCallSizeResult OsSysCallsImpl::recvfrom(SOCKET_FD sockfd, void* buffer, size_t length, int flags,
+                                           struct sockaddr* addr, socklen_t* addrlen) {
+  const ssize_t rc = ::recvfrom(sockfd, buffer, length, flags, addr, addrlen);
   return {rc, errno};
 }
 
@@ -141,6 +148,12 @@ SysCallSocketResult OsSysCallsImpl::accept(SOCKET_FD sockfd, sockaddr* address,
                                            socklen_t* address_len) {
   const SOCKET_FD sock = ::accept(sockfd, address, address_len);
   return {sock, errno};
+}
+
+SysCallIntResult OsSysCallsImpl::sched_getaffinity(pid_t pid, size_t cpusetsize,
+                                                        cpu_set_t* mask) {
+  const int rc = ::sched_getaffinity(pid, cpusetsize, mask);
+  return {rc, errno};
 }
 
 } // namespace Api
