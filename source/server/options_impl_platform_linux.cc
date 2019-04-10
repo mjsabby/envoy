@@ -8,7 +8,7 @@
 
 #include <thread>
 
-#include "common/api/os_sys_calls_impl_linux.h"
+#include "common/api/os_sys_calls_impl.h"
 
 #include "server/options_impl_platform.h"
 
@@ -18,11 +18,11 @@ uint32_t OptionsImplPlatformLinux::getCpuAffinityCount(unsigned int hw_threads) 
   unsigned int threads = 0;
   pid_t pid = getpid();
   cpu_set_t mask;
-  auto& linux_os_syscalls = Api::LinuxOsSysCallsSingleton::get();
+  auto& os_syscalls = Api::OsSysCallsSingleton::get();
 
   CPU_ZERO(&mask);
   const Api::SysCallIntResult result =
-      linux_os_syscalls.sched_getaffinity(pid, sizeof(cpu_set_t), &mask);
+      os_syscalls.sched_getaffinity(pid, sizeof(cpu_set_t), &mask);
   if (result.rc_ == -1) {
     // Fall back to number of hardware threads.
     return hw_threads;

@@ -175,7 +175,7 @@ public:
    * @return a IoCallUint64Result with err_ = nullptr and rc_ = the number of bytes
    * read if successful, or err_ = some IoError for failure. If call failed, rc_ shouldn't be used.
    */
-  virtual Api::SysCallIntResult read(SOCKET_FD fd, uint64_t max_length) PURE;
+  virtual Api::IoCallUint64Result read(SOCKET_HANDLE fd, uint64_t max_length) PURE;
 
   /**
    * Reserve space in the buffer.
@@ -208,7 +208,7 @@ public:
    * written if successful, or err_ = some IoError for failure. If call failed, rc_ shouldn't be
    * used.
    */
-  virtual Api::IoCallUint64Result write(SOCKET_FD fd) PURE;
+  virtual Api::IoCallUint64Result write(SOCKET_HANDLE fd) PURE;
 
   /**
    * Copy an integer out of the buffer.
