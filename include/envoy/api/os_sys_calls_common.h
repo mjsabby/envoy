@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include "envoy/common/platform.h"
 
 namespace Envoy {
 namespace Api {
@@ -26,6 +27,7 @@ typedef SysCallResult<ssize_t> SysCallSizeResult;
 typedef SysCallResult<void*> SysCallPtrResult;
 typedef SysCallResult<std::string> SysCallStringResult;
 typedef SysCallResult<bool> SysCallBoolResult;
+typedef SysCallResult<SOCKET_FD> SysCallSocketResult;
 
 } // namespace Api
 } // namespace Envoy

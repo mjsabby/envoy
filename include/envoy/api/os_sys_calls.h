@@ -29,7 +29,6 @@
 
 #include "envoy/api/os_sys_calls_common.h"
 #include "envoy/common/pure.h"
-#include "envoy/common/platform.h"
 
 namespace Envoy {
 namespace Api {
@@ -77,7 +76,7 @@ public:
   /**
    * @see recv (man 2 recvfrom)
    */
-  virtual SysCallSizeResult recvfrom(int sockfd, void* buffer, size_t length, int flags,
+  virtual SysCallSizeResult recvfrom(SOCKET_FD sockfd, void* buffer, size_t length, int flags,
                                      struct sockaddr* addr, socklen_t* addrlen) PURE;
   /**
    * Release all resources allocated for fd.
