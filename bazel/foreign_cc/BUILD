@@ -103,7 +103,10 @@ envoy_cmake_external(
     lib_source = "@com_github_libevent_libevent//:all",
     static_libraries = select({
         "//bazel:windows_x86_64": ["event.lib"],
-        "//conditions:default": ["libevent.a"],
+        "//conditions:default": [
+            "libevent.a",
+            "libevent_pthreads.a",
+        ],
     }),
 )
 
