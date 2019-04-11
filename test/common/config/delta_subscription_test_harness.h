@@ -124,7 +124,7 @@ public:
       }
     }
     Protobuf::RepeatedPtrField<std::string> removed_resources;
-    EXPECT_CALL(callbacks_, onConfigUpdate(_, _, version)).WillOnce(ThrowOnRejectedConfig(accept));
+    EXPECT_CALL(callbacks_, onConfigUpdate_(_, _, version)).WillOnce(ThrowOnRejectedConfig(accept));
     if (accept) {
       expectSendMessage({}, version);
     } else {

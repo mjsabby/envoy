@@ -93,7 +93,7 @@ public:
 };
 
 #if defined(__linux__)
-class MockLinuxOsSysCalls : public LinuxOsSysCallsImpl {
+class MockLinuxOsSysCalls : public OsSysCallsImpl {
 public:
   // Api::LinuxOsSysCalls
   MOCK_METHOD3(sched_getaffinity, SysCallIntResult(pid_t pid, size_t cpusetsize, cpu_set_t* mask));

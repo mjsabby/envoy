@@ -12,6 +12,7 @@ TEST(IoSocketHandleImplTest, TestIoSocketError) {
   IoSocketError error1(WSAEWOULDBLOCK);
 #else
   IoSocketError error1(EAGAIN);
+#endif
   EXPECT_DEBUG_DEATH(error1.getErrorCode(),
                      ".*assert failure: .* Details: Didn't use getIoSocketEagainInstance.*");
 

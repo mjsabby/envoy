@@ -775,9 +775,9 @@ TEST_P(ConnectionImplTest, WriteWithWatermarks) {
       .WillRepeatedly(DoAll(AddBufferToStringWithoutDraining(&data_written),
                             Invoke(client_write_buffer_, &MockWatermarkBuffer::baseMove)));
   EXPECT_CALL(*client_write_buffer_, write(_))
-      .WillOnce(Invoke([&](SOCKET_FD fd) -> Api::IoCallUint64Result {
+      .WillOnce(Invoke([&](SOCKET_HANDLE fd) -> Api::IoCallUint64Result {
         dispatcher_->exit();
-        return client_write_buffer_->failWrite(io_handle);
+        return client_write_buffer_->failWrite(fd);
       }));
   // The write() call on the connection will buffer enough data to bring the connection above the
   // high watermark and as the data will not flush it should not return below the watermark.
