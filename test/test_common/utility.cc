@@ -316,8 +316,8 @@ std::string TestUtility::convertTime(const std::string& input, const std::string
   return TestUtility::formatTime(TestUtility::parseTime(input, input_format), output_format);
 }
 
-SOCKET_FD TestUtility::duplicateSocket(SOCKET_FD sock) {
 #ifdef WIN32
+SOCKET_FD TestUtility::duplicateSocket(SOCKET_FD sock) {
   WSAPROTOCOL_INFO proto_info;
   const int rc = ::WSADuplicateSocket(sock, ::GetCurrentProcessId(), &proto_info);
   RELEASE_ASSERT(!SOCKET_FAILURE(rc),
@@ -326,11 +326,15 @@ SOCKET_FD TestUtility::duplicateSocket(SOCKET_FD sock) {
       ::WSASocket(FROM_PROTOCOL_INFO, FROM_PROTOCOL_INFO, FROM_PROTOCOL_INFO, &proto_info, 0, 0);
   RELEASE_ASSERT(!SOCKET_INVALID(dup_socket),
                  fmt::format("WSASocket failed: {}", ::WSAGetLastError()));
+  return dup_socket;
+}
 #else
+SOCKET_FD TestUtility::duplicateSocket(SOCKET_FD sock) {
   const SOCKET_FD dup_socket = ::dup(sock);
   RELEASE_ASSERT(!SOCKET_INVALID(dup_socket), fmt::format("dup failed: {}", errno));
-#endif
   return dup_socket;
+}
+#endif
 
 // static
 bool TestUtility::gaugesZeroed(const std::vector<Stats::GaugeSharedPtr>& gauges) {

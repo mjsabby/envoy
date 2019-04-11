@@ -324,7 +324,7 @@ TEST_F(OptionsImplPlatformLinuxTest, AffinityTest1) {
   unsigned int fake_hw_threads = 4;
   cpu_set_t test_set;
   Api::MockLinuxOsSysCalls linux_os_sys_calls;
-  TestThreadsafeSingletonInjector<Api::LinuxOsSysCallsImpl> linux_os_calls(&linux_os_sys_calls);
+  TestThreadsafeSingletonInjector<Api::OsSysCallsImpl> linux_os_calls(&linux_os_sys_calls);
 
   // Set cpuset size to be four.
   CPU_ZERO(&test_set);
@@ -342,7 +342,7 @@ TEST_F(OptionsImplPlatformLinuxTest, AffinityTest2) {
   unsigned int fake_hw_threads = 16;
   cpu_set_t test_set;
   Api::MockLinuxOsSysCalls linux_os_sys_calls;
-  TestThreadsafeSingletonInjector<Api::LinuxOsSysCallsImpl> linux_os_calls(&linux_os_sys_calls);
+  TestThreadsafeSingletonInjector<Api::OsSysCallsImpl> linux_os_calls(&linux_os_sys_calls);
 
   // Set cpuset size to be eight.
   CPU_ZERO(&test_set);
@@ -360,7 +360,7 @@ TEST_F(OptionsImplPlatformLinuxTest, AffinityTest3) {
   unsigned int fake_hw_threads = 4;
   cpu_set_t test_set;
   Api::MockLinuxOsSysCalls linux_os_sys_calls;
-  TestThreadsafeSingletonInjector<Api::LinuxOsSysCallsImpl> linux_os_calls(&linux_os_sys_calls);
+  TestThreadsafeSingletonInjector<Api::OsSysCallsImpl> linux_os_calls(&linux_os_sys_calls);
 
   // Set cpuset size to be eight.
   CPU_ZERO(&test_set);
@@ -378,7 +378,7 @@ TEST_F(OptionsImplPlatformLinuxTest, AffinityTest4) {
   unsigned int fake_hw_threads = 8;
   cpu_set_t test_set;
   Api::MockLinuxOsSysCalls linux_os_sys_calls;
-  TestThreadsafeSingletonInjector<Api::LinuxOsSysCallsImpl> linux_os_calls(&linux_os_sys_calls);
+  TestThreadsafeSingletonInjector<Api::OsSysCallsImpl> linux_os_calls(&linux_os_sys_calls);
 
   // Set cpuset size to be four.
   CPU_ZERO(&test_set);
