@@ -130,7 +130,7 @@ public:
   }
 
   void expectConfigUpdateFailed() override {
-    EXPECT_CALL(callbacks_, onConfigUpdateFailed(nullptr));
+    EXPECT_CALL(callbacks_, onConfigUpdateFailed_(nullptr));
   }
 
   void expectEnableInitFetchTimeoutTimer(std::chrono::milliseconds timeout) override {

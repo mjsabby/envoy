@@ -1704,7 +1704,7 @@ TEST_F(ListenerManagerImplWithRealFiltersTest, MultipleFilterChainsWithDestinati
   EXPECT_EQ(server_names.size(), 2);
   EXPECT_EQ(server_names.front(), "*.example.com");
 
-#ifndef(WIN32)
+#ifndef WIN32
   // UDS client - using 1st filter chain.
   filter_chain = findFilterChain(0, true, "/tmp/test.sock", true, "", true, "tls", true, {}, true,
                                  "127.0.0.1", false, true);
@@ -1787,7 +1787,7 @@ TEST_F(ListenerManagerImplWithRealFiltersTest, MultipleFilterChainsWithDestinati
   EXPECT_EQ(server_names.size(), 2);
   EXPECT_EQ(server_names.front(), "*.example.com");
 
-#ifndef(WIN32)
+#ifndef WIN32
   // UDS client - using 1st filter chain.
   filter_chain = findFilterChain(0, true, "/tmp/test.sock", true, "", true, "tls", true, {}, true,
                                  "/tmp/test.sock", false, true);

@@ -97,11 +97,11 @@ public:
       }
     }
     Protobuf::RepeatedPtrField<std::string> removed_resources;
-    EXPECT_CALL(callbacks_, onConfigUpdate(_, _, version)).WillOnce(ThrowOnRejectedConfig(accept));
+    EXPECT_CALL(callbacks_, onConfigUpdate_(_, _, version)).WillOnce(ThrowOnRejectedConfig(accept));
     if (accept) {
       expectSendMessage({}, version);
     } else {
-      EXPECT_CALL(callbacks_, onConfigUpdateFailed(_));
+      EXPECT_CALL(callbacks_, onConfigUpdateFailed_(_));
       expectSendMessage({}, {}, Grpc::Status::GrpcStatus::Internal, "bad config");
     }
     subscription_->onReceiveMessage(std::move(response));
@@ -118,7 +118,7 @@ public:
   }
 
   void expectConfigUpdateFailed() override {
-    EXPECT_CALL(callbacks_, onConfigUpdateFailed(nullptr));
+    EXPECT_CALL(callbacks_, onConfigUpdateFailed_(nullptr));
   }
 
   void expectEnableInitFetchTimeoutTimer(std::chrono::milliseconds timeout) override {
