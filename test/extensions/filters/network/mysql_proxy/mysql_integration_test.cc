@@ -1,3 +1,5 @@
+#include <pthread.h>
+
 #include "extensions/filters/network/mysql_proxy/mysql_codec.h"
 #include "extensions/filters/network/mysql_proxy/mysql_codec_clogin.h"
 #include "extensions/filters/network/mysql_proxy/mysql_codec_clogin_resp.h"
@@ -10,7 +12,6 @@
 #include "test/mocks/network/mocks.h"
 #include "test/test_common/network_utility.h"
 
-#include "fmt/printf.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "mysql_test_utils.h"
