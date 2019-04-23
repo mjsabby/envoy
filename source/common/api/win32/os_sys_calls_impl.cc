@@ -233,5 +233,11 @@ SysCallSocketResult OsSysCallsImpl::accept(SOCKET_FD sockfd, sockaddr* address,
   return {sock, WSAGetLastError()};
 }
 
+SysCallIntResult OsSysCallsImpl::sched_getaffinity(pid_t pid, size_t cpusetsize,
+                                                        cpu_set_t* mask) {
+  ASSERT(false);
+  return {0, 0};
+}
+
 } // namespace Api
 } // namespace Envoy

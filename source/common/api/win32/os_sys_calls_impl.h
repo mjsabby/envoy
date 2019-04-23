@@ -39,6 +39,8 @@ public:
   SysCallIntResult listen(SOCKET_FD sockfd, int backlog) override;
   SysCallIntResult socketpair(int domain, int type, int protocol, SOCKET_FD sv[2]) override;
   SysCallSocketResult accept(SOCKET_FD sockfd, sockaddr* addr, socklen_t* addr_len) override;
+  // TODO(YAEL) Check if we need the sched function for windows, and if not, whether we can define it only for linux and not in the base class
+  SysCallIntResult sched_getaffinity(pid_t pid, size_t cpusetsize, cpu_set_t* mask) override;
 };
 
 typedef ThreadSafeSingleton<OsSysCallsImpl> OsSysCallsSingleton;
