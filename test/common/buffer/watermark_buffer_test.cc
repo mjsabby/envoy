@@ -177,7 +177,7 @@ TEST_P(WatermarkBufferTest, MoveOneByte) {
   EXPECT_EQ(11, buffer_.length());
 }
 
-TEST_F(WatermarkBufferTest, WatermarkFdFunctions) {
+TEST_P(WatermarkBufferTest, WatermarkFdFunctions) {
   SOCKET_FD pipe_fds[2] = {0, 0};
 #ifdef WIN32
   auto& os_sys_calls = Api::OsSysCallsSingleton::get();
