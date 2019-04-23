@@ -39,7 +39,7 @@ public:
   SysCallIntResult listen(SOCKET_FD sockfd, int backlog) override;
   SysCallIntResult socketpair(int domain, int type, int protocol, SOCKET_FD sv[2]) override;
   SysCallSocketResult accept(SOCKET_FD sockfd, sockaddr* addr, socklen_t* addr_len) override;
-  SysCallIntResult sched_getaffinity(pid_t pid, size_t cpusetsize, cpu_set_t* mask);
+  SysCallIntResult sched_getaffinity(pid_t pid, size_t cpusetsize, cpu_set_t* mask) override;
 };
 
 typedef ThreadSafeSingleton<OsSysCallsImpl> OsSysCallsSingleton;
