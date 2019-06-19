@@ -55,31 +55,31 @@ bool IoSocketHandleImpl::isOpen() const {
 
 Api::IoCallUint64Result IoSocketHandleImpl::readv(uint64_t max_length, Buffer::RawSlice* slices,
                                                   uint64_t num_slice) {
-  STACK_ARRAY(iov, iovec, num_slice);
+  STACK_ARRAY(iov, IOVEC, num_slice);
   uint64_t num_slices_to_read = 0;
   uint64_t num_bytes_to_read = 0;
   for (; num_slices_to_read < num_slice && num_bytes_to_read < max_length; num_slices_to_read++) {
-    iov[num_slices_to_read].iov_base = slices[num_slices_to_read].mem_;
+    IOVEC_SET_BASE(iov[num_slices_to_read], slices[num_slices_to_read].mem_);
     const size_t slice_length = std::min(slices[num_slices_to_read].len_,
                                          static_cast<size_t>(max_length - num_bytes_to_read));
-    iov[num_slices_to_read].iov_len = slice_length;
+    IOVEC_SET_LEN(iov[num_slices_to_read], slice_length);
     num_bytes_to_read += slice_length;
   }
   ASSERT(num_bytes_to_read <= max_length);
   auto& os_syscalls = Api::OsSysCallsSingleton::get();
   const Api::SysCallSizeResult result =
-      os_syscalls.readv(fd_, iov.begin(), static_cast<int>(num_slices_to_read));
+      os_syscalls.readv(fd(), iov.begin(), static_cast<int>(num_slices_to_read));
   return sysCallResultToIoCallResult(result);
 }
 
 Api::IoCallUint64Result IoSocketHandleImpl::writev(const Buffer::RawSlice* slices,
                                                    uint64_t num_slice) {
-  STACK_ARRAY(iov, iovec, num_slice);
+  STACK_ARRAY(iov, IOVEC, num_slice);
   uint64_t num_slices_to_write = 0;
   for (uint64_t i = 0; i < num_slice; i++) {
     if (slices[i].mem_ != nullptr && slices[i].len_ != 0) {
-      iov[num_slices_to_write].iov_base = slices[i].mem_;
-      iov[num_slices_to_write].iov_len = slices[i].len_;
+      IOVEC_SET_BASE(iov[num_slices_to_write], slices[i].mem_);
+      IOVEC_SET_LEN(iov[num_slices_to_write], slices[i].len_);
       num_slices_to_write++;
     }
   }
@@ -87,7 +87,7 @@ Api::IoCallUint64Result IoSocketHandleImpl::writev(const Buffer::RawSlice* slice
     return Api::ioCallUint64ResultNoError();
   }
   auto& os_syscalls = Api::OsSysCallsSingleton::get();
-  const Api::SysCallSizeResult result = os_syscalls.writev(fd_, iov.begin(), num_slices_to_write);
+  const Api::SysCallSizeResult result = os_syscalls.writev(fd(), iov.begin(), num_slices_to_write);
   return sysCallResultToIoCallResult(result);
 }
 
