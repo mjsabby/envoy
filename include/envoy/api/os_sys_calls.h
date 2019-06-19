@@ -161,8 +161,6 @@ public:
    */
   virtual SysCallSocketResult accept(SOCKET_FD sockfd, sockaddr* addr, socklen_t* addr_len) PURE;
 
-
-  virtual SysCallIntResult sched_getaffinity(pid_t pid, size_t cpusetsize, cpu_set_t* mask) PURE;
 };
 
 typedef std::unique_ptr<OsSysCalls> OsSysCallsPtr;
