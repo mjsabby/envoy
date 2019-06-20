@@ -775,7 +775,7 @@ TEST_P(ConnectionImplTest, WriteWithWatermarks) {
       .WillRepeatedly(DoAll(AddBufferToStringWithoutDraining(&data_written),
                             Invoke(client_write_buffer_, &MockWatermarkBuffer::baseMove)));
   EXPECT_CALL(*client_write_buffer_, write(_))
-      .WillOnce(Invoke([&](SOCKET_HANDLE fd) -> Api::IoCallUint64Result {
+      .WillOnce(Invoke([&](Network::IoHandle& fd) -> Api::IoCallUint64Result {
         dispatcher_->exit();
         return client_write_buffer_->failWrite(fd);
       }));

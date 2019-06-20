@@ -53,11 +53,11 @@ private:
 #ifdef WIN32
   SOCKET socket_descriptor_;
 #else
-  // Converts a SysCallSizeResult to IoCallUint64Result.
-  Api::IoCallUint64Result sysCallResultToIoCallResult(const Api::SysCallSizeResult& result);
-
   int fd_;
 #endif
+
+  // Converts a SysCallSizeResult to IoCallUint64Result.
+  Api::IoCallUint64Result sysCallResultToIoCallResult(const Api::SysCallSizeResult& result);
 };
 
 } // namespace Network
