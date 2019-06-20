@@ -52,8 +52,6 @@ public:
 private:
 #ifdef WIN32
   SOCKET socket_descriptor_;
-  // TODO(YECHIEL): confirm that this function works as expected on Windows
-  Api::IoCallUint64Result sysCallResultToIoCallResult(const Api::SysCallSizeResult& result);
 #else
   // Converts a SysCallSizeResult to IoCallUint64Result.
   Api::IoCallUint64Result sysCallResultToIoCallResult(const Api::SysCallSizeResult& result);
