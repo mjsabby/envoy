@@ -37,7 +37,6 @@ using mode_t = uint32_t;
 #undef GetMessage
 
 #define SOCKET_FD SOCKET
-#define SOCKET_HANDLE SOCKET
 
 using IOVEC = _WSABUF;
 #define IOVEC_SET_BASE(iov, b) (iov).buf = static_cast<char*>((b))
@@ -58,7 +57,6 @@ using IOVEC = _WSABUF;
 #include <sys/uio.h>
 
 #define SOCKET_FD int
-#define SOCKET_HANDLE Network::IoHandle&
 
 using IOVEC = iovec;
 #define IOVEC_SET_BASE(iov, b) (iov).iov_base = (b)
