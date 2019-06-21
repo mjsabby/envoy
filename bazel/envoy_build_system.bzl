@@ -82,16 +82,15 @@ def envoy_cmake_external(
         if pdb_name == "":
             pdb_name = name
 
-# TODO(YECHIEL) Need to look into this
-#       copy_command = "cp {cmake_files_dir}/{pdb_name}.dir/{pdb_name}.pdb $INSTALLDIR/lib/{pdb_name}.pdb".format(cmake_files_dir = cmake_files_dir, pdb_name = pdb_name)
-#       if postfix_script != "":
-#            copy_command = copy_command + " && " + postfix_script
-#
-#        pf = select({
-#            "@envoy//bazel:windows_dbg_build": copy_command,
-#            "//conditions:default": postfix_script,
-#        })
-#    else:
+        copy_command = "cp {cmake_files_dir}/{pdb_name}.dir/{pdb_name}.pdb $INSTALLDIR/lib/{pdb_name}.pdb".format(cmake_files_dir = cmake_files_dir, pdb_name = pdb_name)
+        if postfix_script != "":
+            copy_command = copy_command + " && " + postfix_script
+
+        pf = select({
+            "@envoy//bazel:windows_dbg_build": copy_command,
+            "//conditions:default": postfix_script,
+        })
+    else:
         pf = postfix_script
 
     cmake_external(
