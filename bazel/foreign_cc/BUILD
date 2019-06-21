@@ -101,11 +101,12 @@ envoy_cmake_external(
         "CMAKE_RANLIB": "",
     },
     copy_pdb = True,
+    pdb_name = "event_static",
     lib_source = "@com_github_libevent_libevent//:all",
     static_libraries = select({
         "//bazel:windows_x86_64": ["event.lib"],
         "//conditions:default": [
-                "libevent.a",
+            "libevent.a",
             "libevent_pthreads.a",
         ],
     }),
