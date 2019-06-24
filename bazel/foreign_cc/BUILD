@@ -66,6 +66,8 @@ envoy_cmake_external(
         "CMAKE_RANLIB": "",
     },
     copy_pdb = True,
+    # TODO(YECHIEL): We made some changes here to get the build working on windows_dbg_build
+    # We need to review this to see if it's needed after we finish merging to master.
     pdb_name = "event_static",
     lib_source = "@com_github_libevent_libevent//:all",
     static_libraries = select({
