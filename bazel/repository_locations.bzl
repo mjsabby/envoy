@@ -220,10 +220,10 @@ REPOSITORY_LOCATIONS = dict(
         urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.18.5/rules_go-0.18.5.tar.gz"],
     ),
     rules_foreign_cc = dict(
-        sha256 = "980c1b74f5c18ea099889b0fb0479ee34b8a02845d3d302ecb16b15d73d624c8",
-        strip_prefix = "rules_foreign_cc-a0dc109915cea85909bef586e2b2a9bbdc6c8ff5",
-        # 2019-06-04
-        urls = ["https://github.com/bazelbuild/rules_foreign_cc/archive/a0dc109915cea85909bef586e2b2a9bbdc6c8ff5.tar.gz"],
+        sha256 = "4a7f9378a6382c56b560096f9ca9e28727b8c30d57e64930591e1208d7ee4709",
+        strip_prefix = "rules_foreign_cc-64e2cda959f65b30f65be5028dac0737ddb5150f",
+        # TODO: (Pivotal) 2019-07-10 for commit 0b8356f to fix use of sed corrupting binary file output
+        urls = ["https://github.com/bazelbuild/rules_foreign_cc/archive/64e2cda959f65b30f65be5028dac0737ddb5150f.tar.gz"],
     ),
     six_archive = dict(
         sha256 = "105f8d68616f8248e24bf0e9372ef04d3cc10104f1980f54d57b2ce73a5ad56a",
