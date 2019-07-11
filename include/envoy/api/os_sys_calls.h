@@ -43,20 +43,9 @@ public:
   virtual SysCallIntResult bind(SOCKET_FD sockfd, const sockaddr* addr, socklen_t addrlen) PURE;
 
   /**
-   * @see connect (man 2 connect)
-   */
-  virtual SysCallIntResult connect(SOCKET_FD sockfd, const sockaddr* addr, socklen_t addrlen) PURE;
-
-  /**
    * @see ioctl (man 2 ioctl)
    */
   virtual SysCallIntResult ioctl(SOCKET_FD sockfd, unsigned long int request, void* argp) PURE;
-
-  /**
-   * Write num_bytes to fd from buffer.
-   * @return number of bytes written if non negative, otherwise error code.
-   */
-  virtual SysCallSizeResult writeSocket(SOCKET_FD fd, const void* buffer, size_t num_bytes) PURE;
 
   /**
    * @see writev (man 2 writev)
@@ -78,6 +67,12 @@ public:
    */
   virtual SysCallSizeResult recvfrom(SOCKET_FD sockfd, void* buffer, size_t length, int flags,
                                      struct sockaddr* addr, socklen_t* addrlen) PURE;
+
+  /**
+   * @see recvmsg (man 2 recvmsg)
+   */
+  virtual SysCallSizeResult recvmsg(SOCKET_FD sockfd, struct msghdr* msg, int flags) PURE;
+
   /**
    * Release all resources allocated for fd.
    * @return zero on success, -1 returned otherwise.
@@ -85,25 +80,14 @@ public:
   virtual SysCallIntResult close(SOCKET_FD fd) PURE;
 
   /**
-   * @see recvmsg (man 2 recvmsg)
-   */
-  virtual SysCallSizeResult recvmsg(int sockfd, struct msghdr* msg, int flags) PURE;
-
-  /**
-   * Release all resources allocated for fd.
-   * @return zero on success, -1 returned otherwise.
-   */
-  virtual SysCallIntResult close(int fd) PURE;
-
-  /**
    * @see man 2 ftruncate
    */
-  virtual SysCallIntResult ftruncate(int fd, off_t length) PURE;
+  virtual SysCallIntResult ftruncate(SOCKET_FD fd, off_t length) PURE;
 
   /**
    * @see man 2 mmap
    */
-  virtual SysCallPtrResult mmap(void* addr, size_t length, int prot, int flags, int fd,
+  virtual SysCallPtrResult mmap(void* addr, size_t length, int prot, int flags, SOCKET_FD fd,
                                 off_t offset) PURE;
 
   /**
@@ -129,23 +113,22 @@ public:
   virtual SysCallSocketResult socket(int domain, int type, int protocol) PURE;
 
   /**
-   * @see man 2 getsockname
-   */
-  virtual SysCallIntResult getsockname(SOCKET_FD sockfd, sockaddr* name, socklen_t* namelen) PURE;
-
-  /**
    * @see man 2 sendto
-   * TODO: (Pivotal Review)
    */
   virtual SysCallSizeResult sendto(SOCKET_FD sockfd, const void* buffer, size_t size, int flags,
                                    const sockaddr* addr, socklen_t addrlen) PURE;
 
   /**
    * @see man 2 sendmsg
-   * TODO: (Pivotal Review)
    */
   virtual SysCallSizeResult sendmsg(SOCKET_FD sockfd, const msghdr* message, int flags) PURE;
 
+  /**
+   * @see man 2 getsockname
+   */
+  virtual SysCallIntResult getsockname(SOCKET_FD sockfd, sockaddr* name, socklen_t* namelen) PURE;
+
+  //TODO: Pivotal review - the following functions don't exist in master
   /**
    * @see man 2 getpeername
    */
@@ -174,6 +157,21 @@ public:
    * @see man 2 accept
    */
   virtual SysCallSocketResult accept(SOCKET_FD sockfd, sockaddr* addr, socklen_t* addr_len) PURE;
+
+
+  /*
+   * @see connect (man 2 connect)
+   */
+  virtual SysCallIntResult connect(SOCKET_FD sockfd, const sockaddr* addr, socklen_t addrlen) PURE;
+
+  /**
+   * Write num_bytes to fd from buffer.
+   * @return number of bytes written if non negative, otherwise error code.
+   */
+  virtual SysCallSizeResult writeSocket(SOCKET_FD fd, const void* buffer, size_t num_bytes) PURE;
+
+  
+  virtual SysCallIntResult sched_getaffinity(pid_t pid, size_t cpusetsize, cpu_set_t* mask) PURE;
 
 };
 

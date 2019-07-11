@@ -3,6 +3,8 @@ licenses(["notice"])  # Apache 2
 load(
     "//bazel:envoy_build_system.bzl",
     "envoy_cc_library",
+    "envoy_cc_posix_library",
+    "envoy_cc_win32_library",
     "envoy_package",
     "envoy_select_hot_restart",
 )
@@ -22,29 +24,41 @@ envoy_cc_library(
 
 envoy_cc_library(
     name = "os_sys_calls_lib",
-    srcs = select({
-        "//bazel:linux_x86_64": ["posix/os_sys_calls_impl.cc", "posix/os_sys_calls_impl_linux.cc"],
-        "//bazel:linux_aarch64": ["posix/os_sys_calls_impl.cc", "posix/os_sys_calls_impl_linux.cc"],
-        "//bazel:linux_ppc": ["posix/os_sys_calls_impl.cc", "posix/os_sys_calls_impl_linux.cc"],
-        "//bazel:windows_x86_64": ["win32/os_sys_calls_impl.cc"],
-        "//conditions:default": ["posix/os_sys_calls_impl.cc"],
-    }) + envoy_select_hot_restart(["posix/os_sys_calls_impl_hot_restart.cc"]),
-    hdrs = select({
-        "//bazel:linux_x86_64": ["posix/os_sys_calls_impl.h", "posix/os_sys_calls_impl_linux.h"],
-        "//bazel:linux_aarch64": ["posix/os_sys_calls_impl.h", "posix/os_sys_calls_impl_linux.h"],
-        "//bazel:linux_ppc": ["posix/os_sys_calls_impl.h", "posix/os_sys_calls_impl_linux.h"],
-        "//bazel:windows_x86_64": ["win32/os_sys_calls_impl.h"],
-        "//conditions:default": ["posix/os_sys_calls_impl.h"],
-    }) + envoy_select_hot_restart(["posix/os_sys_calls_impl_hot_restart.h"]),
-    strip_include_prefix = select({
-        "//bazel:windows_x86_64": "win32",
-        "//conditions:default": "posix",
-    }),
+    # This covers bazel:linux_x86_64, linux_aarch64, and linux_ppc
+    srcs = [
+        "linux/os_sys_calls_impl.cc",
+        "linux/os_sys_calls_impl_linux.cc",
+    ] + envoy_select_hot_restart(["linux/os_sys_calls_impl_hot_restart.cc"]), 
+    hdrs = [
+        "linux/os_sys_calls_impl.h",
+        "linux/os_sys_calls_impl_linux.h",
+    ] + envoy_select_hot_restart(["linux/os_sys_calls_impl_hot_restart.h"]),
+    strip_include_prefix = "linux",
     deps = [
         "//include/envoy/api:os_sys_calls_interface",
         "//source/common/singleton:threadsafe_singleton",
-    ] + select({
-            "//bazel:windows_x86_64": ["//source/common/common:assert_lib"],
-            "//conditions:default": [],
-        })
+    ],
+)
+
+envoy_cc_win32_library(
+    name = "os_sys_calls_win32_lib",
+    srcs = ["win32/os_sys_calls_impl.cc"],
+    hdrs = ["win32/os_sys_calls_impl.h"],
+    strip_include_prefix = "win32", 
+    deps = [
+        "//include/envoy/api:os_sys_calls_interface",
+        "//source/common/singleton:threadsafe_singleton",
+        "//source/common/common:assert_lib",
+    ],
+)
+
+envoy_cc_posix_library(
+    name = "os_sys_calls_posix_lib",
+    srcs = ["linux/os_sys_calls_impl.cc"],
+    hdrs = ["linux/os_sys_calls_impl.h"],
+    strip_include_prefix = "linux", 
+    deps = [
+        "//include/envoy/api:os_sys_calls_interface",
+        "//source/common/singleton:threadsafe_singleton",
+    ],
 )
