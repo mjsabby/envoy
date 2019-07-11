@@ -99,13 +99,13 @@ public:
         response->add_resources()->PackFrom(*load_assignment);
       }
     }
-    EXPECT_CALL(callbacks_, onConfigUpdate_(RepeatedProtoEq(response->resources()), version))
+    EXPECT_CALL(callbacks_, onConfigUpdate(RepeatedProtoEq(response->resources()), version))
         .WillOnce(ThrowOnRejectedConfig(accept));
     if (accept) {
       expectSendMessage(last_cluster_names_, version);
       version_ = version;
     } else {
-      EXPECT_CALL(callbacks_, onConfigUpdateFailed_(_));
+      EXPECT_CALL(callbacks_, onConfigUpdateFailed(_));
       expectSendMessage(last_cluster_names_, version_, Grpc::Status::GrpcStatus::Internal,
                         "bad config");
     }
@@ -132,7 +132,7 @@ public:
   }
 
   void expectConfigUpdateFailed() override {
-    EXPECT_CALL(callbacks_, onConfigUpdateFailed_(nullptr));
+    EXPECT_CALL(callbacks_, onConfigUpdateFailed(nullptr));
   }
 
   void expectEnableInitFetchTimeoutTimer(std::chrono::milliseconds timeout) override {

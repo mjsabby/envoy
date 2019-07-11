@@ -15,7 +15,7 @@ TEST_F(GrpcSubscriptionImplTest, StreamCreationFailure) {
   InSequence s;
   EXPECT_CALL(*async_client_, startRaw(_, _, _)).WillOnce(Return(nullptr));
 
-  EXPECT_CALL(callbacks_, onConfigUpdateFailed_(_));
+  EXPECT_CALL(callbacks_, onConfigUpdateFailed(_));
   EXPECT_CALL(random_, random());
   EXPECT_CALL(*timer_, enableTimer(_));
   subscription_->start({"cluster0", "cluster1"});

@@ -628,11 +628,11 @@ drain_type: default
 
   ListenerHandle* listener_foo = expectListenerCreate(false);
 
-  ON_CALL(os_sys_calls, socket(AF_INET, _, 0)).WillOnce(Return(Api::SysCallSocketResult{5, 0}));
+  ON_CALL(os_sys_calls, socket(AF_INET, _, 0)).WillByDefault(Return(Api::SysCallSocketResult{5, 0}));
 #if !defined(WIN32)
-  ON_CALL(os_sys_calls, socket(AF_INET6, _, 0)).WillOnce(Return(Api::SysCallSocketResult{-1, 0}));
+  ON_CALL(os_sys_calls, socket(AF_INET6, _, 0)).WillByDefault(Return(Api::SysCallSocketResult{-1, 0}));
 #else
-  ON_CALL(os_sys_calls, socket(AF_INET6, _, 0)).WillOnce(Return(Api::SysCallSocketResult{INVALID_SOCKET, 0}));
+  ON_CALL(os_sys_calls, socket(AF_INET6, _, 0)).WillByDefault(Return(Api::SysCallSocketResult{INVALID_SOCKET, 0}));
 #endif
 
   EXPECT_CALL(listener_factory_, createListenSocket(_, _, _, true));
@@ -665,11 +665,11 @@ drain_type: default
   ListenerHandle* listener_foo = expectListenerCreate(false);
 
 #if !defined(WIN32)
-  ON_CALL(os_sys_calls, socket(AF_INET, _, 0)).WillOnce(Return(Api::SysCallSocketResult{-1, 0}));
+  ON_CALL(os_sys_calls, socket(AF_INET, _, 0)).WillByDefault(Return(Api::SysCallSocketResult{-1, 0}));
 #else
-  ON_CALL(os_sys_calls, socket(AF_INET, _, 0)).WillOnce(Return(Api::SysCallSocketResult{INVALID_SOCKET, 0}));
+  ON_CALL(os_sys_calls, socket(AF_INET, _, 0)).WillByDefault(Return(Api::SysCallSocketResult{INVALID_SOCKET, 0}));
 #endif
-  ON_CALL(os_sys_calls, socket(AF_INET6, _, 0)).WillOnce(Return(Api::SysCallSocketResult{5, 0}));
+  ON_CALL(os_sys_calls, socket(AF_INET6, _, 0)).WillByDefault(Return(Api::SysCallSocketResult{5, 0}));
 
   EXPECT_CALL(listener_factory_, createListenSocket(_, _, _, true));
 

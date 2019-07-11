@@ -19,7 +19,7 @@ class FilesystemSubscriptionImplTest : public testing::Test,
 TEST_F(FilesystemSubscriptionImplTest, BadJsonRecovery) {
   startSubscription({"cluster0", "cluster1"});
   verifyStats(1, 0, 0, 0, 0);
-  EXPECT_CALL(callbacks_, onConfigUpdateFailed_(_));
+  EXPECT_CALL(callbacks_, onConfigUpdateFailed(_));
   updateFile(";!@#badjso n");
   verifyStats(2, 0, 0, 1, 0);
   deliverConfigUpdate({"cluster0", "cluster1"}, "0", true);
