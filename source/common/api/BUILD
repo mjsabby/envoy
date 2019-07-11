@@ -3,7 +3,6 @@ licenses(["notice"])  # Apache 2
 load(
     "//bazel:envoy_build_system.bzl",
     "envoy_cc_library",
-    "envoy_cc_posix_library",
     "envoy_cc_win32_library",
     "envoy_package",
     "envoy_select_hot_restart",
@@ -25,14 +24,20 @@ envoy_cc_library(
 envoy_cc_library(
     name = "os_sys_calls_lib",
     # This covers bazel:linux_x86_64, linux_aarch64, and linux_ppc
-    srcs = [
-        "linux/os_sys_calls_impl.cc",
-        "linux/os_sys_calls_impl_linux.cc",
-    ] + envoy_select_hot_restart(["linux/os_sys_calls_impl_hot_restart.cc"]), 
-    hdrs = [
-        "linux/os_sys_calls_impl.h",
-        "linux/os_sys_calls_impl_linux.h",
-    ] + envoy_select_hot_restart(["linux/os_sys_calls_impl_hot_restart.h"]),
+    srcs = [] + select({
+        "//bazel:linux_x86_64": ["linux/os_sys_calls_impl.cc", "linux/os_sys_calls_impl_linux.cc"],
+        "//bazel:linux_aarch64": ["linux/os_sys_calls_impl.cc", "linux/os_sys_calls_impl_linux.cc"],
+        "//bazel:linux_ppc": ["linux/os_sys_calls_impl.cc", "linux/os_sys_calls_impl_linux.cc"],
+        "//bazel:windows_x86_64": [],
+        "//conditions:default": ["linux/os_sys_calls_impl.cc"],
+    }) + envoy_select_hot_restart(["linux/os_sys_calls_impl_hot_restart.cc"]),
+    hdrs = select({
+        "//bazel:linux_x86_64": ["linux/os_sys_calls_impl.h", "linux/os_sys_calls_impl_linux.h"],
+        "//bazel:linux_aarch64": ["linux/os_sys_calls_impl.h", "linux/os_sys_calls_impl_linux.h"],
+        "//bazel:linux_ppc": ["linux/os_sys_calls_impl.h", "linux/os_sys_calls_impl_linux.h"],
+        "//bazel:windows_x86_64": [],
+        "//conditions:default": ["linux/os_sys_calls_impl.h"],
+    }) + envoy_select_hot_restart(["linux/os_sys_calls_impl_hot_restart.h"]),
     strip_include_prefix = "linux",
     deps = [
         "//include/envoy/api:os_sys_calls_interface",
@@ -41,9 +46,9 @@ envoy_cc_library(
 )
 
 envoy_cc_win32_library(
-    name = "os_sys_calls_win32_lib",
-    srcs = ["win32/os_sys_calls_impl.cc"],
-    hdrs = ["win32/os_sys_calls_impl.h"],
+    name = "os_sys_calls_lib",
+    srcs = ["win32/os_sys_calls_impl.cc",],
+    hdrs = ["win32/os_sys_calls_impl.h",],
     strip_include_prefix = "win32", 
     deps = [
         "//include/envoy/api:os_sys_calls_interface",
@@ -52,13 +57,3 @@ envoy_cc_win32_library(
     ],
 )
 
-envoy_cc_posix_library(
-    name = "os_sys_calls_posix_lib",
-    srcs = ["linux/os_sys_calls_impl.cc"],
-    hdrs = ["linux/os_sys_calls_impl.h"],
-    strip_include_prefix = "linux", 
-    deps = [
-        "//include/envoy/api:os_sys_calls_interface",
-        "//source/common/singleton:threadsafe_singleton",
-    ],
-)

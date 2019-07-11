@@ -1,4 +1,9 @@
+#ifndef WIN32
 #include <arpa/inet.h>
+#else
+#include <winsock2.h>
+#endif
+
 #include <netinet/in.h>
 #include <sys/socket.h>
 

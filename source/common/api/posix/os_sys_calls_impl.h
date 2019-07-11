@@ -17,7 +17,7 @@ public:
   SysCallSizeResult recv(SOCKET_FD socket, void* buffer, size_t length, int flags) override;
   SysCallSizeResult recvfrom(SOCKET_FD sockfd, void* buffer, size_t length, int flags,
                              struct sockaddr* addr, socklen_t* addrlen) override;
-  SysCallSizeResult recvmsg(int sockfd, struct msghdr* msg, int flags) override;
+  SysCallSizeResult recvmsg(SOCKET_FD sockfd, struct msghdr* msg, int flags) override;
   SysCallIntResult close(SOCKET_FD fd) override;
   SysCallIntResult ftruncate(int fd, off_t length) override;
   SysCallPtrResult mmap(void* addr, size_t length, int prot, int flags, int fd,
@@ -28,9 +28,9 @@ public:
   SysCallIntResult getsockopt(SOCKET_FD sockfd, int level, int optname, void* optval,
                               socklen_t* optlen) override;
   SysCallSocketResult socket(int domain, int type, int protocol) override;
-  SysCallSizeResult sendto(int fd, const void* buffer, size_t size, int flags, const sockaddr* addr,
+  SysCallSizeResult sendto(SOCKET_FD fd, const void* buffer, size_t size, int flags, const sockaddr* addr,
                            socklen_t addrlen) override;
-  SysCallSizeResult sendmsg(int fd, const msghdr* message, int flags) override;
+  SysCallSizeResult sendmsg(SOCKET_FD fd, const msghdr* message, int flags) override;
   SysCallIntResult getsockname(SOCKET_FD sockfd, sockaddr* name, socklen_t* namelen) override;
 
   // TODO: Pivotal review- the following functions don't exist in master
@@ -41,7 +41,6 @@ public:
   SysCallIntResult listen(SOCKET_FD sockfd, int backlog) override;
   SysCallIntResult socketpair(int domain, int type, int protocol, SOCKET_FD sv[2]) override;
   SysCallSocketResult accept(SOCKET_FD sockfd, sockaddr* addr, socklen_t* addr_len) override;
-  SysCallIntResult sched_getaffinity(pid_t pid, size_t cpusetsize, cpu_set_t* mask) override;
   SysCallIntResult connect(SOCKET_FD sockfd, const sockaddr* addr, socklen_t addrlen) override;
   SysCallSizeResult writeSocket(SOCKET_FD fd, const void* buffer, size_t num_bytes) override;
 };
