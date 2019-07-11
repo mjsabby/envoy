@@ -14,19 +14,13 @@ SysCallIntResult OsSysCallsImpl::bind(SOCKET_FD sockfd, const sockaddr* addr, so
   return {rc, errno};
 }
 
-SysCallIntResult OsSysCallsImpl::connect(SOCKET_FD sockfd, const sockaddr* addr,
-                                         socklen_t addrlen) {
-  const int rc = ::connect(sockfd, addr, addrlen);
-  return {rc, errno};
-}
-
 SysCallIntResult OsSysCallsImpl::ioctl(SOCKET_FD sockfd, unsigned long int request, void* argp) {
   const int rc = ::ioctl(sockfd, request, argp);
   return {rc, errno};
 }
 
-SysCallSizeResult OsSysCallsImpl::writeSocket(SOCKET_FD fd, const void* buffer, size_t num_bytes) {
-  const ssize_t rc = ::write(fd, buffer, num_bytes);
+SysCallIntResult OsSysCallsImpl::close(SOCKET_FD fd) {
+  const int rc = ::close(fd);
   return {rc, errno};
 }
 
@@ -51,18 +45,8 @@ SysCallSizeResult OsSysCallsImpl::recvfrom(SOCKET_FD sockfd, void* buffer, size_
   return {rc, errno};
 }
 
-SysCallIntResult OsSysCallsImpl::close(SOCKET_FD fd) {
-  const int rc = ::close(fd);
-  return {rc, errno};
-}
-
-SysCallIntResult OsSysCallsImpl::shmOpen(const char* name, int oflag, mode_t mode) {
-  const int rc = ::shm_open(name, oflag, mode);
-  return {rc, errno};
-}
-
-SysCallIntResult OsSysCallsImpl::shmUnlink(const char* name) {
-  const int rc = ::shm_unlink(name);
+SysCallSizeResult OsSysCallsImpl::recvmsg(int sockfd, struct msghdr* msg, int flags) {
+  const ssize_t rc = ::recvmsg(sockfd, msg, flags);
   return {rc, errno};
 }
 
@@ -99,11 +83,23 @@ SysCallSocketResult OsSysCallsImpl::socket(int domain, int type, int protocol) {
   return {rc, errno};
 }
 
+SysCallSizeResult OsSysCallsImpl::sendto(int fd, const void* buffer, size_t size, int flags,
+                                         const sockaddr* addr, socklen_t addrlen) {
+  const int rc = ::sendto(fd, buffer, size, flags, addr, addrlen);
+  return {rc, errno};
+}
+
+SysCallSizeResult OsSysCallsImpl::sendmsg(int fd, const msghdr* message, int flags) {
+  const int rc = ::sendmsg(fd, message, flags);
+  return {rc, errno};
+}
+
 SysCallIntResult OsSysCallsImpl::getsockname(SOCKET_FD sockfd, sockaddr* name, socklen_t* namelen) {
   const int rc = ::getsockname(sockfd, name, namelen);
   return {rc, errno};
 }
 
+  // TODO: Pivotal review- the following functions don't exist in master
 SysCallIntResult OsSysCallsImpl::getpeername(SOCKET_FD sockfd, sockaddr* name, socklen_t* namelen) {
   const int rc = ::getpeername(sockfd, name, namelen);
   return {rc, errno};
@@ -153,6 +149,17 @@ SysCallSocketResult OsSysCallsImpl::accept(SOCKET_FD sockfd, sockaddr* address,
 SysCallIntResult OsSysCallsImpl::sched_getaffinity(pid_t pid, size_t cpusetsize,
                                                         cpu_set_t* mask) {
   const int rc = ::sched_getaffinity(pid, cpusetsize, mask);
+  return {rc, errno};
+}
+
+SysCallIntResult OsSysCallsImpl::connect(SOCKET_FD sockfd, const sockaddr* addr,
+                                         socklen_t addrlen) {
+  const int rc = ::connect(sockfd, addr, addrlen);
+  return {rc, errno};
+}
+
+SysCallSizeResult OsSysCallsImpl::writeSocket(SOCKET_FD fd, const void* buffer, size_t num_bytes) {
+  const ssize_t rc = ::write(fd, buffer, num_bytes);
   return {rc, errno};
 }
 
