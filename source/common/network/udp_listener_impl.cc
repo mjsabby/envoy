@@ -136,27 +136,6 @@ void UdpListenerImpl::handleReadCallback() {
       ENVOY_UDP_LOG(debug, "Kernel dropped {} more packets. Consider increase receive buffer size.",
                     delta);
     }
-<<<<<<< HEAD
-=======
-    case AF_INET6: {
-      const struct sockaddr_in6* sin6 = reinterpret_cast<const struct sockaddr_in6*>(&addr);
-      ASSERT(AF_INET6 == sin6->sin6_family);
-      if (IN6_IS_ADDR_V4MAPPED(&sin6->sin6_addr)) {
-#ifdef __APPLE__
-        struct sockaddr_in sin = {
-            {}, AF_INET, sin6->sin6_port, {sin6->sin6_addr.__u6_addr.__u6_addr32[3]}, {}};
-#elif WIN32
-        struct in_addr in_v4 = {};
-        in_v4.S_un.S_addr = reinterpret_cast<const uint32_t*>(sin6->sin6_addr.u.Byte)[3];
-        struct sockaddr_in sin = {AF_INET, sin6->sin6_port, in_v4, {}};
-#else
-      struct sockaddr_in sin = {AF_INET, sin6->sin6_port, {sin6->sin6_addr.s6_addr32[3]}, {}};
-#endif
-        peer_address = std::make_shared<Address::Ipv4Instance>(&sin);
-      } else {
-        peer_address = std::make_shared<Address::Ipv6Instance>(*sin6, true);
-      }
->>>>>>> Envoy builds on Windows
 
     // Adjust used memory length.
     slice.len_ = std::min(slice.len_, static_cast<size_t>(result.rc_));
@@ -188,14 +167,9 @@ void UdpListenerImpl::handleWriteCallback() {
 
 Event::Dispatcher& UdpListenerImpl::dispatcher() { return dispatcher_; }
 
-<<<<<<< HEAD
 const Address::InstanceConstSharedPtr& UdpListenerImpl::localAddress() const {
   return socket_.localAddress();
 }
-=======
-  } while (true);
-} // namespace Network
->>>>>>> Envoy builds on Windows
 
 Api::IoCallUint64Result UdpListenerImpl::send(const UdpSendData& send_data) {
   ENVOY_UDP_LOG(trace, "send");
