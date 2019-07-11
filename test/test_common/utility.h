@@ -722,7 +722,6 @@ MATCHER_P2(ProtoEqIgnoringField, expected, ignored_field, "") {
   return equal;
 }
 
-<<<<<<< HEAD
 MATCHER_P(RepeatedProtoEq, expected, "") {
   const bool equal = TestUtility::repeatedPtrFieldEqual(arg, expected);
   if (!equal) {
@@ -737,13 +736,6 @@ MATCHER_P(RepeatedProtoEq, expected, "") {
   }
   return equal;
 }
-=======
-MATCHER_P(ProtoEqRepeatedFieldAsSet, rhs, "") {
-  return TestUtility::protoEqualRepeatedFieldAsSet(arg, rhs);
-}
-
-MATCHER_P(RepeatedProtoEq, rhs, "") { return TestUtility::repeatedPtrFieldEqual(arg, rhs); }
->>>>>>> Envoy builds on Windows
 
 MATCHER_P(Percent, rhs, "") {
   envoy::type::FractionalPercent expected;

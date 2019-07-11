@@ -33,7 +33,7 @@ public:
 
   MOCK_METHOD2_T(onConfigUpdate, void(const Protobuf::RepeatedPtrField<ProtobufWkt::Any>& resources,
                                       const std::string& version_info));
-  MOCK_METHOD3_T(onConfigUpdate_,
+  MOCK_METHOD3_T(onConfigUpdate,
                  void(const Protobuf::RepeatedPtrField<envoy::api::v2::Resource>& added_resources,
                       const Protobuf::RepeatedPtrField<std::string>& removed_resources,
                       const std::string& system_version_info));

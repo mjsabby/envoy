@@ -54,21 +54,15 @@ public:
                               socklen_t* optlen) override;
 
   MOCK_METHOD3(bind, SysCallIntResult(SOCKET_FD sockfd, const sockaddr* addr, socklen_t addrlen));
-  MOCK_METHOD3(connect,
-               SysCallIntResult(SOCKET_FD sockfd, const sockaddr* addr, socklen_t addrlen));
   MOCK_METHOD3(ioctl, SysCallIntResult(SOCKET_FD sockfd, unsigned long int request, void* argp));
   MOCK_METHOD1(close, SysCallIntResult(SOCKET_FD fd));
-  MOCK_METHOD3(writeSocket, SysCallSizeResult(SOCKET_FD, const void*, size_t));
   MOCK_METHOD3(writev, SysCallSizeResult(SOCKET_FD, IOVEC*, int));
   MOCK_METHOD3(sendmsg, SysCallSizeResult(SOCKET_FD fd, const msghdr* message, int flags));
   MOCK_METHOD3(readv, SysCallSizeResult(SOCKET_FD, IOVEC*, int));
   MOCK_METHOD4(recv, SysCallSizeResult(SOCKET_FD socket, void* buffer, size_t length, int flags));
   MOCK_METHOD6(recvfrom, SysCallSizeResult(SOCKET_FD sockfd, void* buffer, size_t length, int flags,
                                            struct sockaddr* addr, socklen_t* addrlen));
-#ifdef PIVOTAL //TODO: Pivotal review
-  MOCK_METHOD3(shmOpen, SysCallIntResult(const char*, int, mode_t));
-  MOCK_METHOD1(shmUnlink, SysCallIntResult(const char*));
-#endif
+  MOCK_METHOD3(recvmsg, SysCallSizeResult(int socket, struct msghdr* msg, int flags));
   MOCK_METHOD2(ftruncate, SysCallIntResult(int fd, off_t length));
   MOCK_METHOD6(mmap, SysCallPtrResult(void* addr, size_t length, int prot, int flags, int fd,
                                       off_t offset));
@@ -78,6 +72,8 @@ public:
   MOCK_METHOD5(getsockopt_,
                int(SOCKET_FD sockfd, int level, int optname, void* optval, socklen_t* optlen));
   MOCK_METHOD3(socket, SysCallSocketResult(int domain, int type, int protocol));
+
+  // TODO: Pivotal Review - These functions do not exist in master
   MOCK_METHOD3(getsockname, SysCallIntResult(SOCKET_FD sockfd, sockaddr* name, socklen_t* namelen));
   MOCK_METHOD3(getpeername, SysCallIntResult(SOCKET_FD sockfd, sockaddr* name, socklen_t* namelen));
   MOCK_METHOD1(setSocketNonBlocking, SysCallIntResult(SOCKET_FD sockfd));
@@ -86,6 +82,10 @@ public:
   MOCK_METHOD2(listen, SysCallIntResult(SOCKET_FD sockfd, int backlog));
   MOCK_METHOD4(socketpair, SysCallIntResult(int domain, int type, int protocol, SOCKET_FD sv[2]));
   MOCK_METHOD3(accept, SysCallSocketResult(SOCKET_FD sockfd, sockaddr* addr, socklen_t* addr_len));
+  MOCK_METHOD3(connect,
+               SysCallIntResult(SOCKET_FD sockfd, const sockaddr* addr, socklen_t addrlen));
+  MOCK_METHOD3(writeSocket, SysCallSizeResult(SOCKET_FD, const void*, size_t));
+  // end TODO
 
   // Map from (sockfd,level,optname) to boolean socket option.
   using SockOptKey = std::tuple<SOCKET_FD, int, int>;

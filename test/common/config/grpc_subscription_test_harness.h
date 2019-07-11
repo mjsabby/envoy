@@ -103,15 +103,14 @@ public:
         response->add_resources()->PackFrom(*load_assignment);
       }
     }
-    EXPECT_CALL(callbacks_, onConfigUpdate_(RepeatedProtoEq(response->resources()), version))
+    EXPECT_CALL(callbacks_, onConfigUpdate(RepeatedProtoEq(response->resources()), version))
         .WillOnce(ThrowOnRejectedConfig(accept));
     if (accept) {
       expectSendMessage(last_cluster_names_, version, false);
       version_ = version;
     } else {
-      EXPECT_CALL(callbacks_, onConfigUpdateFailed(
-                                  Envoy::Config::ConfigUpdateFailureReason::UpdateRejected, _));
-      expectSendMessage(last_cluster_names_, version_, false, Grpc::Status::GrpcStatus::Internal,
+      EXPECT_CALL(callbacks_, onConfigUpdateFailed(_));
+      expectSendMessage(last_cluster_names_, version_, Grpc::Status::GrpcStatus::Internal,
                         "bad config");
     }
     subscription_->grpcMux().onDiscoveryResponse(std::move(response));
