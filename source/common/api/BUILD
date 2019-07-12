@@ -23,8 +23,7 @@ envoy_cc_library(
 
 envoy_cc_library(
     name = "os_sys_calls_lib",
-    # This covers bazel:linux_x86_64, linux_aarch64, and linux_ppc
-    srcs = [] + select({
+    srcs = select({
         "//bazel:linux_x86_64": ["posix/os_sys_calls_impl.cc", "posix/os_sys_calls_impl_linux.cc"],
         "//bazel:linux_aarch64": ["posix/os_sys_calls_impl.cc", "posix/os_sys_calls_impl_linux.cc"],
         "//bazel:linux_ppc": ["posix/os_sys_calls_impl.cc", "posix/os_sys_calls_impl_linux.cc"],
@@ -47,8 +46,8 @@ envoy_cc_library(
 
 envoy_cc_win32_library(
     name = "os_sys_calls_lib",
-    srcs = ["win32/os_sys_calls_impl.cc",],
-    hdrs = ["win32/os_sys_calls_impl.h",],
+    srcs = ["win32/os_sys_calls_impl.cc"],
+    hdrs = ["win32/os_sys_calls_impl.h"],
     strip_include_prefix = "win32", 
     deps = [
         "//include/envoy/api:os_sys_calls_interface",
