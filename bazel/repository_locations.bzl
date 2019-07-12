@@ -42,9 +42,12 @@ REPOSITORY_LOCATIONS = dict(
         urls = ["https://github.com/circonus-labs/libcircllhist/archive/63a16dd6f2fc7bc841bb17ff92be8318df60e2e1.tar.gz"],
     ),
     com_github_cyan4973_xxhash = dict(
-        sha256 = "b34792646d5e19964bb7bba24f06cb13aecaac623ab91a54da08aa19d3686d7e",
-        strip_prefix = "xxHash-0.7.0",
-        urls = ["https://github.com/Cyan4973/xxHash/archive/v0.7.0.tar.gz"],
+        # sha256 = "b34792646d5e19964bb7bba24f06cb13aecaac623ab91a54da08aa19d3686d7e",
+        # strip_prefix = "xxHash-0.7.0",
+        # urls = ["https://github.com/Cyan4973/xxHash/archive/v0.7.0.tar.gz"],
+        sha256 = "77876fa31d3132c8c22b81cb219eac5b1f035637d5ca48bad617380043e21ffd",
+        strip_prefix = "xxHash-6137bfc606e08c791fccab835928de7e5ed41308",
+        urls = ["https://github.com/Cyan4973/xxHash/archive/6137bfc606e08c791fccab835928de7e5ed41308.tar.gz"],
     ),
     com_github_envoyproxy_sqlparser = dict(
         sha256 = "425dfee0c4fe9aff8acf2365cde3dd2ba7fb878d2ba37562d33920e34c40c05e",
@@ -220,10 +223,10 @@ REPOSITORY_LOCATIONS = dict(
         urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.18.5/rules_go-0.18.5.tar.gz"],
     ),
     rules_foreign_cc = dict(
-        sha256 = "4a7f9378a6382c56b560096f9ca9e28727b8c30d57e64930591e1208d7ee4709",
-        strip_prefix = "rules_foreign_cc-64e2cda959f65b30f65be5028dac0737ddb5150f",
+        sha256 = "f4f64152adcd00f32df5cb623c16848e1fd8955be7ac56961b0f364726c1eb0c",
+        strip_prefix = "rules_foreign_cc-1b443033bb6d57a1e70750a33436174c872bc85c",
         # TODO: (Pivotal) 2019-07-10 for commit 0b8356f to fix use of sed corrupting binary file output
-        urls = ["https://github.com/bazelbuild/rules_foreign_cc/archive/64e2cda959f65b30f65be5028dac0737ddb5150f.tar.gz"],
+        urls = ["https://github.com/irengrig/rules_foreign_cc/archive/1b443033bb6d57a1e70750a33436174c872bc85c.tar.gz"],
     ),
     six_archive = dict(
         sha256 = "105f8d68616f8248e24bf0e9372ef04d3cc10104f1980f54d57b2ce73a5ad56a",
