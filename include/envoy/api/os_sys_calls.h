@@ -170,9 +170,6 @@ public:
    */
   virtual SysCallSizeResult writeSocket(SOCKET_FD fd, const void* buffer, size_t num_bytes) PURE;
 
-  
-  virtual SysCallIntResult sched_getaffinity(pid_t pid, size_t cpusetsize, cpu_set_t* mask) PURE;
-
 };
 
 using OsSysCallsPtr = std::unique_ptr<OsSysCalls>;
