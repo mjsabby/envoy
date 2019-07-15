@@ -82,12 +82,12 @@ public:
   /**
    * @see man 2 ftruncate
    */
-  virtual SysCallIntResult ftruncate(SOCKET_FD fd, off_t length) PURE;
+  virtual SysCallIntResult ftruncate(int fd, off_t length) PURE;
 
   /**
    * @see man 2 mmap
    */
-  virtual SysCallPtrResult mmap(void* addr, size_t length, int prot, int flags, SOCKET_FD fd,
+  virtual SysCallPtrResult mmap(void* addr, size_t length, int prot, int flags, int fd,
                                 off_t offset) PURE;
 
   /**
