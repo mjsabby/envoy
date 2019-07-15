@@ -71,14 +71,6 @@ SysCallIntResult OsSysCallsImpl::close(SOCKET_FD fd) {
   return {rc, ::WSAGetLastError()};
 }
 
-SysCallIntResult OsSysCallsImpl::shmOpen(const char* name, int oflag, mode_t mode) {
-  PANIC("shmOpen not implemented on Windows");
-}
-
-SysCallIntResult OsSysCallsImpl::shmUnlink(const char* name) {
-  PANIC("shmUnlink not implemented on Windows");
-}
-
 SysCallIntResult OsSysCallsImpl::ftruncate(int fd, off_t length) {
   const int rc = ::_chsize_s(fd, length);
   return {rc, errno};

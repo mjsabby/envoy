@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef WIN32
+#include "winsock2.h"
+#endif
+
 #include "envoy/api/io_error.h"
 #include "envoy/api/os_sys_calls.h"
 #include "envoy/network/io_handle.h"
