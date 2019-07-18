@@ -146,12 +146,6 @@ SysCallSocketResult OsSysCallsImpl::accept(SOCKET_FD sockfd, sockaddr* address,
   return {sock, errno};
 }
 
-SysCallIntResult OsSysCallsImpl::sched_getaffinity(pid_t pid, size_t cpusetsize,
-                                                        cpu_set_t* mask) {
-  const int rc = ::sched_getaffinity(pid, cpusetsize, mask);
-  return {rc, errno};
-}
-
 SysCallIntResult OsSysCallsImpl::connect(SOCKET_FD sockfd, const sockaddr* addr,
                                          socklen_t addrlen) {
   const int rc = ::connect(sockfd, addr, addrlen);
