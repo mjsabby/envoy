@@ -1,3 +1,9 @@
+//On win32, nghttp2 fails to convey the ssize_t redeclaration that Microsoft declines to implement.
+//TODO Pivotal - this is a workaround to give ssize_t some value.
+#ifdef WIN32
+#define ssize_t int
+#endif
+
 #include "common/http/http2/nghttp2.h"
 
 #include "common/common/logger.h"
