@@ -14,6 +14,7 @@
 
 #if defined(__linux__)
 #include <sched.h>
+#include "common/api/os_sys_calls_impl_linux.h"
 #include "server/options_impl_platform_linux.h"
 #endif
 #include "test/mocks/api/mocks.h"
@@ -41,7 +42,6 @@ public:
     std::vector<const char*> argv;
     std::transform(words.cbegin(), words.cend(), std::back_inserter(argv),
                    [](const std::string& arg) { return arg.c_str(); });
-    // TODO: Pivotal - may require static cast<int> around argv.size()
     return std::make_unique<OptionsImpl>(
         argv.size(), argv.data(), [](bool) { return "1"; }, spdlog::level::warn);
   }
@@ -369,7 +369,7 @@ TEST_F(OptionsImplPlatformLinuxTest, AffinityTest1) {
   unsigned int fake_hw_threads = 4;
   cpu_set_t test_set;
   Api::MockLinuxOsSysCalls linux_os_sys_calls;
-  TestThreadsafeSingletonInjector<Api::OsSysCallsImpl> linux_os_calls(&linux_os_sys_calls);
+  TestThreadsafeSingletonInjector<Api::LinuxOsSysCallsImpl> linux_os_calls(&linux_os_sys_calls);
 
   // Set cpuset size to be four.
   CPU_ZERO(&test_set);
@@ -387,7 +387,7 @@ TEST_F(OptionsImplPlatformLinuxTest, AffinityTest2) {
   unsigned int fake_hw_threads = 16;
   cpu_set_t test_set;
   Api::MockLinuxOsSysCalls linux_os_sys_calls;
-  TestThreadsafeSingletonInjector<Api::OsSysCallsImpl> linux_os_calls(&linux_os_sys_calls);
+  TestThreadsafeSingletonInjector<Api::LinuxOsSysCallsImpl> linux_os_calls(&linux_os_sys_calls);
 
   // Set cpuset size to be eight.
   CPU_ZERO(&test_set);
@@ -405,7 +405,7 @@ TEST_F(OptionsImplPlatformLinuxTest, AffinityTest3) {
   unsigned int fake_hw_threads = 4;
   cpu_set_t test_set;
   Api::MockLinuxOsSysCalls linux_os_sys_calls;
-  TestThreadsafeSingletonInjector<Api::OsSysCallsImpl> linux_os_calls(&linux_os_sys_calls);
+  TestThreadsafeSingletonInjector<Api::LinuxOsSysCallsImpl> linux_os_calls(&linux_os_sys_calls);
 
   // Set cpuset size to be eight.
   CPU_ZERO(&test_set);
@@ -423,7 +423,7 @@ TEST_F(OptionsImplPlatformLinuxTest, AffinityTest4) {
   unsigned int fake_hw_threads = 8;
   cpu_set_t test_set;
   Api::MockLinuxOsSysCalls linux_os_sys_calls;
-  TestThreadsafeSingletonInjector<Api::OsSysCallsImpl> linux_os_calls(&linux_os_sys_calls);
+  TestThreadsafeSingletonInjector<Api::LinuxOsSysCallsImpl> linux_os_calls(&linux_os_sys_calls);
 
   // Set cpuset size to be four.
   CPU_ZERO(&test_set);
