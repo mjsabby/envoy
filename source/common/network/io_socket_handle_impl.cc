@@ -294,8 +294,8 @@ Api::IoCallUint64Result IoSocketHandleImpl::recvmsg(Buffer::RawSlice* slices,
   if (num_slices_for_read == 0) {
     return Api::ioCallUint64ResultNoError();
   }
-  SOCKADDR_STORAGE peer_addr;
 #ifdef WIN32
+  SOCKADDR_STORAGE peer_addr;
   WSAMSG hdr;
   hdr.name = reinterpret_cast<LPSOCKADDR>(&peer_addr);
   hdr.namelen = sizeof(peer_addr);
@@ -308,6 +308,7 @@ Api::IoCallUint64Result IoSocketHandleImpl::recvmsg(Buffer::RawSlice* slices,
   auto& os_syscalls = Api::OsSysCallsSingleton::get();
   const Api::SysCallSizeResult result = os_syscalls.recvmsg(socket_descriptor_, &hdr, 0);
 #else
+  sockaddr_storage peer_addr;
   msghdr hdr;
   hdr.msg_name = &peer_addr;
   hdr.msg_namelen = sizeof(peer_addr);
