@@ -1,4 +1,5 @@
 #include <winsock2.h>
+#include <mswsock.h>
 
 // <winsock2.h> includes <windows.h>, so undef some interfering symbols
 #undef DELETE
@@ -66,6 +67,52 @@ SysCallSizeResult OsSysCallsImpl::recvfrom(SOCKET_FD sockfd, void* buffer, size_
   return {rc, ::WSAGetLastError()};
 }
 
+// TODO Pivotal - copied from https://github.com/pauldotknopf/WindowsSDK7-Samples/blob/master/netds/winsock/recvmsg/rmmc.cpp
+// look into the licensing
+LPFN_WSARECVMSG GetWSARecvMsgFunctionPointer()
+{
+    LPFN_WSARECVMSG     lpfnWSARecvMsg = NULL;
+    GUID                guidWSARecvMsg = WSAID_WSARECVMSG;
+    SOCKET              sock = INVALID_SOCKET;
+    DWORD               dwBytes = 0;
+
+    sock = socket(AF_INET6,SOCK_DGRAM,0);
+
+    if(SOCKET_ERROR == WSAIoctl(sock, 
+                                SIO_GET_EXTENSION_FUNCTION_POINTER, 
+                                &guidWSARecvMsg, 
+                                sizeof(guidWSARecvMsg), 
+                                &lpfnWSARecvMsg, 
+                                sizeof(lpfnWSARecvMsg), 
+                                &dwBytes, 
+                                NULL, 
+                                NULL
+                                ))
+    {
+        PANIC("WSAIoctl SIO_GET_EXTENSION_FUNCTION_POINTER for WSARecvMsg failed, not implemented?");
+        return NULL;
+    }
+
+    closesocket(sock);
+
+    return lpfnWSARecvMsg;
+}
+
+SysCallSizeResult OsSysCallsImpl::recvmsg(SOCKET_FD sockfd, LPWSAMSG msg, int flags) {
+  // msg->dwFlags = flags; TODO Pivotal - Should we implement that?
+  static LPFN_WSARECVMSG WSARecvMsg = NULL;
+  DWORD bytesRecieved;
+  if (NULL == (WSARecvMsg = GetWSARecvMsgFunctionPointer())){
+    PANIC("WSARecvMsg has not been implemented by this socket provider");
+  }
+  // if overlapped and/or comletion routines are supported adjust the arguments accordingly
+  const int rc = WSARecvMsg(sockfd, msg, &bytesRecieved, nullptr, nullptr);
+  if(rc == SOCKET_ERROR){
+    bytesRecieved = -1;
+  }
+  return {bytesRecieved, ::WSAGetLastError()};
+}
+
 SysCallIntResult OsSysCallsImpl::close(SOCKET_FD fd) {
   const int rc = ::closesocket(fd);
   return {rc, ::WSAGetLastError()};
@@ -101,6 +148,16 @@ SysCallIntResult OsSysCallsImpl::getsockopt(SOCKET_FD sockfd, int level, int opt
 SysCallSocketResult OsSysCallsImpl::socket(int domain, int type, int protocol) {
   const SOCKET_FD rc = ::socket(domain, type, protocol);
   return {rc, ::WSAGetLastError()};
+}
+
+SysCallSizeResult OsSysCallsImpl::sendmsg(SOCKET_FD sockfd, const LPWSAMSG msg, int flags) {
+  DWORD bytesRecieved;
+  // if overlapped and/or comletion routines are supported adjust the arguments accordingly
+  const int rc = ::WSASendMsg(sockfd, msg, flags, &bytesRecieved, nullptr, nullptr);
+  if(rc == SOCKET_ERROR){
+    bytesRecieved = -1;
+  }
+  return {bytesRecieved, ::WSAGetLastError()};
 }
 
 SysCallIntResult OsSysCallsImpl::getsockname(SOCKET_FD sockfd, sockaddr* name, socklen_t* namelen) {

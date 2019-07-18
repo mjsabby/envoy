@@ -47,6 +47,9 @@ using IOVEC = _WSABUF;
 #define SOCKET_FAILURE(rc) ((rc) == SOCKET_ERROR)
 #define SET_SOCKET_INVALID(sock) (sock) = INVALID_SOCKET
 
+// CMSG_FIRSTHDR and CMSG_NEXTHDR are already defined on windows
+#define CMSG_DATA(msg) (WSA_CMSG_DATA(msg))
+
 // arguments to shutdown
 #define ENVOY_SHUT_RD SD_RECEIVE
 #define ENVOY_SHUT_WR SD_SEND

@@ -71,7 +71,11 @@ public:
   /**
    * @see recvmsg (man 2 recvmsg)
    */
+  #ifndef WIN32
   virtual SysCallSizeResult recvmsg(SOCKET_FD sockfd, struct msghdr* msg, int flags) PURE;
+  #else
+  virtual SysCallSizeResult recvmsg(SOCKET_FD sockfd, WSAMSG* msg, int flags) PURE;
+  #endif
 
   /**
    * Release all resources allocated for fd.
@@ -121,7 +125,11 @@ public:
   /**
    * @see man 2 sendmsg
    */
+#ifdef WIN32
+  virtual SysCallSizeResult sendmsg(SOCKET_FD sockfd, const LPWSAMSG message, int flags) PURE;
+#else
   virtual SysCallSizeResult sendmsg(SOCKET_FD sockfd, const msghdr* message, int flags) PURE;
+#endif
 
   /**
    * @see man 2 getsockname
