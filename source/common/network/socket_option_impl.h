@@ -5,6 +5,11 @@
 #include <netinet/tcp.h>
 #include <sys/socket.h>
 
+#else
+//TODO Pivotal - solve for rfc2292, need to address rfc3542
+#ifndef IPV6_RECVPKTINFO
+#define IPV6_RECVPKTINFO IPV6_PKTINFO
+#endif
 #endif
 
 #include "envoy/api/os_sys_calls.h"
