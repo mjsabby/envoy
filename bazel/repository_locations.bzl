@@ -228,7 +228,8 @@ REPOSITORY_LOCATIONS = dict(
     rules_foreign_cc = dict(
         sha256 = "c957e6663094a1478c43330c1bbfa71afeaf1ab86b7565233783301240c7a0ab",
         strip_prefix = "rules_foreign_cc-a209b642c7687a8894c19b3dd40e43e6d3f38e83",
-        # 2019-07-17
+        # 2019-07-17: Contains fixes for empty token regression (seen in ranlib) and
+        # errors in file copy on Windows.
         urls = ["https://github.com/bazelbuild/rules_foreign_cc/archive/a209b642c7687a8894c19b3dd40e43e6d3f38e83.tar.gz"],
     ),
     six_archive = dict(

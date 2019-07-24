@@ -150,7 +150,6 @@ Api::IoCallUint64Result IoSocketHandleImpl::sendmsg(const Buffer::RawSlice* slic
   message.msg_iovlen = num_slices_to_write;
   message.msg_flags = 0;
   auto& os_syscalls = Api::OsSysCallsSingleton::get();
-<<<<<<< HEAD
   if (self_ip == nullptr) {
     message.msg_control = nullptr;
     message.msg_controllen = 0;
@@ -192,13 +191,9 @@ Api::IoCallUint64Result IoSocketHandleImpl::sendmsg(const Buffer::RawSlice* slic
       *(reinterpret_cast<absl::uint128*>(pktinfo->ipi6_addr.s6_addr)) = self_ip->ipv6()->address();
     }
     const Api::SysCallSizeResult result = os_syscalls.sendmsg(fd_, &message, flags);
+#endif
     return sysCallResultToIoCallResult(result);
   }
-=======
-  const Api::SysCallSizeResult result = os_syscalls.sendmsg(fd_, &message, flags);
-#endif
-  return sysCallResultToIoCallResult(result);
->>>>>>> provide windows implementation for sendmsg and recvmsg
 }
 
 Api::IoCallUint64Result
