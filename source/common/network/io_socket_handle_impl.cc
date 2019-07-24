@@ -5,6 +5,9 @@
 
 #ifdef WIN32
 #include "winsock2.h"
+// winsock2.h includes <windows.h>, so undef some interfering symbols
+#undef DELETE
+#undef GetMessage
 #endif
 
 #include "envoy/buffer/buffer.h"
@@ -154,7 +157,6 @@ Api::IoCallUint64Result IoSocketHandleImpl::sendmsg(const Buffer::RawSlice* slic
     message.msg_control = nullptr;
     message.msg_controllen = 0;
     const Api::SysCallSizeResult result = os_syscalls.sendmsg(fd_, &message, flags);
-    return sysCallResultToIoCallResult(result);
   } else {
     const size_t space_v6 = CMSG_SPACE(sizeof(in6_pktinfo));
     // FreeBSD only needs in_addr size, but allocates more to unify code in two platforms.
@@ -191,13 +193,12 @@ Api::IoCallUint64Result IoSocketHandleImpl::sendmsg(const Buffer::RawSlice* slic
       *(reinterpret_cast<absl::uint128*>(pktinfo->ipi6_addr.s6_addr)) = self_ip->ipv6()->address();
     }
     const Api::SysCallSizeResult result = os_syscalls.sendmsg(fd_, &message, flags);
-#endif
-    return sysCallResultToIoCallResult(result);
   }
+#endif
+  return sysCallResultToIoCallResult(result);
 }
 
-Api::IoCallUint64Result
-IoSocketHandleImpl::sysCallResultToIoCallResult(const Api::SysCallSizeResult& result) {
+Api::IoCallUint64Result IoSocketHandleImpl::sysCallResultToIoCallResult(const Api::SysCallSizeResult& result) {
   if (result.rc_ >= 0) {
     // Return nullptr as IoError upon success.
     return Api::IoCallUint64Result(result.rc_,
@@ -297,7 +298,7 @@ Api::IoCallUint64Result IoSocketHandleImpl::recvmsg(Buffer::RawSlice* slices,
   hdr.lpBuffers = iov.begin();
   hdr.dwBufferCount = num_slices_for_read;
   hdr.dwFlags = 0;
-  hdr.Control.buf = cbuf;
+  hdr.Control.buf = reinterpret_cast<CHAR*>(&cbuf);
   hdr.Control.len = cmsg_space;
 
   auto& os_syscalls = Api::OsSysCallsSingleton::get();
