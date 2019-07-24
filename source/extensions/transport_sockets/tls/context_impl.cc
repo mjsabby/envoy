@@ -1,6 +1,8 @@
 #include "extensions/transport_sockets/tls/context_impl.h"
 
+#ifndef WIN32
 #include <netinet/in.h>
+#endif
 
 #include <algorithm>
 #include <memory>
