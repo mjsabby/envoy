@@ -96,7 +96,7 @@ RetryStateImpl::RetryStateImpl(const RetryPolicy& route_policy, Http::HeaderMap&
   if (request_headers.EnvoyRetriableStatusCodes()) {
     for (const auto code : StringUtil::splitToken(
              request_headers.EnvoyRetriableStatusCodes()->value().getStringView(), ",")) {
-      uint64_t out;
+      unsigned int out;
       if (absl::SimpleAtoi(code, &out)) {
         retriable_status_codes_.emplace_back(out);
       }
