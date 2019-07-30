@@ -39,8 +39,8 @@ public:
   void setTransportSocketCallbacks(Network::TransportSocketCallbacks&) override {}
   std::string protocol() const override { return EMPTY_STRING; }
   // TODO: See above comment
-  absl::string_view failureReason() const override { return constexpr absl::string_view(NotReadyReason); }
   // absl::string_view failureReason() const override { return NotReadyReason; }
+  absl::string_view failureReason() const override { return constexpr absl::string_view(NotReadyReason); }
 
   bool canFlushClose() override { return true; }
   void closeSocket(Network::ConnectionEvent) override {}
