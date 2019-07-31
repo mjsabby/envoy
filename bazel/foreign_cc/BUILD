@@ -51,6 +51,7 @@ envoy_cmake_external(
     cache_entries = {
         "CARES_SHARED": "no",
         "CARES_STATIC": "on",
+        "CARES_MSVC_STATIC_RUNTIME": "on",
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
     },
     copy_pdb = True,
@@ -67,6 +68,7 @@ envoy_cmake_external(
     cache_entries = {
         "BUILD_CURL_EXE": "off",
         "BUILD_SHARED_LIBS": "off",
+        "CURL_STATIC_CRT": "on",
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "HTTP_ONLY": "on",
         "BUILD_TESTING": "off",
@@ -116,6 +118,7 @@ envoy_cmake_external(
     cache_entries = {
         "ENABLE_STATIC_LIB": "on",
         "ENABLE_LIB_ONLY": "on",
+        "ENABLE_STATIC_CRT": "on",
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "CMAKE_INSTALL_LIBDIR": "lib",
         "CMAKE_CXX_COMPILER_FORCED": "on",
@@ -136,14 +139,15 @@ envoy_cmake_external(
     cache_entries = {
         "YAML_CPP_BUILD_TESTS": "off",
         "YAML_CPP_BUILD_TOOLS": "off",
+        "MSVC_SHARED_RT": "off",
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "CMAKE_CXX_COMPILER_FORCED": "on",
     },
     lib_source = "@com_github_jbeder_yaml_cpp//:all",
     static_libraries = select({
-        "//bazel:windows_dbg_build": ["libyaml-cppmdd.lib"],
-        "//bazel:windows_fastbuild_build": ["libyaml-cppmd.lib"],
-        "//bazel:windows_opt_build": ["libyaml-cppmd.lib"],
+        "//bazel:windows_dbg_build": ["libyaml-cppmtd.lib"],
+        "//bazel:windows_fastbuild_build": ["libyaml-cppmt.lib"],
+        "//bazel:windows_opt_build": ["libyaml-cppmt.lib"],
         "//conditions:default": ["libyaml-cpp.a"],
     }),
 )
@@ -151,6 +155,7 @@ envoy_cmake_external(
 envoy_cmake_external(
     name = "zlib",
     cache_entries = {
+        "ENABLE_STATIC_CRT": "on",
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
     },
     copy_pdb = True,
