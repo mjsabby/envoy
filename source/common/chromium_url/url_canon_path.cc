@@ -274,14 +274,17 @@ bool DoPartialPath(const CHAR* spec, const Component& path, int path_begin_in_ou
   bool success = true;
   for (int i = path.begin; i < end; i++) {
     UCHAR uch = static_cast<UCHAR>(spec[i]);
-    if (sizeof(CHAR) > 1 && uch >= 0x80) {
+// TODO(wrowe): this entire logic is currently unneeded, as the missing templated result
+// refers only to char const* (single-byte) characters at this time. This apparently only
+// trips up win32, since linux gcc seems to optimize it away
+//  if (sizeof(CHAR) > 1 && uch >= 0x80) {
       // We only need to test wide input for having non-ASCII characters. For
       // narrow input, we'll always just use the lookup table. We don't try to
       // do anything tricky with decoding/validating UTF-8. This function will
       // read one or two UTF-16 characters and append the output as UTF-8. This
       // call will be removed in 8-bit mode.
-      success &= AppendUTF8EscapedChar(spec, &i, end, output);
-    } else {
+//    success &= AppendUTF8EscapedChar(spec, &i, end, output);
+//  } else {
       // Normal ASCII character or 8-bit input, use the lookup table.
       unsigned char out_ch = static_cast<unsigned char>(uch);
       unsigned char flags = kPathCharLookup[out_ch];
@@ -381,7 +384,7 @@ bool DoPartialPath(const CHAR* spec, const Component& path, int path_begin_in_ou
         // Nothing special about this character, just append it.
         output->push_back(out_ch);
       }
-    }
+//  }
   }
   return success;
 }
