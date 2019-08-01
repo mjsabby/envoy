@@ -21,16 +21,8 @@ namespace TransportSockets {
 namespace Tls {
 
 namespace {
-/*
-TODO(YECHIEL):
-This workaround is needed to adress the following error on Windows:
-source/extensions/transport_sockets/tls/ssl_socket.cc(25): error C2131: expression did not evaluate to a constant
-C:\_eb\execroot\envoy\external\com_google_absl\absl/strings/string_view.h(187): note: failure was caused by call
-of undefined function or one not declared 'constexpr'
-C:\_eb\execroot\envoy\external\com_google_absl\absl/strings/string_view.h(187): note: see usage of 'strlen'
- */
-// constexpr absl::string_view NotReadyReason{"TLS error: Secret is not supplied by SDS"};
-const char* NotReadyReason = "TLS error: Secret is not supplied by SDS";
+
+constexpr absl::string_view NotReadyReason{"TLS error: Secret is not supplied by SDS"};
 
 // This SslSocket will be used when SSL secret is not fetched from SDS server.
 class NotReadySslSocket : public Network::TransportSocket {
@@ -38,10 +30,7 @@ public:
   // Network::TransportSocket
   void setTransportSocketCallbacks(Network::TransportSocketCallbacks&) override {}
   std::string protocol() const override { return EMPTY_STRING; }
-  // TODO: See above comment
-  // absl::string_view failureReason() const override { return NotReadyReason; }
-  absl::string_view failureReason() const override { return constexpr absl::string_view(NotReadyReason); }
-
+  absl::string_view failureReason() const override { return NotReadyReason; }
   bool canFlushClose() override { return true; }
   void closeSocket(Network::ConnectionEvent) override {}
   Network::IoResult doRead(Buffer::Instance&) override { return {PostIoAction::Close, 0, false}; }

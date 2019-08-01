@@ -116,8 +116,9 @@ envoy_cmake_external(
 envoy_cmake_external(
     name = "nghttp2",
     cache_entries = {
-        "ENABLE_STATIC_LIB": "on",
         "ENABLE_LIB_ONLY": "on",
+        "ENABLE_SHARED_LIB": "off",
+        "ENABLE_STATIC_LIB": "on",
         "ENABLE_STATIC_CRT": "on",
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "CMAKE_INSTALL_LIBDIR": "lib",
@@ -156,6 +157,7 @@ envoy_cmake_external(
     name = "zlib",
     cache_entries = {
         "ENABLE_STATIC_CRT": "on",
+        "BUILD_SHARED_LIBS": "off",
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
     },
     copy_pdb = True,
