@@ -150,6 +150,12 @@ SysCallSocketResult OsSysCallsImpl::socket(int domain, int type, int protocol) {
   return {rc, ::WSAGetLastError()};
 }
 
+SysCallSizeResult OsSysCallsImpl::sendto(SOCKET_FD fd, const void* buffer, size_t size, int flags,
+                                         const sockaddr* addr, socklen_t addrlen) {
+  const int rc = ::sendto(fd, static_cast<const char*>(buffer), size, flags, addr, addrlen);
+  return {rc, errno};
+}
+
 SysCallSizeResult OsSysCallsImpl::sendmsg(SOCKET_FD sockfd, const LPWSAMSG msg, int flags) {
   DWORD bytesRecieved;
   // if overlapped and/or comletion routines are supported adjust the arguments accordingly
