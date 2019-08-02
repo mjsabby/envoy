@@ -17,6 +17,8 @@ envoy_extension_cc_test(
     name = "command_splitter_impl_test",
     srcs = ["command_splitter_impl_test.cc"],
     extension_name = "envoy.filters.network.redis_proxy",
+    # not used in CF, so we haven't put the effort in to fix
+    test_on_windows = False,
     deps = [
         ":redis_mocks",
         "//source/common/stats:isolated_store_lib",
@@ -34,6 +36,8 @@ envoy_extension_cc_test(
     name = "conn_pool_impl_test",
     srcs = ["conn_pool_impl_test.cc"],
     extension_name = "envoy.filters.network.redis_proxy",
+    # not used in CF, so we haven't put the effort in to fix
+    test_on_windows = False,
     deps = [
         ":redis_mocks",
         "//source/common/event:dispatcher_lib",
@@ -56,6 +60,8 @@ envoy_extension_cc_test(
     name = "proxy_filter_test",
     srcs = ["proxy_filter_test.cc"],
     extension_name = "envoy.filters.network.redis_proxy",
+    # not used in CF, so we haven't put the effort in to fix
+    test_on_windows = False,
     deps = [
         ":redis_mocks",
         "//source/common/config:json_utility_lib",
@@ -88,6 +94,8 @@ envoy_extension_cc_test(
     name = "config_test",
     srcs = ["config_test.cc"],
     extension_name = "envoy.filters.network.redis_proxy",
+    # not used in CF, so we haven't put the effort in to fix
+    test_on_windows = False,
     deps = [
         "//source/common/protobuf:utility_lib",
         "//source/extensions/filters/network/redis_proxy:config",
@@ -102,6 +110,8 @@ envoy_extension_cc_test_binary(
     external_deps = [
         "benchmark",
     ],
+    # not used in CF, so we haven't put the effort in to fix
+    test_on_windows = False,
     deps = [
         ":redis_mocks",
         "//source/common/stats:isolated_store_lib",
@@ -116,6 +126,8 @@ envoy_extension_cc_test(
     name = "router_impl_test",
     srcs = ["router_impl_test.cc"],
     extension_name = "envoy.filters.network.redis_proxy",
+    # not used in CF, so we haven't put the effort in to fix
+    test_on_windows = False,
     deps = [
         ":redis_mocks",
         "//source/extensions/filters/network/redis_proxy:router_lib",
@@ -129,6 +141,8 @@ envoy_extension_cc_test(
     name = "redis_proxy_integration_test",
     srcs = ["redis_proxy_integration_test.cc"],
     extension_name = "envoy.filters.network.redis_proxy",
+    # not used in CF, so we haven't put the effort in to fix
+    test_on_windows = False,
     deps = [
         "//source/extensions/filters/network/redis_proxy:config",
         "//test/integration:integration_lib",

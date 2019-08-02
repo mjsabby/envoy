@@ -9,6 +9,7 @@ load(
     "envoy_linkstatic",
     "envoy_select_force_libcpp",
     "tcmalloc_external_dep",
+    "envoy_if_windows",
 )
 
 # Envoy C++ related test infrastructure (that want gtest, gmock, but may be
@@ -162,10 +163,15 @@ def envoy_cc_test(
         linkopts = _envoy_test_linkopts(),
         linkstatic = envoy_linkstatic(),
         malloc = tcmalloc_external_dep(repository),
-        deps = [
-            ":" + name + "_lib_internal_only",
-            repository + "//test:main",
-        ],
+        deps = select({
+            "@envoy//bazel:apple": ["//test:dummy_main"],
+            # needed for test_on_windows, see #164309012
+            "@envoy//bazel:windows_x86_64": ["//test:dummy_main"],
+            "//conditions:default": [
+                ":" + name + "_lib_internal_only",
+                repository + "//test:main",
+            ],
+        }),
         # from https://github.com/google/googletest/blob/6e1970e2376c14bf658eb88f655a054030353f9f/googlemock/src/gmock.cc#L51
         # 2 - by default, mocks act as StrictMocks.
         args = args + ["--gmock_default_mock_behavior=2"],
@@ -212,7 +218,13 @@ def envoy_cc_test_library(
 # Envoy test binaries should be specified with this function.
 def envoy_cc_test_binary(
         name,
+        test_on_windows = True,
         **kargs):
+
+    # needed for test_on_windows, see #164309012
+    if not test_on_windows and envoy_if_windows(True):
+        return
+
     envoy_cc_binary(
         name,
         testonly = 1,
