@@ -115,3 +115,11 @@ def _envoy_select_perf_annotation(xs):
         "@envoy//bazel:enable_perf_annotation": xs,
         "//conditions:default": [],
     })
+
+def envoy_if_windows(a):
+    return select({
+        "//:windows": a,
+        "//:windows_msvc": a,
+        "//conditions:default": [],
+    })
+

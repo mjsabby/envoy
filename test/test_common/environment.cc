@@ -5,6 +5,17 @@
 #include <unistd.h>
 #else
 #include <io.h>
+#include <winsock2.h>
+
+// <windows.h> uses macros to #define a ton of symbols, two of which (DELETE and GetMessage)
+// interfere with our code. DELETE shows up in the base.pb.h header generated from
+// api/envoy/api/core/base.proto. Since it's a generated header, we can't #undef DELETE at
+// the top of that header to avoid the collision. Similarly, GetMessage shows up in generated
+// protobuf code so we can't #undef the symbol there.
+#undef DELETE
+#undef GetMessage
+
+#define SO_REUSEPORT SO_REUSEADDR
 #endif
 
 // TODO(asraa): Remove <experimental/filesystem> and rely only on <filesystem> when Envoy requires

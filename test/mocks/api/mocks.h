@@ -8,6 +8,18 @@
 #include "envoy/event/dispatcher.h"
 #include "envoy/event/timer.h"
 
+#ifdef WIN32
+#include <winsock2.h>
+
+// <windows.h> uses macros to #define a ton of symbols, two of which (DELETE and GetMessage)
+// interfere with our code. DELETE shows up in the base.pb.h header generated from
+// api/envoy/api/core/base.proto. Since it's a generated header, we can't #undef DELETE at
+// the top of that header to avoid the collision. Similarly, GetMessage shows up in generated
+// protobuf code so we can't #undef the symbol there.
+#undef DELETE
+#undef GetMessage
+#endif
+
 #include "common/api/os_sys_calls_impl.h"
 #if defined(__linux__)
 #include "common/api/os_sys_calls_impl_linux.h"
@@ -58,13 +70,18 @@ public:
   MOCK_METHOD3(bind, SysCallIntResult(SOCKET_FD sockfd, const sockaddr* addr, socklen_t addrlen));
   MOCK_METHOD3(ioctl, SysCallIntResult(SOCKET_FD sockfd, unsigned long int request, void* argp));
   MOCK_METHOD1(close, SysCallIntResult(SOCKET_FD fd));
-  MOCK_METHOD3(writev, SysCallSizeResult(SOCKET_FD, IOVEC*, int));
-  MOCK_METHOD3(sendmsg, SysCallSizeResult(SOCKET_FD fd, const msghdr* message, int flags));
-  MOCK_METHOD3(readv, SysCallSizeResult(SOCKET_FD, IOVEC*, int));
+  MOCK_METHOD3(writev, SysCallSizeResult(SOCKET_FD sockfd, IOVEC* buffers, int flags));
+#ifdef WIN32
+  MOCK_METHOD3(sendmsg, SysCallSizeResult(SOCKET_FD fd, LPWSAMSG msg, int flags));
+  MOCK_METHOD3(recvmsg, SysCallSizeResult(int socket, LPWSAMSG msg, int flags));
+#else
+  MOCK_METHOD3(sendmsg, SysCallSizeResult(SOCKET_FD fd, const msghdr* msg, int flags));
+  MOCK_METHOD3(recvmsg, SysCallSizeResult(int socket, struct msghdr* msg, int flags));
+#endif
+  MOCK_METHOD3(readv, SysCallSizeResult(SOCKET_FD sockfd, IOVEC* buffers, int flags));
   MOCK_METHOD4(recv, SysCallSizeResult(SOCKET_FD socket, void* buffer, size_t length, int flags));
   MOCK_METHOD6(recvfrom, SysCallSizeResult(SOCKET_FD sockfd, void* buffer, size_t length, int flags,
                                            struct sockaddr* addr, socklen_t* addrlen));
-  MOCK_METHOD3(recvmsg, SysCallSizeResult(int socket, struct msghdr* msg, int flags));
   MOCK_METHOD2(ftruncate, SysCallIntResult(int fd, off_t length));
   MOCK_METHOD6(mmap, SysCallPtrResult(void* addr, size_t length, int prot, int flags, int fd,
                                       off_t offset));

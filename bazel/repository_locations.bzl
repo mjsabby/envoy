@@ -114,9 +114,9 @@ REPOSITORY_LOCATIONS = dict(
         urls = ["https://github.com/nghttp2/nghttp2/releases/download/v1.39.1/nghttp2-1.39.1.tar.gz"],
     ),
     io_opentracing_cpp = dict(
-        sha256 = "015c4187f7a6426a2b5196f0ccd982aa87f010cf61f507ae3ce5c90523f92301",
-        strip_prefix = "opentracing-cpp-1.5.1",
-        urls = ["https://github.com/opentracing/opentracing-cpp/archive/v1.5.1.tar.gz"],
+        sha256 = "50df65266936422a3b5a12d1056a3ffdb8728dc251724399ecd77b621fc6c1b4",
+        strip_prefix = "opentracing-cpp-7b8c0b30a26b138dbed714cde8347a0f5f2e060e",
+        urls = ["https://github.com/opentracing/opentracing-cpp/archive/7b8c0b30a26b138dbed714cde8347a0f5f2e060e.tar.gz"],
     ),
     com_lightstep_tracer_cpp = dict(
         sha256 = "defbf471facfebde6523ca1177529b63784893662d4ef2c60db074be8aef0634",
