@@ -134,6 +134,7 @@ Api::IoCallUint64Result IoSocketHandleImpl::sendmsg(const Buffer::RawSlice* slic
   if (num_slices_to_write == 0) {
     return Api::ioCallUint64ResultNoError();
   }
+  Api::SysCallSizeResult result;
 #ifdef WIN32
   WSAMSG message;
   message.name = reinterpret_cast<LPSOCKADDR>(sock_addr);
@@ -145,7 +146,7 @@ Api::IoCallUint64Result IoSocketHandleImpl::sendmsg(const Buffer::RawSlice* slic
   message.dwFlags = 0;
 
   auto& os_syscalls = Api::OsSysCallsSingleton::get();
-  const Api::SysCallSizeResult result = os_syscalls.sendmsg(socket_descriptor_, &message, flags);
+  result = os_syscalls.sendmsg(socket_descriptor_, &message, flags);
 #else
   struct msghdr message;
   message.msg_name = reinterpret_cast<void*>(sock_addr);
@@ -157,7 +158,7 @@ Api::IoCallUint64Result IoSocketHandleImpl::sendmsg(const Buffer::RawSlice* slic
   if (self_ip == nullptr) {
     message.msg_control = nullptr;
     message.msg_controllen = 0;
-    const Api::SysCallSizeResult result = os_syscalls.sendmsg(fd_, &message, flags);
+    result = os_syscalls.sendmsg(fd_, &message, flags);
   } else {
     const size_t space_v6 = CMSG_SPACE(sizeof(in6_pktinfo));
     // FreeBSD only needs in_addr size, but allocates more to unify code in two platforms.
@@ -193,7 +194,7 @@ Api::IoCallUint64Result IoSocketHandleImpl::sendmsg(const Buffer::RawSlice* slic
       pktinfo->ipi6_ifindex = 0;
       *(reinterpret_cast<absl::uint128*>(pktinfo->ipi6_addr.s6_addr)) = self_ip->ipv6()->address();
     }
-    const Api::SysCallSizeResult result = os_syscalls.sendmsg(fd_, &message, flags);
+    result = os_syscalls.sendmsg(fd_, &message, flags);
   }
 #endif
   return sysCallResultToIoCallResult(result);
