@@ -341,7 +341,10 @@ def _io_opentracing_cpp():
         name = "io_opentracing_cpp",
         patch_args = ["-p1"],
         # Workaround for LSAN false positive in https://github.com/envoyproxy/envoy/issues/7647
-        patches = ["@envoy//bazel:io_opentracing_cpp.patch"],
+        patches = [
+            "@envoy//bazel:io_opentracing_cpp.patch",
+            "@envoy//bazel/foreign_cc:opentracing-cpp.patch",
+        ],
     )
     native.bind(
         name = "opentracing",

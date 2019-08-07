@@ -169,15 +169,14 @@ HttpConnectionManagerConfig::HttpConnectionManagerConfig(
           config, normalize_path,
           // TODO(htuch): we should have a boolean variant of featureEnabled() here.
           context.runtime().snapshot().featureEnabled("http_connection_manager.normalize_path",
-                                                      100)))
+                                                      100))),
 #else
       normalize_path_(PROTOBUF_GET_WRAPPED_OR_DEFAULT(
           config, normalize_path,
           // TODO(htuch): we should have a boolean variant of featureEnabled() here.
           context.runtime().snapshot().featureEnabled("http_connection_manager.normalize_path",
-                                                      0)))
+                                                      0))),
 #endif
-                                                      ))),
       merge_slashes_(config.merge_slashes()) {
   // If scoped RDS is enabled, avoid creating a route config provider. Route config providers will
   // be managed by the scoped routing logic instead.
