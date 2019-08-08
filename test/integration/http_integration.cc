@@ -253,7 +253,11 @@ std::string HttpIntegrationTest::waitForAccessLog(const std::string& filename) {
     if (contents.length() > 0) {
       return contents;
     }
+#ifndef WIN32
     usleep(1000);
+#else
+    Sleep(1);
+#endif
   }
   RELEASE_ASSERT(0, "Timed out waiting for access log");
   return "";

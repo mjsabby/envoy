@@ -4,9 +4,11 @@
 #include <iostream>
 
 #ifdef WIN32
-#include "winsock2.h"
-// winsock2.h includes <windows.h>, so undef some interfering symbols
+#include <winsock2.h>
+// <winsock2.h> includes <windows.h>, so undef some interfering symbols.
+#undef TRUE
 #undef DELETE
+#undef ERROR
 #undef GetMessage
 #endif
 

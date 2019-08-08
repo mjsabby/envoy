@@ -27,7 +27,9 @@
 
 #ifdef WIN32
 // one of the above headers includes <windows.h>, so undef some interfering symbols
+#undef TRUE
 #undef DELETE
+#undef ERROR
 #undef GetMessage
 #endif
 

@@ -1,9 +1,10 @@
 #include "common/network/utility.h"
 
 #ifdef WIN32
-// <winsock.h> includes <windows.h>, so undef some interfering symbols
-#include <winsock2.h>
+// <winsock2.h> includes <windows.h>, so undef some interfering symbols.
+#undef TRUE
 #undef DELETE
+#undef ERROR
 #undef GetMessage
 
 #else

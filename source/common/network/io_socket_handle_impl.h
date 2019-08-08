@@ -1,7 +1,12 @@
 #pragma once
 
 #ifdef WIN32
-#include "winsock2.h"
+#include <winsock2.h>
+// <winsock2.h> includes <windows.h>, so undef some interfering symbols.
+#undef TRUE
+#undef DELETE
+#undef ERROR
+#undef GetMessage
 #endif
 
 #include "envoy/api/io_error.h"

@@ -2,8 +2,10 @@
 
 #include <windows.h>
 
-// <windows.h> defines some macros that interfere with our code, so undef them
+// <winsock2.h> includes <windows.h>, so undef some interfering symbols.
+#undef TRUE
 #undef DELETE
+#undef ERROR
 #undef GetMessage
 
 #include <functional>

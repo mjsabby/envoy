@@ -61,7 +61,11 @@ TcpDump::TcpDump(const std::string& path, const std::string& iface,
       break;
     }
     // Give 50ms sleep.
+#ifndef WIN32
     ::usleep(50000);
+#else
+    Sleep(50);
+#endif
   }
 #endif
 }

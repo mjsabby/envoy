@@ -28,12 +28,10 @@ using mode_t = uint32_t;
 // Macros that depend on the OS
 #ifdef WIN32
 #include <winsock2.h>
-// <winsock.h> includes <windows.h>, so undef some interfering symbols. DELETE
-// shows up in the base.pb.h header generated from api/envoy/api/core/base.proto.
-// Since it's a generated header, we can't just undef the symbol there.
-// GetMessage show up in protobuf library code, so again we can't undef the
-// symbol there.
+// <winsock2.h> includes <windows.h>, so undef some interfering symbols.
+#undef TRUE
 #undef DELETE
+#undef ERROR
 #undef GetMessage
 
 #define SOCKET_FD SOCKET

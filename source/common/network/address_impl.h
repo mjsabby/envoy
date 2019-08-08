@@ -2,7 +2,11 @@
 
 #ifdef WIN32
 #include <ws2tcpip.h>
-
+// <ws2tcpip.h> includes <windows.h>, so undef some interfering symbols
+#undef TRUE
+#undef DELETE
+#undef ERROR
+#undef GetMessage
 #else
 #include <netinet/in.h>
 #include <sys/socket.h>

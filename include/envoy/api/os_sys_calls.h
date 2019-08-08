@@ -18,7 +18,9 @@
 
 #include <ws2tcpip.h>
 // <ws2tcpip.h> includes <windows.h>, so undef some interfering symbols
+#undef TRUE
 #undef DELETE
+#undef ERROR
 #undef GetMessage
 #endif
 

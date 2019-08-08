@@ -3,12 +3,10 @@
 #include <sys/stat.h>
 #include <windows.h>
 
-// <windows.h> uses macros to #define a ton of symbols, two of which (DELETE and GetMessage)
-// interfere with our code. DELETE shows up in the base.pb.h header generated from
-// api/envoy/api/core/base.proto. Since it's a generated header, we can't #undef DELETE at
-// the top of that header to avoid the collision. Similarly, GetMessage shows up in generated
-// protobuf code so we can't #undef the symbol there.
+// <winsock2.h> includes <windows.h>, so undef some interfering symbols.
+#undef TRUE
 #undef DELETE
+#undef ERROR
 #undef GetMessage
 
 #include "common/common/assert.h"

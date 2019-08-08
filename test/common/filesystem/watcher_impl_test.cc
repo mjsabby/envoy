@@ -1,6 +1,12 @@
 #ifdef WIN32
 #include <windows.h>
 
+// <winsock2.h> includes <windows.h>, so undef some interfering symbols.
+#undef TRUE
+#undef DELETE
+#undef ERROR
+#undef GetMessage
+
 #endif
 
 #include <cstdint>

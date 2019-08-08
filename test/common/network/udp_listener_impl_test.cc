@@ -421,7 +421,11 @@ TEST_P(UdpListenerImplTest, SendData) {
     }
 
     retry++;
+#ifndef WIN32
     ::usleep(10000);
+#else
+    Sleep(10);
+#endif
     ASSERT(bytes_read == 0);
   } while (true);
   EXPECT_EQ(bytes_to_read, bytes_read);

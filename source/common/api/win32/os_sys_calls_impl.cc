@@ -1,9 +1,12 @@
 #include <winsock2.h>
 #include <mswsock.h>
 
-// <winsock2.h> includes <windows.h>, so undef some interfering symbols
+// <winsock2.h> includes <windows.h>, so undef some interfering symbols.
+#undef TRUE
 #undef DELETE
+#undef ERROR
 #undef GetMessage
+
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/stat.h>
