@@ -22,7 +22,7 @@ envoy_cc_test_library(
     name = "config_impl_test_lib",
     srcs = ["config_impl_test.cc"],
     # not going to work on Windows (fuzz test)
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
     deps = [
         ":route_fuzz_proto_cc",
         "//source/common/config:metadata_lib",

@@ -31,7 +31,7 @@ envoy_cc_test_library(
         "//test/config/integration/certs",
     ],
     # should pass, see story #163962838
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
     deps = [
         ":http_integration_lib",
         "//source/common/config:protobuf_link_hacks",
@@ -239,7 +239,7 @@ envoy_cc_test(
         "http2_integration_test.h",
     ],
     # passes but it's flaky, see story #163964376
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
     deps = [
         ":http_integration_lib",
         "//source/common/buffer:buffer_lib",
@@ -312,7 +312,7 @@ envoy_cc_test(
         "integration_admin_test.h",
     ],
     # should pass, see story #163963060
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
     deps = [
         ":http_protocol_integration_lib",
         "//include/envoy/http:header_map_interface",
@@ -384,7 +384,7 @@ envoy_cc_test(
     # Shard it enough to bring the run time in line with other integration tests.
     shard_count = 2,
     # passes but it's flaky, see story #164138845
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
     deps = [
         ":http_protocol_integration_lib",
         "//test/test_common:test_time_lib",
@@ -777,7 +777,7 @@ envoy_cc_test(
         "uds_integration_test.h",
     ],
     # will never pass on Windows (Unix Domain Sockets)
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
     deps = [
         ":http_integration_lib",
         "//source/common/event:dispatcher_includes",

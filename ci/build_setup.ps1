@@ -17,7 +17,7 @@ $env:ENVOY_SRCDIR = [System.IO.Path]::GetFullPath("$PSScriptRoot\..")
 echo "ENVOY_BAZEL_ROOT: $env:ENVOY_BAZEL_ROOT"
 echo "ENVOY_SRCDIR: $env:ENVOY_SRCDIR"
 
-$env:BAZEL_BUILD_EXTRA_OPTIONS="--define signal_trace=disabled --define hot_restart=disabled --define tcmalloc=disabled --experimental_enable_runfiles --test_tag_filters=windows_test"
+$env:BAZEL_BUILD_EXTRA_OPTIONS="--define signal_trace=disabled --define hot_restart=disabled --define tcmalloc=disabled --experimental_enable_runfiles --test_tag_filters=-skip_on_windows"
 
 $env:BAZEL_BASE_OPTIONS="--noworkspace_rc --output_base=$env:ENVOY_BAZEL_ROOT --bazelrc=$env:ENVOY_SRCDIR\windows\tools\bazel.rc"
 

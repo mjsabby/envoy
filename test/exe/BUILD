@@ -18,7 +18,7 @@ envoy_sh_test(
         "//source/exe:envoy-static",
     ],
     # won't pass until https://github.com/bazelbuild/bazel/issues/6997 is fixed
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
 )
 
 envoy_sh_test(
@@ -40,7 +40,7 @@ envoy_sh_test(
         "//source/exe:envoy-static",
     ],
     # won't pass until https://github.com/bazelbuild/bazel/issues/6997 is fixed
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
 )
 
 envoy_cc_test(

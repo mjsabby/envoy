@@ -33,7 +33,7 @@ envoy_extension_cc_test(
     srcs = ["extractor_test.cc"],
     extension_name = "envoy.filters.http.jwt_authn",
     # not used in CF, so we haven't put the effort in to fix
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
     deps = [
         "//source/extensions/filters/http/jwt_authn:extractor_lib",
         "//test/extensions/filters/http/jwt_authn:test_common_lib",
@@ -46,7 +46,7 @@ envoy_extension_cc_test(
     srcs = ["filter_test.cc"],
     extension_name = "envoy.filters.http.jwt_authn",
     # not used in CF, so we haven't put the effort in to fix
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
     deps = [
         ":mock_lib",
         "//source/extensions/filters/http/jwt_authn:filter_lib",
@@ -73,7 +73,7 @@ envoy_extension_cc_test(
     srcs = ["filter_factory_test.cc"],
     extension_name = "envoy.filters.http.jwt_authn",
     # not used in CF, so we haven't put the effort in to fix
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
     deps = [
         "//source/extensions/filters/http/jwt_authn:config",
         "//test/extensions/filters/http/jwt_authn:test_common_lib",
@@ -86,7 +86,7 @@ envoy_extension_cc_test(
     srcs = ["jwks_cache_test.cc"],
     extension_name = "envoy.filters.http.jwt_authn",
     # not used in CF, so we haven't put the effort in to fix
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
     deps = [
         "//source/common/stats:isolated_store_lib",
         "//source/extensions/filters/http/common:jwks_fetcher_lib",
@@ -102,7 +102,7 @@ envoy_extension_cc_test(
     srcs = ["authenticator_test.cc"],
     extension_name = "envoy.filters.http.jwt_authn",
     # not used in CF, so we haven't put the effort in to fix
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
     deps = [
         ":mock_lib",
         "//source/extensions/filters/http/common:jwks_fetcher_lib",
@@ -121,7 +121,7 @@ envoy_extension_cc_test(
     srcs = ["filter_integration_test.cc"],
     extension_name = "envoy.filters.http.jwt_authn",
     # not used in CF, so we haven't put the effort in to fix
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
     deps = [
         "//source/common/router:string_accessor_lib",
         "//source/extensions/filters/http/common:empty_http_filter_config_lib",
@@ -138,7 +138,7 @@ envoy_extension_cc_test(
     srcs = ["matcher_test.cc"],
     extension_name = "envoy.filters.http.jwt_authn",
     # not used in CF, so we haven't put the effort in to fix
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
     deps = [
         ":mock_lib",
         ":test_common_lib",
@@ -152,7 +152,7 @@ envoy_extension_cc_test(
     srcs = ["group_verifier_test.cc"],
     extension_name = "envoy.filters.http.jwt_authn",
     # not used in CF, so we haven't put the effort in to fix
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
     deps = [
         ":mock_lib",
         ":test_common_lib",
@@ -169,7 +169,7 @@ envoy_extension_cc_test(
     ],
     extension_name = "envoy.filters.http.jwt_authn",
     # not used in CF, so we haven't put the effort in to fix
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
     deps = [
         ":mock_lib",
         ":test_common_lib",

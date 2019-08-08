@@ -50,7 +50,7 @@ envoy_extension_cc_test(
     ],
     extension_name = "envoy.filters.http.grpc_json_transcoder",
     # not used in CF, so we haven't put the effort in to fix
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
     deps = [
         "//source/common/grpc:codec_lib",
         "//source/common/http:header_map_lib",

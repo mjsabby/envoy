@@ -34,7 +34,7 @@ envoy_extension_cc_test(
     srcs = ["metrics_service_integration_test.cc"],
     extension_name = "envoy.stat_sinks.metrics_service",
     # not used in CF, so we haven't put the effort in to fix
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
     deps = [
         "//source/common/buffer:zero_copy_input_stream_lib",
         "//source/common/grpc:codec_lib",

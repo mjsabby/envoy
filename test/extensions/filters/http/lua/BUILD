@@ -16,7 +16,7 @@ envoy_extension_cc_test(
     srcs = ["lua_filter_test.cc"],
     extension_name = "envoy.filters.http.lua",
     # not used in CF, so we haven't put the effort in to fix
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
     deps = [
         "//source/common/stream_info:stream_info_lib",
         "//source/extensions/filters/http/lua:lua_filter_lib",
@@ -34,7 +34,7 @@ envoy_extension_cc_test(
     srcs = ["wrappers_test.cc"],
     extension_name = "envoy.filters.http.lua",
     # not used in CF, so we haven't put the effort in to fix
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
     deps = [
         "//source/common/stream_info:stream_info_lib",
         "//source/extensions/filters/http/lua:wrappers_lib",
@@ -49,7 +49,7 @@ envoy_extension_cc_test(
     srcs = ["lua_integration_test.cc"],
     extension_name = "envoy.filters.http.lua",
     # not used in CF, so we haven't put the effort in to fix
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
     deps = [
         "//source/extensions/filters/http/lua:config",
         "//test/integration:http_integration_lib",
@@ -62,7 +62,7 @@ envoy_extension_cc_test(
     srcs = ["config_test.cc"],
     extension_name = "envoy.filters.http.lua",
     # not used in CF, so we haven't put the effort in to fix
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
     deps = [
         "//source/extensions/filters/http/lua:config",
         "//test/mocks/server:server_mocks",

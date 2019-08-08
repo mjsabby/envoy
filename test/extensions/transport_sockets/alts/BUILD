@@ -39,7 +39,7 @@ envoy_extension_cc_test(
     srcs = ["tsi_handshaker_test.cc"],
     extension_name = "envoy.transport_sockets.alts",
     # not used in CF, so we haven't put the effort in to fix
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
     deps = [
         "//include/envoy/event:dispatcher_interface",
         "//source/extensions/transport_sockets/alts:tsi_handshaker",
@@ -79,7 +79,7 @@ envoy_extension_cc_test(
         "grpc_alts_fake_handshaker_server",
     ],
     # not used in CF, so we haven't put the effort in to fix
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
     deps = [
         "//source/common/common:utility_lib",
         "//source/common/event:dispatcher_includes",

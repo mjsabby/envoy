@@ -38,7 +38,7 @@ envoy_cc_test(
     name = "codec_client_test",
     srcs = ["codec_client_test.cc"],
     # should pass, see story #163961724
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
     deps = [
         ":common_lib",
         "//source/common/buffer:buffer_lib",
@@ -96,7 +96,7 @@ envoy_cc_test(
     name = "codes_test",
     srcs = ["codes_test.cc"],
     # should pass, see story #163961817
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
     deps = [
         "//source/common/common:empty_string",
         "//source/common/http:codes_lib",

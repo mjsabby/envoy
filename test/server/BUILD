@@ -134,7 +134,7 @@ envoy_cc_test(
     name = "overload_manager_impl_test",
     srcs = ["overload_manager_impl_test.cc"],
     # should pass, see story #163960604
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
     deps = [
         "//include/envoy/registry",
         "//source/common/stats:isolated_store_lib",

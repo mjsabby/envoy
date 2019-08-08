@@ -16,7 +16,7 @@ envoy_extension_cc_test(
     srcs = ["config_test.cc"],
     extension_name = "envoy.stat_sinks.dog_statsd",
     # not used in CF, so we haven't put the effort in to fix
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
     deps = [
         "//include/envoy/registry",
         "//source/common/protobuf:utility_lib",

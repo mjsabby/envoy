@@ -27,7 +27,7 @@ envoy_cc_test(
         "//configs:example_configs",
     ],
     # should pass, see story #163962328
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
     deps = [
         ":config_test_lib",
         "//test/test_common:environment_lib",

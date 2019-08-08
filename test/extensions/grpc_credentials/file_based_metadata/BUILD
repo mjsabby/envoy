@@ -14,7 +14,7 @@ envoy_cc_test(
     srcs = ["file_based_metadata_grpc_credentials_test.cc"],
     data = ["//test/config/integration/certs"],
     # not used in CF, so we haven't put the effort in to fix
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
     deps = [
         "//source/extensions/grpc_credentials:well_known_names",
         "//source/extensions/grpc_credentials/file_based_metadata:config",

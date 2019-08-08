@@ -18,7 +18,7 @@ envoy_extension_cc_test(
     ],
     extension_name = "envoy.tracers.datadog",
     # not used in CF, so we haven't put the effort in to fix
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
     deps = [
         "//source/common/common:base64_lib",
         "//source/common/http:header_map_lib",
@@ -43,7 +43,7 @@ envoy_extension_cc_test(
     srcs = ["config_test.cc"],
     extension_name = "envoy.tracers.datadog",
     # not used in CF, so we haven't put the effort in to fix
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
     deps = [
         "//source/extensions/tracers/datadog:config",
         "//test/mocks/server:server_mocks",

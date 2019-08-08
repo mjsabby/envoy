@@ -16,7 +16,7 @@ envoy_extension_cc_test(
     srcs = ["gzip_filter_test.cc"],
     extension_name = "envoy.filters.http.gzip",
     # not used in CF, so we haven't put the effort in to fix
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
     deps = [
         "//source/common/compressor:compressor_lib",
         "//source/common/decompressor:decompressor_lib",
@@ -35,7 +35,7 @@ envoy_extension_cc_test(
     ],
     extension_name = "envoy.filters.http.gzip",
     # not used in CF, so we haven't put the effort in to fix
-    test_on_windows = False,
+    tags = ["skip_on_windows"],
     deps = [
         "//source/common/decompressor:decompressor_lib",
         "//source/extensions/filters/http/gzip:config",
