@@ -47,6 +47,7 @@ envoy_cc_library(
     name = "dubbo_protocol_impl_lib",
     srcs = ["dubbo_protocol_impl.cc"],
     hdrs = ["dubbo_protocol_impl.h"],
+    tags = ["skip_on_windows"],
     deps = [
         ":protocol_interface",
         "//include/envoy/buffer:buffer_interface",
@@ -78,6 +79,7 @@ envoy_cc_library(
     hdrs = [
         "dubbo_hessian2_serializer_impl.h",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         ":buffer_helper_lib",
         ":hessian_utils_lib",
