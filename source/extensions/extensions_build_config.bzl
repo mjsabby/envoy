@@ -80,7 +80,7 @@ EXTENSIONS = {
     # TODO(Pivotal): We were unable to disable building this extension or work out a mechansim
     # to avoid the Windows COM object model '#define interface' interference with compiling the
     # 'interface' enum in the validator of this external, so commenting it out entirely, for now.
-    #"envoy.filters.network.dubbo_proxy":                "//source/extensions/filters/network/dubbo_proxy:config",
+    "envoy.filters.network.dubbo_proxy":                "//source/extensions/filters/network/dubbo_proxy:config",
     "envoy.filters.network.echo":                       "//source/extensions/filters/network/echo:config",
     "envoy.filters.network.ext_authz":                  "//source/extensions/filters/network/ext_authz:config",
     "envoy.filters.network.http_connection_manager":    "//source/extensions/filters/network/http_connection_manager:config",

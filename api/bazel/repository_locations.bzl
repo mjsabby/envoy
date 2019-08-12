@@ -7,8 +7,10 @@ GOGOPROTO_SHA256 = "99e423905ba8921e86817607a5294ffeedb66fdd4a85efce5eb2848f715f
 OPENCENSUS_PROTO_GIT_SHA = "5cec5ea58c3efa81fa808f2bd38ce182da9ee731"  # Jul 25, 2019
 OPENCENSUS_PROTO_SHA256 = "faeb93f293ff715b0cb530d273901c0e2e99277b9ed1c0a0326bca9ec5774ad2"
 
-PGV_GIT_SHA = "2feaabb13a5d697b80fcb938c0ce37b24c9381ee"  # Jul 26, 2018
-PGV_SHA256 = "ddefe3dcbb25d68a2e5dfea67d19c060959c2aecc782802bd4c1a5811d44dd45"
+# PGV_GIT_SHA = "2feaabb13a5d697b80fcb938c0ce37b24c9381ee"  # Jul 26, 2018
+# PGV_SHA256 = "ddefe3dcbb25d68a2e5dfea67d19c060959c2aecc782802bd4c1a5811d44dd45"
+PGV_GIT_SHA = "fbc521e28d2fb8f57a23b5a85ade5cc5352d541c"  
+PGV_SHA256 = "4848155cf53a878fdee2318e06b0b7fc95d6c07225f7ab4d56475fa5086bfc51"
 
 GOOGLEAPIS_GIT_SHA = "be480e391cc88a75cf2a81960ef79c80d5012068"  # Jul 24, 2019
 GOOGLEAPIS_SHA = "c1969e5b72eab6d9b6cfcff748e45ba57294aeea1d96fd04cd081995de0605c2"
@@ -32,7 +34,7 @@ REPOSITORY_LOCATIONS = dict(
     com_envoyproxy_protoc_gen_validate = dict(
         sha256 = PGV_SHA256,
         strip_prefix = "protoc-gen-validate-" + PGV_GIT_SHA,
-        urls = ["https://github.com/envoyproxy/protoc-gen-validate/archive/" + PGV_GIT_SHA + ".tar.gz"],
+        urls = ["https://github.com/greenhouse-org/protoc-gen-validate/archive/" + PGV_GIT_SHA + ".tar.gz"],
     ),
     com_google_googleapis = dict(
         # TODO(dio): Consider writing a Skylark macro for importing Google API proto.
