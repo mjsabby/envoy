@@ -203,7 +203,11 @@ public:
         .WillByDefault(ReturnRef(application_protocols));
 
     if (absl::StartsWith(source_address, "/")) {
+#if !defined(WIN32)
       remote_address_.reset(new Network::Address::PipeInstance(source_address));
+#else
+      PANIC("unix domain sockets not supported on Windows");
+#endif
     } else {
       remote_address_ = Network::Utility::parseInternetAddress(source_address, source_port);
     }

@@ -18,6 +18,12 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+#if defined(WIN32)
+#  ifndef F_OK
+#    define F_OK 0
+#  endif
+#endif
+
 using testing::_;
 using testing::NiceMock;
 using testing::Return;
