@@ -701,6 +701,8 @@ envoy_cc_test(
     data = [
         "//test/config/integration/certs",
     ],
+    # TODO(Pivotal): Fails to honor extensions disabled
+    tags = ["skip_on_windows"],
     deps = [
         ":http_integration_lib",
         "//source/common/config:protobuf_link_hacks",

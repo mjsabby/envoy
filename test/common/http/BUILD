@@ -213,6 +213,9 @@ envoy_cc_test(
 envoy_cc_test(
     name = "conn_manager_utility_test",
     srcs = ["conn_manager_utility_test.cc"],
+    # TODO(Pivotal): this inflicts test/extensions/filters/http/grpc_http1_reverse_bridge,
+    # can't compile on Windows
+    tags = ["skip_on_windows"],
     deps = [
         "//source/common/event:dispatcher_lib",
         "//source/common/http:conn_manager_lib",

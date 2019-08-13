@@ -151,6 +151,8 @@ envoy_cc_test(
 envoy_proto_library(
     name = "route_fuzz_proto",
     srcs = ["route_fuzz.proto"],
+    # not going to work on Windows (fuzz test)
+    tags = ["skip_on_windows"],
     deps = [
         "//test/fuzz:common_proto",
         "@envoy_api//envoy/api/v2:rds_export",
@@ -204,6 +206,8 @@ envoy_cc_fuzz_test(
     name = "route_fuzz_test",
     srcs = ["route_fuzz_test.cc"],
     corpus = ":route_corpus",
+    # not going to work on Windows (fuzz test)
+    tags = ["skip_on_windows"],
     deps = [
         ":route_fuzz_proto_cc",
         "//source/common/router:config_lib",
