@@ -599,7 +599,6 @@ def _com_googlesource_quiche():
         sha256 = location["sha256"],
         genrule_cmd_file = "@envoy//bazel/external:quiche.genrule_cmd",
         build_file = "@envoy//bazel/external:quiche.BUILD",
-        patches = ["@envoy//bazel:com_googlesource_quiche.patch"],
     )
 
     native.bind(

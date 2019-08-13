@@ -54,11 +54,11 @@ genrule(
 # Use #pragma GCC diagnostic ignored in integration code to suppress these errors.
 quiche_copt = [
     # Remove these after upstream fix.
-    "-Wno-unused-parameter",
-    "-Wno-unused-function",
-    "-Wno-type-limits",
+    # "-Wno-unused-parameter",
+    # "-Wno-unused-function",
+    # "-Wno-type-limits",
     # quic_inlined_frame.h uses offsetof() to optimize memory usage in frames.
-    "-Wno-invalid-offsetof",
+    # "-Wno-invalid-offsetof",
 ]
 
 envoy_cc_test_library(

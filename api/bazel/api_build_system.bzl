@@ -115,6 +115,7 @@ def api_proto_library(
         visibility = ["//visibility:private"],
         srcs = [],
         deps = [],
+        tags = [],
         external_proto_deps = [],
         external_cc_proto_deps = [],
         external_py_proto_deps = [],
@@ -138,6 +139,7 @@ def api_proto_library(
             "@com_github_gogo_protobuf//:gogo_proto",
             "@com_envoyproxy_protoc_gen_validate//validate:validate_proto",
         ],
+        tags = tags,
         visibility = visibility,
     )
     pgv_cc_proto_library(
