@@ -43,6 +43,7 @@ envoy_cc_test_library(
 envoy_proto_library(
     name = "header_parser_fuzz_proto",
     srcs = ["header_parser_fuzz.proto"],
+    tags = ["skip_on_windows"],
     deps = [
         "//test/fuzz:common_proto",
         "@envoy_api//envoy/api/v2/core:base_export",
@@ -53,6 +54,7 @@ envoy_cc_fuzz_test(
     name = "header_parser_fuzz_test",
     srcs = ["header_parser_fuzz_test.cc"],
     corpus = "header_parser_corpus",
+    tags = ["skip_on_windows"],
     deps = [
         ":header_parser_fuzz_proto_cc",
         "//source/common/http:header_map_lib",
