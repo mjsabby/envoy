@@ -136,3 +136,40 @@ def envoy_proto_library(name, external_deps = [], **kwargs):
         visibility = ["//visibility:public"],
         **kwargs
     )
+
+# Envoy proto descriptor targets should be specified with this function.
+# This is used for testing only.
+def envoy_proto_descriptor(name, out, srcs = [], external_deps = []):
+    input_files = ["$(location " + src + ")" for src in srcs]
+    include_paths = [".", native.package_name()]
+
+    if "api_httpbody_protos" in external_deps:
+        srcs.append("@com_google_googleapis//google/api:httpbody.proto")
+        include_paths.append("external/com_google_googleapis")
+
+    if "http_api_protos" in external_deps:
+        srcs.append("@com_google_googleapis//google/api:annotations.proto")
+        srcs.append("@com_google_googleapis//google/api:http.proto")
+        include_paths.append("external/com_google_googleapis")
+
+    if "well_known_protos" in external_deps:
+        srcs.append("@com_google_protobuf//:well_known_protos")
+        include_paths.append("external/com_google_protobuf/src")
+
+    options = ["--include_imports"]
+    options.extend(["-I" + include_path for include_path in include_paths])
+    options.append("--descriptor_set_out=$@")
+
+    cmd = "$(location //external:protoc)"
+    args = options + input_files
+
+    native.genrule(
+        name = name,
+        srcs = srcs,
+        outs = [out],
+        cmd = cmd,
+#        args = args,
+#        use_command_file = True,
+        tools = ["//external:protoc"],
+    )
+

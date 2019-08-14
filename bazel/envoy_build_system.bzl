@@ -11,6 +11,7 @@ load(
     _envoy_cc_win32_library = "envoy_cc_win32_library",
     _envoy_include_prefix = "envoy_include_prefix",
     _envoy_proto_library = "envoy_proto_library",
+    _envoy_proto_descriptor = "envoy_proto_descriptor",
 )
 load(
     ":envoy_select.bzl",
@@ -122,38 +123,6 @@ def envoy_cc_platform_dep(name):
         "//conditions:default": [name + "_posix"],
     })
 
-# Envoy proto descriptor targets should be specified with this function.
-# This is used for testing only.
-def envoy_proto_descriptor(name, out, srcs = [], external_deps = []):
-    input_files = ["$(location " + src + ")" for src in srcs]
-    include_paths = [".", native.package_name()]
-
-    if "api_httpbody_protos" in external_deps:
-        srcs.append("@com_google_googleapis//google/api:httpbody.proto")
-        include_paths.append("external/com_google_googleapis")
-
-    if "http_api_protos" in external_deps:
-        srcs.append("@com_google_googleapis//google/api:annotations.proto")
-        srcs.append("@com_google_googleapis//google/api:http.proto")
-        include_paths.append("external/com_google_googleapis")
-
-    if "well_known_protos" in external_deps:
-        srcs.append("@com_google_protobuf//:well_known_protos")
-        include_paths.append("external/com_google_protobuf/src")
-
-    options = ["--include_imports"]
-    options.extend(["-I" + include_path for include_path in include_paths])
-    options.append("--descriptor_set_out=$@")
-
-    cmd = "$(location //external:protoc) " + " ".join(options + input_files)
-    native.genrule(
-        name = name,
-        srcs = srcs,
-        outs = [out],
-        cmd = cmd,
-        tools = ["//external:protoc"],
-    )
-
 # Dependencies on Google grpc should be wrapped with this function.
 def envoy_google_grpc_external_deps():
     return envoy_select_google_grpc([envoy_external_dep_path("grpc")])
@@ -178,6 +147,7 @@ envoy_cc_posix_library = _envoy_cc_posix_library
 envoy_cc_win32_library = _envoy_cc_win32_library
 envoy_include_prefix = _envoy_include_prefix
 envoy_proto_library = _envoy_proto_library
+envoy_proto_descriptor = _envoy_proto_descriptor
 
 # Test wrappers (from envoy_test.bzl)
 envoy_cc_fuzz_test = _envoy_cc_fuzz_test
