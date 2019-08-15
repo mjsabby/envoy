@@ -77,6 +77,8 @@ py_binary(
     licenses = ["notice"],  # Apache 2
     python_version = "PY3",
     visibility = ["//visibility:public"],
+    # TODO(Pivotal): Skipping fuzz tests on Windows
+    tags = ["skip_on_windows"],
     deps = [
         ":capture_fuzz_proto_py",
         "@envoy_api//envoy/data/tap/v2alpha:transport_py",
@@ -86,6 +88,8 @@ py_binary(
 envoy_proto_library(
     name = "capture_fuzz_proto",
     srcs = [":capture_fuzz.proto"],
+    # TODO(Pivotal): Skipping fuzz tests on Windows
+    tags = ["skip_on_windows"],
     require_py = 1,
 )
 
@@ -835,6 +839,8 @@ envoy_cc_test_library(
     name = "h1_fuzz_lib",
     srcs = ["h1_fuzz.cc"],
     hdrs = ["h1_fuzz.h"],
+    # TODO(Pivotal): Skipping fuzz tests on Windows
+    tags = ["skip_on_windows"],
     deps = [
         ":capture_fuzz_proto_cc",
         ":http_integration_lib",
@@ -850,6 +856,8 @@ envoy_cc_fuzz_test(
     name = "h1_capture_fuzz_test",
     srcs = ["h1_capture_fuzz_test.cc"],
     corpus = "h1_corpus",
+    # TODO(Pivotal): Skipping fuzz tests on Windows
+    tags = ["skip_on_windows"],
     deps = [":h1_fuzz_lib"],
 )
 
@@ -857,6 +865,8 @@ envoy_cc_fuzz_test(
     name = "h1_capture_direct_response_fuzz_test",
     srcs = ["h1_capture_direct_response_fuzz_test.cc"],
     corpus = "h1_corpus",
+    # TODO(Pivotal): Skipping fuzz tests on Windows
+    tags = ["skip_on_windows"],
     deps = [":h1_fuzz_lib"],
 )
 

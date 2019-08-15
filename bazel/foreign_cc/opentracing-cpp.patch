@@ -26,7 +26,7 @@ index 1721fb3..3873b3a 100644
      set_target_properties(opentracing-static PROPERTIES OUTPUT_NAME opentracing)
 +    target_compile_definitions(opentracing-static PUBLIC OPENTRACING_STATIC)
 +  else()
-+    target_compile_definitions(opentracing-static PRIVATE OPENTRACING_STATIC)
++    target_compile_definitions(opentracing-static PUBLIC OPENTRACING_STATIC)
    endif()
 -  target_compile_definitions(opentracing-static PRIVATE OPENTRACING_STATIC)
    target_include_directories(opentracing-static INTERFACE "$<INSTALL_INTERFACE:include/>")

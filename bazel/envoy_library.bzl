@@ -160,8 +160,7 @@ def envoy_proto_descriptor(name, out, srcs = [], external_deps = []):
     options.extend(["-I" + include_path for include_path in include_paths])
     options.append("--descriptor_set_out=$@")
 
-    cmd = "$(location //external:protoc)"
-    args = options + input_files
+    cmd = "$(location //external:protoc) " +  " ".join(options + input_files)
 
     native.genrule(
         name = name,

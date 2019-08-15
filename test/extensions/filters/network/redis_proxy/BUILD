@@ -80,6 +80,8 @@ envoy_cc_mock(
     name = "redis_mocks",
     srcs = ["mocks.cc"],
     hdrs = ["mocks.h"],
+    # not used in CF, so we haven't put the effort in to fix
+    tags = ["skip_on_windows"],
     deps = [
         "//source/common/common:assert_lib",
         "//source/extensions/filters/network/common/redis:client_interface",
