@@ -43,7 +43,7 @@ public:
     std::transform(words.cbegin(), words.cend(), std::back_inserter(argv),
                    [](const std::string& arg) { return arg.c_str(); });
     return std::make_unique<OptionsImpl>(
-        argv.size(), argv.data(), const std::string("1"), spdlog::level::warn);
+        argv.size(), argv.data(), [](bool) { return "1"; }, spdlog::level::warn);
   }
 };
 
