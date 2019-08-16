@@ -167,8 +167,6 @@ def envoy_proto_descriptor(name, out, srcs = [], external_deps = []):
         srcs = srcs,
         outs = [out],
         cmd = cmd,
-#        args = args,
-#        use_command_file = True,
         tools = ["//external:protoc"],
     )
 
