@@ -17,6 +17,7 @@ envoy_extension_cc_test(
     name = "redis_cluster_test",
     srcs = ["redis_cluster_test.cc"],
     extension_name = "envoy.clusters.redis",
+    tags = ["skip_on_windows"],
     deps = [
         "//source/common/event:dispatcher_lib",
         "//source/common/network:utility_lib",
@@ -48,6 +49,7 @@ envoy_extension_cc_test(
     name = "redis_cluster_lb_test",
     srcs = ["redis_cluster_lb_test.cc"],
     extension_name = "envoy.clusters.redis",
+    tags = ["skip_on_windows"],
     deps = [
         "//include/envoy/upstream:cluster_manager_interface",
         "//source/common/event:dispatcher_lib",
@@ -86,6 +88,7 @@ envoy_extension_cc_test(
     size = "small",
     srcs = ["redis_cluster_integration_test.cc"],
     extension_name = "envoy.clusters.redis",
+    tags = ["skip_on_windows"],
     deps = [
         "//source/extensions/clusters/redis:redis_cluster",
         "//source/extensions/clusters/redis:redis_cluster_lb",
@@ -98,6 +101,7 @@ envoy_cc_mock(
     name = "redis_cluster_mocks",
     srcs = ["mocks.cc"],
     hdrs = ["mocks.h"],
+    tags = ["skip_on_windows"],
     deps = [
         "//include/envoy/upstream:upstream_interface",
         "//source/common/upstream:cluster_factory_lib",
@@ -110,5 +114,6 @@ envoy_cc_mock(
 envoy_cc_test(
     name = "crc16_test",
     srcs = ["crc16_test.cc"],
+    tags = ["skip_on_windows"],
     deps = ["//source/extensions/clusters/redis:crc16_lib"],
 )

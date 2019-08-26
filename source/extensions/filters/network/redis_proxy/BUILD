@@ -15,6 +15,7 @@ envoy_package()
 envoy_cc_library(
     name = "command_splitter_interface",
     hdrs = ["command_splitter.h"],
+    tags = ["skip_on_windows"],
     deps = [
         "//source/extensions/filters/network/common/redis:codec_interface",
     ],
@@ -23,6 +24,7 @@ envoy_cc_library(
 envoy_cc_library(
     name = "config_interface",
     hdrs = ["config.h"],
+    tags = ["skip_on_windows"],
     deps = [
         "//source/common/config:datasource_lib",
         "//source/extensions/filters/network:well_known_names",
@@ -34,6 +36,7 @@ envoy_cc_library(
 envoy_cc_library(
     name = "conn_pool_interface",
     hdrs = ["conn_pool.h"],
+    tags = ["skip_on_windows"],
     deps = [
         "//include/envoy/upstream:cluster_manager_interface",
         "//source/extensions/filters/network/common/redis:client_interface",
@@ -44,6 +47,7 @@ envoy_cc_library(
 envoy_cc_library(
     name = "router_interface",
     hdrs = ["router.h"],
+    tags = ["skip_on_windows"],
     deps = [
         ":conn_pool_interface",
         "@envoy_api//envoy/config/filter/network/redis_proxy/v2:redis_proxy_cc",
@@ -54,6 +58,7 @@ envoy_cc_library(
     name = "command_splitter_lib",
     srcs = ["command_splitter_impl.cc"],
     hdrs = ["command_splitter_impl.h"],
+    tags = ["skip_on_windows"],
     deps = [
         ":command_splitter_interface",
         ":router_interface",
@@ -72,6 +77,7 @@ envoy_cc_library(
     name = "conn_pool_lib",
     srcs = ["conn_pool_impl.cc"],
     hdrs = ["conn_pool_impl.h"],
+    tags = ["skip_on_windows"],
     deps = [
         ":config_interface",
         ":conn_pool_interface",
@@ -96,6 +102,7 @@ envoy_cc_library(
     name = "proxy_filter_lib",
     srcs = ["proxy_filter.cc"],
     hdrs = ["proxy_filter.h"],
+    tags = ["skip_on_windows"],
     deps = [
         ":command_splitter_interface",
         "//include/envoy/network:drain_decision_interface",
@@ -114,6 +121,7 @@ envoy_cc_library(
     name = "config",
     srcs = ["config.cc"],
     hdrs = ["config.h"],
+    tags = ["skip_on_windows"],
     deps = [
         "//include/envoy/registry",
         "//source/common/config:filter_json_lib",
@@ -131,6 +139,7 @@ envoy_cc_library(
     name = "router_lib",
     srcs = ["router_impl.cc"],
     hdrs = ["router_impl.h"],
+    tags = ["skip_on_windows"],
     deps = [
         ":router_interface",
         "//include/envoy/thread_local:thread_local_interface",
