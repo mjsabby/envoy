@@ -38,6 +38,7 @@ namespace {
 
 #ifdef WIN32
 std::string devNull = "NUL";
+#define SO_REUSEPORT SO_REUSEADDR
 #else
 std::string devNull = "/dev/null";
 #endif
