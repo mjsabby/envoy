@@ -86,6 +86,7 @@ def envoy_cc_fuzz_test(
         srcs = [corpus_name],
         testonly = 1,
     )
+    tags = tags + ["skip_on_windows"]
     test_lib_name = name + "_lib"
     envoy_cc_test_library(
         name = test_lib_name,
@@ -94,6 +95,7 @@ def envoy_cc_fuzz_test(
             repository + "//bazel:dynamic_stdlib",
         ],
         repository = repository,
+        tags = tags,
         **kwargs
     )
     native.cc_test(
@@ -105,14 +107,8 @@ def envoy_cc_fuzz_test(
         data = [corpus_name],
         # No fuzzing on macOS.
         deps = select({
-<<<<<<< HEAD
-            "@envoy//bazel:apple": [repository + "//test:dummy_main"],
-            # needed for test_on_windows, see #164309012
-            "@envoy//bazel:windows_x86_64": [repository + "//test:dummy_main"],
-=======
             "@envoy//bazel:apple": ["//test:dummy_main"],
             "@envoy//bazel:windows_x86_64": ["//test:dummy_main"],
->>>>>>> Replace custom code with generic use of tags[]
             "//conditions:default": [
                 ":" + test_lib_name,
                 repository + "//test/fuzz:main",
