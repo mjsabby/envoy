@@ -42,7 +42,7 @@ public:
                              const std::vector<std::string>& application_protocols,
                              const std::string& source_address, uint16_t source_port) {
     auto res = std::make_unique<MockConnectionSocket>();
-
+#ifndef WIN32
     if (absl::StartsWith(destination_address, "/")) {
       res->local_address_ = std::make_shared<Network::Address::PipeInstance>(destination_address);
     } else {
@@ -54,6 +54,12 @@ public:
     } else {
       res->remote_address_ = Network::Utility::parseInternetAddress(source_address, source_port);
     }
+#else
+//TODO: Pivotal - revert when PipeInstance is implemented for windows
+    res->local_address_ =
+          Network::Utility::parseInternetAddress(destination_address, destination_port);
+    res->remote_address_ = Network::Utility::parseInternetAddress(source_address, source_port);
+#endif
     res->server_name_ = server_name;
     res->transport_protocol_ = transport_protocol;
     res->application_protocols_ = application_protocols;

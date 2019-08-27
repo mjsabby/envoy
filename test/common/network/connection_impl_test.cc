@@ -712,7 +712,7 @@ TEST_P(ConnectionImplTest, BasicWrite) {
   // level triggered and so the socket is always available for writing. This
   // means that the dispatcher will never exit
   EXPECT_CALL(*client_write_buffer_, write(_))
-      .WillOnce(Invoke([&](Envoy::Network::IoHandle fd) -> Api::SysCallIntResult {
+      .WillOnce(Invoke([&](Envoy::Network::IoSocketHandleImpl fd) -> Api::SysCallIntResult {
         dispatcher_->exit();
         return client_write_buffer_->trackWrites(fd);
       }));
