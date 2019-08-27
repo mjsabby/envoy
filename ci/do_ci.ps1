@@ -18,7 +18,7 @@ function bazel_test($type, $test) {
     bazel $env:BAZEL_BASE_OPTIONS.Split(" ") test $env:BAZEL_BUILD_OPTIONS.Split(" ") -c $type $test
   } else {
     echo "running windows tests"
-    bazel $env:BAZEL_BASE_OPTIONS.Split(" ") test $env:BAZEL_BUILD_OPTIONS.Split(" ") -c $type "//test/..."
+    bazel $env:BAZEL_BASE_OPTIONS.Split(" ") test $env:BAZEL_BUILD_OPTIONS.Split(" ") -c $type -- "//test/..." "-//test/extensions/..."
   }
   exit $LASTEXITCODE
 }
