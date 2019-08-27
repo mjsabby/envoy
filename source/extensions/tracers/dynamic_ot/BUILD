@@ -18,6 +18,7 @@ envoy_cc_library(
     hdrs = [
         "dynamic_opentracing_driver_impl.h",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         "//source/common/tracing:http_tracer_lib",
         "//source/extensions/tracers/common/ot:opentracing_driver_lib",
@@ -28,6 +29,7 @@ envoy_cc_library(
     name = "config",
     srcs = ["config.cc"],
     hdrs = ["config.h"],
+    tags = ["skip_on_windows"],
     deps = [
         ":dynamic_opentracing_driver_lib",
         "//source/extensions/tracers:well_known_names",

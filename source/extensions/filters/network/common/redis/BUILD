@@ -54,6 +54,7 @@ envoy_cc_library(
     name = "client_lib",
     srcs = ["client_impl.cc"],
     hdrs = ["client_impl.h"],
+    tags = ["skip_on_windows"],
     deps = [
         ":client_interface",
         ":codec_lib",

@@ -208,8 +208,6 @@ envoy_cc_fuzz_test(
     name = "route_fuzz_test",
     srcs = ["route_fuzz_test.cc"],
     corpus = ":route_corpus",
-    # not going to work on Windows (fuzz test)
-    tags = ["skip_on_windows"],
     deps = [
         ":route_fuzz_proto_cc",
         "//source/common/router:config_lib",
@@ -263,6 +261,7 @@ envoy_cc_test(
     name = "router_upstream_log_test",
     srcs = ["router_upstream_log_test.cc"],
     external_deps = ["abseil_optional"],
+    tags = ["skip_on_windows"],
     deps = [
         "//source/common/buffer:buffer_lib",
         "//source/common/network:utility_lib",

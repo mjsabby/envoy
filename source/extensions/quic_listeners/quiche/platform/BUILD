@@ -96,6 +96,7 @@ envoy_cc_library(
     hdrs = ["quic_export_impl.h"],
     tags = ["nofips"],
     visibility = ["//visibility:public"],
+    tags = ["skip_on_windows"],
 )
 
 envoy_cc_library(
@@ -107,6 +108,7 @@ envoy_cc_library(
     ],
     tags = ["nofips"],
     visibility = ["//visibility:public"],
+    tags = ["skip_on_windows"],
     deps = [
         "//source/common/common:assert_lib",
         "//source/common/common:stl_helpers",
@@ -157,6 +159,7 @@ envoy_cc_library(
     ],
     tags = ["nofips"],
     visibility = ["//visibility:public"],
+    tags = ["skip_on_windows"],
     deps = [
         ":flags_impl_lib",
         ":string_utils_lib",
@@ -196,6 +199,7 @@ envoy_cc_library(
     ],
     tags = ["nofips"],
     visibility = ["//visibility:public"],
+    tags = ["skip_on_windows"],
     deps = [
         "//source/common/common:assert_lib",
         "//source/common/filesystem:directory_lib",
@@ -211,6 +215,7 @@ envoy_cc_library(
     copts = ["-Wno-unused-parameter"],
     tags = ["nofips"],
     visibility = ["//visibility:public"],
+    tags = ["skip_on_windows"],
     deps = [
         "//include/envoy/buffer:buffer_interface",
         "//source/common/common:stack_array",
@@ -229,6 +234,7 @@ envoy_cc_library(
     ],
     tags = ["nofips"],
     visibility = ["//visibility:public"],
+    tags = ["skip_on_windows"],
     deps = [
         "@com_googlesource_quiche//:quic_core_buffer_allocator_lib",
         "@com_googlesource_quiche//:quic_core_utils_lib",
@@ -241,6 +247,7 @@ envoy_cc_library(
     hdrs = ["quic_bbr2_sender_impl.h"],
     tags = ["nofips"],
     visibility = ["//visibility:public"],
+    tags = ["skip_on_windows"],
     deps = ["@com_googlesource_quiche//:quic_core_congestion_control_bbr_lib"],
 )
 
@@ -250,6 +257,7 @@ envoy_cc_library(
     hdrs = ["envoy_quic_clock.h"],
     tags = ["nofips"],
     visibility = ["//visibility:public"],
+    tags = ["skip_on_windows"],
     deps = [
         "//include/envoy/event:dispatcher_interface",
         "@com_googlesource_quiche//:quic_platform",
@@ -268,6 +276,7 @@ envoy_cc_library(
         "abseil_node_hash_map",
     ],
     visibility = ["//visibility:public"],
+    tags = ["skip_on_windows"],
     deps = [
         ":quic_platform_logging_impl_lib",
     ],
@@ -302,6 +311,7 @@ envoy_cc_library(
         "abseil_str_format",
     ],
     visibility = ["//visibility:public"],
+    tags = ["skip_on_windows"],
     deps = [
         ":flags_impl_lib",
         ":quic_platform_logging_impl_lib",
@@ -315,5 +325,6 @@ envoy_cc_library(
     name = "spdy_platform_unsafe_arena_impl_lib",
     hdrs = ["spdy_unsafe_arena_impl.h"],
     visibility = ["//visibility:public"],
+    tags = ["skip_on_windows"],
     deps = ["@com_googlesource_quiche//:spdy_simple_arena_lib"],
 )
