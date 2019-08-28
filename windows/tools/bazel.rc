@@ -1,5 +1,6 @@
 # Windows/Envoy specific Bazel build/test options.
 
+build --workspace_status_command="python bazel/get_workspace_status.py"
 build --define signal_trace=disabled
 build --define hot_restart=disabled
 build --define tcmalloc=disabled

@@ -121,7 +121,6 @@ envoy_cc_library(
     name = "config",
     srcs = ["config.cc"],
     hdrs = ["config.h"],
-    tags = ["skip_on_windows"],
     deps = [
         "//include/envoy/registry",
         "//source/common/config:filter_json_lib",

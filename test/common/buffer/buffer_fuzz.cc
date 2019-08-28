@@ -1,7 +1,10 @@
 #include "test/common/buffer/buffer_fuzz.h"
 
 #include <fcntl.h>
+
+#ifndef WIN32
 #include <unistd.h>
+#endif
 
 #include "common/buffer/buffer_impl.h"
 #include "common/common/assert.h"
@@ -291,6 +294,7 @@ uint32_t bufferAction(Context& ctxt, char insert_value, uint32_t max_alloc, Buff
     }
     break;
   }
+#ifndef WIN32
   case test::common::buffer::Action::kRead: {
     const uint32_t max_length = clampSize(action.read(), max_alloc);
     allocated += max_length;
@@ -338,6 +342,7 @@ uint32_t bufferAction(Context& ctxt, char insert_value, uint32_t max_alloc, Buff
     FUZZ_ASSERT(::close(pipe_fds[0]) == 0);
     break;
   }
+#endif
   default:
     // Maybe nothing is set?
     break;

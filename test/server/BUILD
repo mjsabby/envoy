@@ -282,6 +282,7 @@ envoy_cc_test(
         ":stats_sink_bootstrap.yaml",
         ":zipkin_tracing.yaml",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         "//source/common/common:version_lib",
         "//source/extensions/access_loggers/file:config",

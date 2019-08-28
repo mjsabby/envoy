@@ -81,7 +81,9 @@ envoy_cmake_external(
     },
     lib_source = "@com_github_curl//:all",
     static_libraries = select({
-        "//bazel:windows_x86_64": ["curl.lib"],
+        "//bazel:windows_dbg_build": ["libcurl-d.lib"],
+        "//bazel:windows_opt_build": ["libcurl.lib"],
+        "//bazel:windows_fastbuild_build": ["libcurl.lib"],
         "//conditions:default": ["libcurl.a"],
     }),
 )
