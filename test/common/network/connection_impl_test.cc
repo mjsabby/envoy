@@ -873,11 +873,14 @@ TEST_P(ConnectionImplTest, WatermarkFuzzing) {
     // level triggered and so the socket is always available for writing. This
     // means that the dispatcher will never exit
     EXPECT_CALL(*client_write_buffer_, write(_))
-        .WillOnce(DoAll(Invoke([&](int) -> void {
+        .WillOnce(DoAll(Invoke([&](IoHandle&) -> void {
                           client_write_buffer_->drain(bytes_to_flush);
                           dispatcher_->exit();
                         }),
-                        Return(Api::SysCallIntResult{bytes_to_flush, 0})))
+                  // TODO: Pivotal - See if there's anything wrong with this implementation
+                  Return(testing::ByMove(Api::IoCallUint64Result(
+                      bytes_to_flush, Api::IoErrorPtr(nullptr, [](Api::IoError*) {}))))))
+                        // Return(Api::SysCallIntResult{bytes_to_flush, 0})))
         .WillRepeatedly(testing::Invoke(client_write_buffer_, &MockWatermarkBuffer::failWrite));
 #endif
     client_connection_->write(buffer_to_write, false);

@@ -259,7 +259,7 @@ public:
                 setsockopt_(_, expected_sockopt_level, expected_sockopt_name, _, sizeof(int)))
         .Times(expected_num_calls)
         .WillRepeatedly(
-            Invoke([expected_value](int, int, int, const void* optval, socklen_t) -> int {
+            Invoke([expected_value](SOCKET_FD, int, int, const void* optval, socklen_t) -> int {
               EXPECT_EQ(expected_value, *static_cast<const int*>(optval));
               return 0;
             }));
