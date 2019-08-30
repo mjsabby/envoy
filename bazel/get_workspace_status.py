@@ -24,37 +24,36 @@
 import subprocess
 import os.path
 import os
-import string
+import re
 
 def invoke(cmdargs):
     try:
-        proc = subprocess.Popen(cmdargs, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        proc = subprocess.Popen(cmdargs, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
         stdout,stderr = proc.communicate()
     except subprocess.CalledProcessError:
         rc = returncode
     finally:
         rc = 0
-    trans = string.maketrans("\n", " ")
     if stdout:
-        stdout = stdout.translate(trans, "\r")
+        stdout = re.sub("[\r\n]+$", "", stdout)
     if stderr:
-        stderr = stderr.translate(trans, "\r")
+        stderr = re.sub("[\r\n]+$", "", stderr)
     return rc,stdout,stderr
 
 if os.getenv('SOURCE_VERSION') and os.path.exists(os.getenv('SOURCE_VERSION')):
     fd = open(os.getenv('SOURCE_VERSION'), "r")
     srcver = fd.read()
-    print "BUILD_SCM_REVISION " + srcver
-    print "STABLE_BUILD_SCM_REVISION " + srcver
-    print "BUILD_SCM_STATUS Distribution"
+    print("BUILD_SCM_REVISION " + srcver)
+    print("STABLE_BUILD_SCM_REVISION " + srcver)
+    print("BUILD_SCM_STATUS Distribution")
     exit(0)
 
 # The code below presents an implementation that works for git repository
 rv,git_rev,errtxt = invoke(['git', 'rev-parse', 'HEAD'])
 if rv != 0:
     exit(1)
-print "BUILD_SCM_REVISION " + git_rev
-print "STABLE_BUILD_SCM_REVISION " + git_rev
+print("BUILD_SCM_REVISION " + git_rev)
+print("STABLE_BUILD_SCM_REVISION " + git_rev)
 
 # Check whether there are any uncommitted changes
 rv,outtxt,errtxt = invoke(['git', 'diff-index', '--quiet', 'HEAD', '--'])
@@ -62,5 +61,5 @@ if rv == 0:
     tree_status="Clean"
 else:
     tree_status="Modified"
-print "BUILD_SCM_STATUS " + tree_status
-print "STABLE_BUILD_SCM_STATUS " + tree_status
+print("BUILD_SCM_STATUS " + tree_status)
+print("STABLE_BUILD_SCM_STATUS " + tree_status)
