@@ -10,7 +10,6 @@ load(
     "envoy_select_force_libcpp",
     "envoy_stdlib_deps",
     "tcmalloc_external_dep",
-    "envoy_if_windows",
 )
 
 # Envoy C++ related test infrastructure (that want gtest, gmock, but may be
@@ -237,7 +236,6 @@ def envoy_cc_test_library(
 def envoy_cc_test_binary(
         name,
         **kargs):
-
     envoy_cc_binary(
         name,
         testonly = 1,
@@ -285,7 +283,6 @@ def envoy_sh_test(
             tags = ["coverage_test_lib"],
             deps = ["//test/test_common:environment_lib"],
         )
-
     native.sh_test(
         name = name,
         srcs = ["//bazel:sh_test_wrapper.sh"],
