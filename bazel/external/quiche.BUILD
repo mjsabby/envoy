@@ -2337,7 +2337,6 @@ envoy_cc_library(
     name = "quic_core_qpack_blocking_manager_lib",
     srcs = ["quiche/quic/core/qpack/qpack_blocking_manager.cc"],
     hdrs = ["quiche/quic/core/qpack/qpack_blocking_manager.h"],
-    copts = quiche_copt,
     repository = "@envoy",
     tags = ["nofips"],
     deps = [
@@ -2936,8 +2935,8 @@ envoy_cc_library(
         "quiche/quic/core/quic_packet_number.h",
         "quiche/quic/core/quic_types.h",
     ],
-    external_deps = ["ssl"],
     copts = quiche_copt,
+    external_deps = ["ssl"],
     repository = "@envoy",
     tags = ["nofips"],
     visibility = ["//visibility:public"],
