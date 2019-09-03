@@ -157,8 +157,7 @@ def envoy_cc_test(
         shard_count = None,
         coverage = True,
         local = False,
-        size = "medium",
-        ):
+        size = "medium"):
     if coverage:
         coverage_tags = tags + ["coverage_test_lib"]
     else:
@@ -175,7 +174,6 @@ def envoy_cc_test(
         # Allow public visibility so these can be consumed in coverage tests in external projects.
         visibility = ["//visibility:public"],
     )
-
     if coverage:
         coverage_tags = tags + ["coverage_test"]
     native.cc_test(

@@ -120,7 +120,7 @@ def envoy_include_prefix(path):
     return None
 
 # Envoy proto targets should be specified with this function.
-def envoy_proto_library(name, external_deps = [], tags = [], **kwargs):
+def envoy_proto_library(name, external_deps = [], **kwargs):
     external_proto_deps = []
     external_cc_proto_deps = []
     if "api_httpbody_protos" in external_deps:
@@ -134,7 +134,6 @@ def envoy_proto_library(name, external_deps = [], tags = [], **kwargs):
         # such as OSS-Fuzz.
         linkstatic = 1,
         visibility = ["//visibility:public"],
-        tags = tags,
         **kwargs
     )
 
