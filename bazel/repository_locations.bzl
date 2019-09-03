@@ -119,9 +119,6 @@ REPOSITORY_LOCATIONS = dict(
         urls = ["https://github.com/opentracing/opentracing-cpp/archive/v1.5.1.tar.gz"],
     ),
     com_lightstep_tracer_cpp = dict(
-#        sha256 = "c43ff4f6da00ee9b73d532d8b3dffff70a3e8d9145f7ba0b004c482bff424e17",
-#        strip_prefix = "lightstep-tracer-cpp-0.10.1",
-#       urls = ["https://github.com/lightstep/lightstep-tracer-cpp/archive/v0.10.1.tar.gz"],
         sha256 = "defbf471facfebde6523ca1177529b63784893662d4ef2c60db074be8aef0634",
         strip_prefix = "lightstep-tracer-cpp-0.8.0",
         urls = ["https://github.com/lightstep/lightstep-tracer-cpp/archive/v0.8.0.tar.gz"],
@@ -230,8 +227,7 @@ REPOSITORY_LOCATIONS = dict(
     rules_foreign_cc = dict(
         sha256 = "c957e6663094a1478c43330c1bbfa71afeaf1ab86b7565233783301240c7a0ab",
         strip_prefix = "rules_foreign_cc-a209b642c7687a8894c19b3dd40e43e6d3f38e83",
-        # 2019-07-17: Contains fixes for empty token regression (seen in ranlib) and
-        # errors in file copy on Windows.
+        # 2019-07-17
         urls = ["https://github.com/bazelbuild/rules_foreign_cc/archive/a209b642c7687a8894c19b3dd40e43e6d3f38e83.tar.gz"],
     ),
     six_archive = dict(
