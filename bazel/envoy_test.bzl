@@ -278,7 +278,7 @@ def envoy_sh_test(
             name = name + "_lib",
             srcs = [test_runner_cc],
             data = srcs + data,
-            tags = ["coverage_test_lib"],
+            tags = tags + ["coverage_test_lib"],
             deps = ["//test/test_common:environment_lib"],
         )
     native.sh_test(
