@@ -32,8 +32,8 @@ load(
     "envoy_cc_test",
     "envoy_cc_test_library",
     "envoy_proto_library",
+    "quiche_copt",
 )
-load("@envoy//bazel:externals_override.bzl", "quiche_copt")
 
 src_files = glob([
     "**/*.h",
