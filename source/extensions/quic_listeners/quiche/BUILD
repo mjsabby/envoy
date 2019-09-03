@@ -13,8 +13,7 @@ envoy_cc_library(
     srcs = ["envoy_quic_alarm.cc"],
     hdrs = ["envoy_quic_alarm.h"],
     external_deps = ["quiche_quic_platform"],
-    #tags = ["nofips", "skip_on_windows"],
-    tags = ["skip_on_windows"],
+    tags = ["nofips", "skip_on_windows"],
     deps = [
         "//include/envoy/event:dispatcher_interface",
         "//include/envoy/event:timer_interface",
@@ -27,8 +26,7 @@ envoy_cc_library(
     srcs = ["envoy_quic_alarm_factory.cc"],
     hdrs = ["envoy_quic_alarm_factory.h"],
     external_deps = ["quiche_quic_platform"],
-    #tags = ["nofips", "skip_on_windows"],
-    tags = ["skip_on_windows"],
+    tags = ["nofips", "skip_on_windows"],
     deps = [
         ":envoy_quic_alarm_lib",
         "@com_googlesource_quiche//:quic_core_alarm_factory_interface_lib",
@@ -53,8 +51,7 @@ envoy_cc_library(
     name = "envoy_quic_proof_source_lib",
     hdrs = ["envoy_quic_fake_proof_source.h"],
     external_deps = ["quiche_quic_platform"],
-    #tags = ["nofips", "skip_on_windows"],
-    tags = ["skip_on_windows"],
+    tags = ["nofips", "skip_on_windows"],
     deps = [
         "@com_googlesource_quiche//:quic_core_crypto_proof_source_interface_lib",
         "@com_googlesource_quiche//:quic_core_versions_lib",
@@ -65,8 +62,7 @@ envoy_cc_library(
     name = "envoy_quic_proof_verifier_lib",
     hdrs = ["envoy_quic_fake_proof_verifier.h"],
     external_deps = ["quiche_quic_platform"],
-    #tags = ["nofips", "skip_on_windows"],
-    tags = ["skip_on_windows"],
+    tags = ["nofips", "skip_on_windows"],
     deps = [
         "@com_googlesource_quiche//:quic_core_crypto_crypto_handshake_lib",
         "@com_googlesource_quiche//:quic_core_versions_lib",
@@ -76,9 +72,8 @@ envoy_cc_library(
 envoy_cc_library(
     name = "spdy_server_push_utils_for_envoy_lib",
     srcs = ["spdy_server_push_utils_for_envoy.cc"],
-    tags = ["nofips"],
+    tags = ["nofips", "skip_on_windows"],
     visibility = ["//visibility:public"],
-    tags = ["skip_on_windows"],
     deps = [
         "//source/common/common:assert_lib",
         "@com_googlesource_quiche//:quic_core_http_spdy_server_push_utils_header",
