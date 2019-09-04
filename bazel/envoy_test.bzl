@@ -184,11 +184,11 @@ def envoy_cc_test(
         malloc = tcmalloc_external_dep(repository),
         deps = select({
             "@envoy//bazel:windows_x86_64": [repository + "//test:dummy_main"],
-            "//conditions:default": envoy_stdlib_deps() + [
+            "//conditions:default": [
                 ":" + name + "_lib_internal_only",
                 repository + "//test:main",
             ],
-        }),
+        }) + envoy_stdlib_deps(),
         # from https://github.com/google/googletest/blob/6e1970e2376c14bf658eb88f655a054030353f9f/googlemock/src/gmock.cc#L51
         # 2 - by default, mocks act as StrictMocks.
         args = args + ["--gmock_default_mock_behavior=2"],
