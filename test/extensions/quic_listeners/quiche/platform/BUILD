@@ -36,9 +36,8 @@ envoy_cc_test(
     copts = ["-Wno-unused-parameter"],
     data = ["//test/extensions/transport_sockets/tls/test_data:certs"],
     external_deps = ["quiche_quic_platform"],
-    tags = ["nofips"],
     # not used in CF, so we haven't put the effort in to fix
-    tags = ["skip_on_windows"],
+    tags = ["nofips", "skip_on_windows"],
     deps = [
         ":quic_platform_epoll_clock_lib",
         "//source/common/memory:stats_lib",
