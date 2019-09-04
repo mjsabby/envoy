@@ -59,7 +59,7 @@ public:
 
   struct Bar : public TypedMetadata::Object {};
 
-  class FooFactory : public TypedMetadataFactory {
+  class FooFactory : public TypedMetadataFactory::TypedMetadataFactory {
   public:
     const std::string name() const override { return "foo"; }
     // Throws EnvoyException (conversion failure) if d is empty.
