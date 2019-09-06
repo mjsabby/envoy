@@ -28,7 +28,7 @@ Event::DispatcherPtr MockApi::allocateDispatcher(Buffer::WatermarkFactoryPtr&& w
 }
 
 MockOsSysCalls::MockOsSysCalls() {
-  ON_CALL(*this, close(_)).WillByDefault(Invoke([](int fd) {
+  ON_CALL(*this, close(_)).WillByDefault(Invoke([](SOCKET_FD fd) {
     const int rc = ::close(fd);
     return SysCallIntResult{rc, errno};
   }));
