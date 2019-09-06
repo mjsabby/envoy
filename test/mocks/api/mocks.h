@@ -72,10 +72,10 @@ public:
   MOCK_METHOD3(writev, SysCallSizeResult(SOCKET_FD sockfd, IOVEC* buffers, int flags));
 #ifdef WIN32
   MOCK_METHOD3(sendmsg, SysCallSizeResult(SOCKET_FD fd, LPWSAMSG msg, int flags));
-  MOCK_METHOD3(recvmsg, SysCallSizeResult(int socket, LPWSAMSG msg, int flags));
+  MOCK_METHOD3(recvmsg, SysCallSizeResult(SOCKET_FD socket, LPWSAMSG msg, int flags));
 #else
   MOCK_METHOD3(sendmsg, SysCallSizeResult(SOCKET_FD fd, const msghdr* msg, int flags));
-  MOCK_METHOD3(recvmsg, SysCallSizeResult(int socket, struct msghdr* msg, int flags));
+  MOCK_METHOD3(recvmsg, SysCallSizeResult(SOCKET_FD socket, struct msghdr* msg, int flags));
 #endif
   MOCK_METHOD3(readv, SysCallSizeResult(SOCKET_FD sockfd, IOVEC* buffers, int flags));
   MOCK_METHOD4(recv, SysCallSizeResult(SOCKET_FD socket, void* buffer, size_t length, int flags));
