@@ -15,6 +15,8 @@ envoy_package()
 
 envoy_cc_test(
     name = "config_impl_test",
+    # not going to work on Windows (fuzz test)
+    tags = ["skip_on_windows"],
     deps = [":config_impl_test_lib"],
 )
 
@@ -164,6 +166,8 @@ envoy_proto_library(
 # envoy_cc_test_binary is generating mostly static binary regardless of config
 envoy_cc_test_binary(
     name = "config_impl_test_static",
+    # not going to work on Windows (fuzz test)
+    tags = ["skip_on_windows"],
     deps = [
         ":config_impl_test_lib",
         "//test:main",
@@ -178,6 +182,8 @@ sh_binary(
 envoy_directory_genrule(
     name = "corpus_from_config_impl",
     testonly = 1,
+    # not going to work on Windows (fuzz test)
+    tags = ["skip_on_windows"],
     srcs = [
         # This is deliberately in srcs, since we run into host/target confusion
         # otherwise in oss-fuzz builds.
