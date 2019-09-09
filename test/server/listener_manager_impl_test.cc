@@ -708,7 +708,7 @@ drain_type: default
   ON_CALL(os_sys_calls, close(_)).WillByDefault(Return(Api::SysCallIntResult{0, 0}));
 #else
   ON_CALL(os_sys_calls, socket(AF_INET6, _, 0)).WillByDefault(Return(Api::SysCallSocketResult{INVALID_SOCKET, 0}));
-  ON_CALL(os_sys_calls, closesocket(_)).WillByDefault(Return(Api::SysCallIntResult{0, 0}));
+  ON_CALL(os_sys_calls, close(_)).WillByDefault(Return(Api::SysCallIntResult{0, 0}));
 #endif
 
   EXPECT_CALL(listener_factory_, createListenSocket(_, _, _, true));
@@ -746,7 +746,7 @@ drain_type: default
   ON_CALL(os_sys_calls, close(_)).WillByDefault(Return(Api::SysCallIntResult{0, 0}));
 #else
   ON_CALL(os_sys_calls, socket(AF_INET, _, 0)).WillByDefault(Return(Api::SysCallSocketResult{INVALID_SOCKET, 0}));
-  ON_CALL(os_sys_calls, closesocket(_)).WillByDefault(Return(Api::SysCallIntResult{0, 0}));
+  ON_CALL(os_sys_calls, close(_)).WillByDefault(Return(Api::SysCallIntResult{0, 0}));
 #endif
 
   EXPECT_CALL(listener_factory_, createListenSocket(_, _, _, true));
