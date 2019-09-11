@@ -1,8 +1,6 @@
 #ifndef WIN32
 #include <unistd.h>
-
 #endif
-
 #include "common/common/lock_guard.h"
 #include "common/common/mutex_tracer_impl.h"
 #include "common/common/thread.h"

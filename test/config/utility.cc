@@ -59,8 +59,7 @@ static_resources:
       socket_address:
         address: 127.0.0.1
         port_value: 0
-)EOF",
-                                                           devNull);
+)EOF", devNull);
 
 const std::string ConfigHelper::BASE_UDP_LISTENER_CONFIG = R"EOF(
 admin:
