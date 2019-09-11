@@ -13,6 +13,7 @@ envoy_cc_test_library(
     srcs = [
         "add_trailers_filter.cc",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         "//include/envoy/http:filter_interface",
         "//include/envoy/registry",
@@ -27,6 +28,7 @@ envoy_cc_test_library(
     srcs = [
         "clear_route_cache_filter.cc",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         ":common_lib",
         "//include/envoy/http:filter_interface",
@@ -42,6 +44,7 @@ envoy_cc_test_library(
     srcs = [
         "eds_ready_filter.cc",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         "//include/envoy/http:filter_interface",
         "//include/envoy/http:header_map_interface",
@@ -58,6 +61,7 @@ envoy_cc_test_library(
     srcs = [
         "modify_buffer_filter.cc",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         "//include/envoy/http:filter_interface",
         "//include/envoy/registry",
@@ -72,6 +76,7 @@ envoy_cc_test_library(
     srcs = [
         "passthrough_filter.cc",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         ":common_lib",
         "//include/envoy/http:filter_interface",
@@ -87,6 +92,7 @@ envoy_cc_test_library(
     srcs = [
         "headers_only_filter.cc",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         ":common_lib",
         "//include/envoy/http:filter_interface",
@@ -102,6 +108,7 @@ envoy_cc_test_library(
     srcs = [
         "pause_filter.cc",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         "//include/envoy/http:filter_interface",
         "//include/envoy/registry",
@@ -119,6 +126,7 @@ envoy_cc_test_library(
     hdrs = [
         "process_context_filter.h",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         "//include/envoy/http:filter_interface",
         "//include/envoy/registry",
@@ -133,6 +141,7 @@ envoy_cc_test_library(
     srcs = [
         "stop_iteration_and_continue_filter.cc",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         "//include/envoy/http:filter_interface",
         "//include/envoy/registry",
@@ -147,6 +156,7 @@ envoy_cc_test_library(
     hdrs = [
         "common.h",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         "//include/envoy/http:filter_interface",
         "//include/envoy/registry",
@@ -160,6 +170,7 @@ envoy_cc_test_library(
     srcs = [
         "request_metadata_filter.cc",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         "//include/envoy/http:filter_interface",
         "//include/envoy/registry",
@@ -174,6 +185,7 @@ envoy_cc_test_library(
     srcs = [
         "random_pause_filter.cc",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         "//include/envoy/http:filter_interface",
         "//include/envoy/registry",
@@ -189,6 +201,7 @@ envoy_cc_test_library(
     srcs = [
         "response_metadata_filter.cc",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         "//include/envoy/http:filter_interface",
         "//include/envoy/registry",
@@ -203,6 +216,7 @@ envoy_cc_test_library(
     srcs = [
         "decode_headers_return_stop_all_filter.cc",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         ":common_lib",
         "//include/envoy/event:timer_interface",
@@ -219,6 +233,7 @@ envoy_cc_test_library(
     srcs = [
         "call_decodedata_once_filter.cc",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         ":common_lib",
         "//include/envoy/event:timer_interface",
@@ -235,6 +250,7 @@ envoy_cc_test_library(
     srcs = [
         "encode_headers_return_stop_all_filter.cc",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         ":common_lib",
         "//include/envoy/event:timer_interface",
@@ -267,6 +283,7 @@ envoy_cc_test_library(
     srcs = [
         "metadata_stop_all_filter.cc",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         ":common_lib",
         "//include/envoy/event:timer_interface",

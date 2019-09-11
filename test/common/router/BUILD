@@ -15,12 +15,16 @@ envoy_package()
 
 envoy_cc_test(
     name = "config_impl_test",
+    # not going to work on Windows (fuzz test)
+    tags = ["skip_on_windows"],
     deps = [":config_impl_test_lib"],
 )
 
 envoy_cc_test_library(
     name = "config_impl_test_lib",
     srcs = ["config_impl_test.cc"],
+    # not going to work on Windows (fuzz test)
+    tags = ["skip_on_windows"],
     deps = [
         ":route_fuzz_proto_cc",
         "//source/common/config:metadata_lib",
@@ -41,6 +45,7 @@ envoy_cc_test_library(
 envoy_proto_library(
     name = "header_parser_fuzz_proto",
     srcs = ["header_parser_fuzz.proto"],
+    tags = ["skip_on_windows"],
     deps = [
         "//test/fuzz:common_proto",
         "@envoy_api//envoy/api/v2/core:base_export",
@@ -51,6 +56,7 @@ envoy_cc_fuzz_test(
     name = "header_parser_fuzz_test",
     srcs = ["header_parser_fuzz_test.cc"],
     corpus = "header_parser_corpus",
+    tags = ["skip_on_windows"],
     deps = [
         ":header_parser_fuzz_proto_cc",
         "//source/common/http:header_map_lib",
@@ -149,6 +155,8 @@ envoy_cc_test(
 envoy_proto_library(
     name = "route_fuzz_proto",
     srcs = ["route_fuzz.proto"],
+    # not going to work on Windows (fuzz test)
+    tags = ["skip_on_windows"],
     deps = [
         "//test/fuzz:common_proto",
         "@envoy_api//envoy/api/v2:rds_export",
@@ -158,6 +166,8 @@ envoy_proto_library(
 # envoy_cc_test_binary is generating mostly static binary regardless of config
 envoy_cc_test_binary(
     name = "config_impl_test_static",
+    # not going to work on Windows (fuzz test)
+    tags = ["skip_on_windows"],
     deps = [
         ":config_impl_test_lib",
         "//test:main",
@@ -172,6 +182,8 @@ sh_binary(
 envoy_directory_genrule(
     name = "corpus_from_config_impl",
     testonly = 1,
+    # not going to work on Windows (fuzz test)
+    tags = ["skip_on_windows"],
     srcs = [
         # This is deliberately in srcs, since we run into host/target confusion
         # otherwise in oss-fuzz builds.
@@ -256,6 +268,7 @@ envoy_cc_test(
     name = "router_upstream_log_test",
     srcs = ["router_upstream_log_test.cc"],
     external_deps = ["abseil_optional"],
+    tags = ["skip_on_windows"],
     deps = [
         "//source/common/buffer:buffer_lib",
         "//source/common/network:utility_lib",

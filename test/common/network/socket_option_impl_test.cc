@@ -11,7 +11,11 @@ TEST_F(SocketOptionImplTest, BadFd) {
   Api::SysCallIntResult result =
       SocketOptionImpl::setSocketOption(socket_, {}, zero.data(), zero.size());
   EXPECT_EQ(-1, result.rc_);
+#if !defined(WIN32)
   EXPECT_EQ(ENOTSUP, result.errno_);
+#else
+  EXPECT_EQ(WSAEOPNOTSUPP, result.errno_);
+#endif
 }
 
 TEST_F(SocketOptionImplTest, HasName) {
@@ -31,7 +35,7 @@ TEST_F(SocketOptionImplTest, HasName) {
   // contains the option name so the operator can debug.
   SocketOptionImpl socket_option{envoy::api::v2::core::SocketOption::STATE_PREBIND, optname, 1};
   EXPECT_CALL(os_sys_calls_, setsockopt_(_, _, _, _, _))
-      .WillOnce(Invoke([](int, int, int, const void* optval, socklen_t) -> int {
+      .WillOnce(Invoke([](SOCKET_FD, int, int, const void* optval, socklen_t) -> int {
         EXPECT_EQ(1, *static_cast<const int*>(optval));
         return -1;
       }));
@@ -45,7 +49,7 @@ TEST_F(SocketOptionImplTest, SetOptionSuccessTrue) {
   SocketOptionImpl socket_option{envoy::api::v2::core::SocketOption::STATE_PREBIND,
                                  ENVOY_MAKE_SOCKET_OPTION_NAME(5, 10), 1};
   EXPECT_CALL(os_sys_calls_, setsockopt_(_, 5, 10, _, sizeof(int)))
-      .WillOnce(Invoke([](int, int, int, const void* optval, socklen_t) -> int {
+      .WillOnce(Invoke([](SOCKET_FD, int, int, const void* optval, socklen_t) -> int {
         EXPECT_EQ(1, *static_cast<const int*>(optval));
         return 0;
       }));

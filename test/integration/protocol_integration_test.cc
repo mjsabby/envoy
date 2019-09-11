@@ -875,7 +875,11 @@ name: passthrough-filter
     codec_client_->sendData(*request_encoder_, size_, false);
   }
   // Sleeps for 1s in order to be consistent with testDecodeHeadersReturnsStopAllWatermark.
-  sleep(1);
+#ifndef WIN32
+  usleep(1000000);
+#else
+  Sleep(1000);
+#endif
   codec_client_->sendData(*request_encoder_, size_, true);
   waitForNextUpstreamRequest();
 
@@ -931,7 +935,11 @@ name: passthrough-filter
     codec_client_->sendData(*request_encoder_, size_, false);
   }
   // Gives buffer 1s to react to buffer limit.
-  sleep(1);
+#ifndef WIN32
+  usleep(1000000);
+#else
+  Sleep(1000);
+#endif
   codec_client_->sendData(*request_encoder_, size_, true);
   waitForNextUpstreamRequest();
 
@@ -949,7 +957,11 @@ name: passthrough-filter
     codec_client_->sendData(*request_encoder_, size_, false);
   }
   // Gives buffer 1s to react to buffer limit.
-  sleep(1);
+#ifndef WIN32
+  usleep(1000000);
+#else
+  Sleep(1000);
+#endif
   codec_client_->sendData(*request_encoder_, size_, false);
   Http::TestHeaderMapImpl request_trailers{{"trailer", "trailer"}};
   codec_client_->sendTrailers(*request_encoder_, request_trailers);
@@ -1030,7 +1042,11 @@ name: encode-headers-return-stop-all-filter
     upstream_request_->encodeData(size_, false);
   }
   // Sleeps for 1s in order to be consistent with testEncodeHeadersReturnsStopAllWatermark.
-  sleep(1);
+#ifndef WIN32
+  usleep(1000000);
+#else
+  Sleep(1000);
+#endif
   upstream_request_->encodeData(size_, false);
   Http::TestHeaderMapImpl response_trailers{{"response", "trailer"}};
   upstream_request_->encodeTrailers(response_trailers);
@@ -1070,7 +1086,11 @@ name: encode-headers-return-stop-all-filter
     upstream_request_->encodeData(size_, false);
   }
   // Gives buffer 1s to react to buffer limit.
-  sleep(1);
+#ifndef WIN32
+  usleep(1000000);
+#else
+  Sleep(1000);
+#endif
   upstream_request_->encodeData(size_, false);
   Http::TestHeaderMapImpl response_trailers{{"response", "trailer"}};
   upstream_request_->encodeTrailers(response_trailers);

@@ -17,6 +17,7 @@
 #include "test/test_common/utility.h"
 
 #include "absl/synchronization/notification.h"
+#include "fmt/printf.h"
 #include "gtest/gtest.h"
 
 using testing::AssertionResult;

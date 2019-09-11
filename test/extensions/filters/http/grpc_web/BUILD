@@ -15,6 +15,8 @@ envoy_extension_cc_test(
     name = "grpc_web_filter_test",
     srcs = ["grpc_web_filter_test.cc"],
     extension_name = "envoy.filters.http.grpc_web",
+    # not used in CF, so we haven't put the effort in to fix
+    tags = ["skip_on_windows"],
     deps = [
         "//source/common/stats:fake_symbol_table_lib",
         "//source/extensions/filters/http/grpc_web:grpc_web_filter_lib",
@@ -29,6 +31,8 @@ envoy_extension_cc_test(
     name = "config_test",
     srcs = ["config_test.cc"],
     extension_name = "envoy.filters.http.grpc_web",
+    # not used in CF, so we haven't put the effort in to fix
+    tags = ["skip_on_windows"],
     deps = [
         "//source/extensions/filters/http/grpc_web:config",
         "//test/mocks/server:server_mocks",

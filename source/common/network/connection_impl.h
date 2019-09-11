@@ -10,6 +10,7 @@
 #include "envoy/network/connection.h"
 #include "envoy/network/transport_socket.h"
 
+#include "common/api/os_sys_calls_impl.h"
 #include "common/buffer/watermark_buffer.h"
 #include "common/common/logger.h"
 #include "common/event/libevent.h"
@@ -157,6 +158,7 @@ protected:
   ConnectionEvent immediate_error_event_{ConnectionEvent::Connected};
   bool bind_error_{false};
   Event::FileEventPtr file_event_;
+  Api::OsSysCallsImpl& os_sys_calls_;
 
 private:
   friend class Envoy::RandomPauseFilter;

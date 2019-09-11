@@ -14,6 +14,7 @@
 
 #if defined(__linux__)
 #include <sched.h>
+#include "common/api/os_sys_calls_impl_linux.h"
 #include "server/options_impl_platform_linux.h"
 #endif
 #include "test/mocks/api/mocks.h"
@@ -40,7 +41,7 @@ public:
     std::transform(words.cbegin(), words.cend(), std::back_inserter(argv),
                    [](const std::string& arg) { return arg.c_str(); });
     return std::make_unique<OptionsImpl>(
-        argv.size(), argv.data(), [](bool) { return "1"; }, spdlog::level::warn);
+        static_cast<int>(argv.size()), argv.data(), [](bool) { return "1"; }, spdlog::level::warn);
   }
 };
 

@@ -73,10 +73,12 @@ TEST(NetworkUtility, resolveUrl) {
   EXPECT_THROW(Utility::resolveUrl("udp://[:::1]:1"), EnvoyException);
   EXPECT_THROW(Utility::resolveUrl("udp://foo:0"), EnvoyException);
 
+#if !defined(WIN32)
   EXPECT_EQ("", Utility::resolveUrl("unix://")->asString());
   EXPECT_EQ("foo", Utility::resolveUrl("unix://foo")->asString());
   EXPECT_EQ("tmp", Utility::resolveUrl("unix://tmp")->asString());
   EXPECT_EQ("tmp/server", Utility::resolveUrl("unix://tmp/server")->asString());
+#endif
 
   EXPECT_EQ("1.2.3.4:1234", Utility::resolveUrl("tcp://1.2.3.4:1234")->asString());
   EXPECT_EQ("0.0.0.0:0", Utility::resolveUrl("tcp://0.0.0.0:0")->asString());
@@ -169,6 +171,7 @@ TEST_P(NetworkUtilityGetLocalAddress, GetLocalAddress) {
 
 TEST(NetworkUtility, GetOriginalDst) { EXPECT_EQ(nullptr, Utility::getOriginalDst(-1)); }
 
+#if !defined(WIN32)
 TEST(NetworkUtility, LocalConnection) {
   Network::Address::InstanceConstSharedPtr local_addr;
   Network::Address::InstanceConstSharedPtr remote_addr;
@@ -226,6 +229,7 @@ TEST(NetworkUtility, LocalConnection) {
   remote_addr.reset(new Network::Address::Ipv6Instance("fd00::"));
   EXPECT_FALSE(Utility::isLocalConnection(socket));
 }
+#endif
 
 TEST(NetworkUtility, InternalAddress) {
   EXPECT_TRUE(Utility::isInternalAddress(Address::Ipv4Instance("127.0.0.1")));
@@ -248,7 +252,9 @@ TEST(NetworkUtility, InternalAddress) {
   EXPECT_FALSE(Utility::isInternalAddress(Address::Ipv6Instance("fc00::")));
   EXPECT_FALSE(Utility::isInternalAddress(Address::Ipv6Instance("fe00::")));
 
+#if !defined(WIN32)
   EXPECT_FALSE(Utility::isInternalAddress(Address::PipeInstance("/hello")));
+#endif
 }
 
 TEST(NetworkUtility, LoopbackAddress) {
@@ -260,10 +266,12 @@ TEST(NetworkUtility, LoopbackAddress) {
     Address::Ipv4Instance address("10.0.0.1");
     EXPECT_FALSE(Utility::isLoopbackAddress(address));
   }
+#if !defined(WIN32)
   {
     Address::PipeInstance address("/foo");
     EXPECT_FALSE(Utility::isLoopbackAddress(address));
   }
+#endif
   {
     Address::Ipv6Instance address("::1");
     EXPECT_TRUE(Utility::isLoopbackAddress(address));
@@ -308,6 +316,7 @@ TEST(NetworkUtility, ParseProtobufAddress) {
     proto_address.mutable_socket_address()->set_port_value(1234);
     EXPECT_EQ("[::1]:1234", Utility::protobufAddressToAddress(proto_address)->asString());
   }
+#if !defined(WIN32)
   {
     envoy::api::v2::core::Address proto_address;
     proto_address.mutable_pipe()->set_path("/tmp/unix-socket");
@@ -321,6 +330,7 @@ TEST(NetworkUtility, ParseProtobufAddress) {
               Utility::protobufAddressToAddress(proto_address)->asString());
   }
 #endif
+#endif
 }
 
 TEST(NetworkUtility, AddressToProtobufAddress) {
@@ -332,6 +342,7 @@ TEST(NetworkUtility, AddressToProtobufAddress) {
     EXPECT_EQ("127.0.0.1", proto_address.socket_address().address());
     EXPECT_EQ(0, proto_address.socket_address().port_value());
   }
+#if !defined(WIN32)
   {
     envoy::api::v2::core::Address proto_address;
     Address::PipeInstance address("/hello");
@@ -339,6 +350,7 @@ TEST(NetworkUtility, AddressToProtobufAddress) {
     EXPECT_EQ(true, proto_address.has_pipe());
     EXPECT_EQ("/hello", proto_address.pipe().path());
   }
+#endif
 }
 
 TEST(NetworkUtility, ProtobufAddressSocketType) {
@@ -408,7 +420,9 @@ TEST(PortRangeListTest, Normal) {
     Utility::parsePortRangeList(port_range_str, port_range_list);
     EXPECT_TRUE(Utility::portInRangeList(makeFromPort(1), port_range_list));
     EXPECT_FALSE(Utility::portInRangeList(makeFromPort(2), port_range_list));
+#if !defined(WIN32)
     EXPECT_FALSE(Utility::portInRangeList(Address::PipeInstance("/foo"), port_range_list));
+#endif
   }
 
   {

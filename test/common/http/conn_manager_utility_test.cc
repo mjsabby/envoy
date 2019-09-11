@@ -636,6 +636,7 @@ TEST_F(ConnectionManagerUtilityTest, ExternalAddressExternalRequestDontUseRemote
 }
 
 // Verify that if XFF is invalid we fall back to remote address, even if it is a pipe.
+#if !defined(WIN32)
 TEST_F(ConnectionManagerUtilityTest, PipeAddressInvalidXFFtDontUseRemote) {
   connection_.remote_address_ = std::make_shared<Network::Address::PipeInstance>("/blah");
   ON_CALL(config_, useRemoteAddress()).WillByDefault(Return(false));
@@ -644,6 +645,7 @@ TEST_F(ConnectionManagerUtilityTest, PipeAddressInvalidXFFtDontUseRemote) {
   EXPECT_EQ((MutateRequestRet{"/blah", false}), callMutateRequestHeaders(headers, Protocol::Http2));
   EXPECT_FALSE(headers.has("x-envoy-external-address"));
 }
+#endif
 
 // Verify that we treat a request as external even if the direct remote is internal and XFF
 // includes only internal addresses. Note that this is legacy behavior. See the comments

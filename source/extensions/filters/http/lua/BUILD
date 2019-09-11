@@ -15,6 +15,7 @@ envoy_cc_library(
     name = "lua_filter_lib",
     srcs = ["lua_filter.cc"],
     hdrs = ["lua_filter.h"],
+    tags = ["skip_on_windows"],
     deps = [
         ":wrappers_lib",
         "//include/envoy/http:codes_interface",
@@ -34,6 +35,7 @@ envoy_cc_library(
     name = "wrappers_lib",
     srcs = ["wrappers.cc"],
     hdrs = ["wrappers.h"],
+    tags = ["skip_on_windows"],
     deps = [
         "//include/envoy/http:header_map_interface",
         "//include/envoy/stream_info:stream_info_interface",
@@ -48,6 +50,7 @@ envoy_cc_library(
     name = "config",
     srcs = ["config.cc"],
     hdrs = ["config.h"],
+    tags = ["skip_on_windows"],
     deps = [
         "//include/envoy/registry",
         "//source/common/config:filter_json_lib",

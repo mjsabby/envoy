@@ -1,6 +1,8 @@
 #include "common/network/udp_listener_impl.h"
 
+#ifndef WIN32
 #include <sys/un.h>
+#endif
 
 #include <cerrno>
 #include <csetjmp>
@@ -35,7 +37,12 @@ UdpListenerImpl::UdpListenerImpl(Event::DispatcherImpl& dispatcher, Socket& sock
     : BaseListenerImpl(dispatcher, socket), cb_(cb), time_source_(time_source) {
   file_event_ = dispatcher_.createFileEvent(
       socket.ioHandle().fd(), [this](uint32_t events) -> void { onSocketEvent(events); },
+// libevent only supports level trigger on Windows
+#ifdef WIN32
+      Event::FileTriggerType::Level, Event::FileReadyType::Read | Event::FileReadyType::Write);
+#else
       Event::FileTriggerType::Edge, Event::FileReadyType::Read | Event::FileReadyType::Write);
+#endif
 
   ASSERT(file_event_);
 
@@ -75,6 +82,7 @@ void UdpListenerImpl::handleReadCallback() {
   // TODO(danzh) make this variable configurable to support jumbo frames.
   const uint64_t read_buffer_length = MAX_UDP_PACKET_SIZE;
   do {
+#if 1 //TODO: Pivotal review
     Buffer::InstancePtr buffer = std::make_unique<Buffer::OwnedImpl>();
     Buffer::RawSlice slice;
     const uint64_t num_slices = buffer->reserve(read_buffer_length, &slice, 1);
@@ -93,6 +101,16 @@ void UdpListenerImpl::handleReadCallback() {
                       result.err_->getErrorDetails());
         cb_.onReceiveError(UdpListenerCallbacks::ErrorCode::SyscallError,
                            result.err_->getErrorCode());
+#else //ENVOY
+    ReceiveResult recv_result = doRecvFrom(addr, addr_len);
+    if ((recv_result.result_.rc_ < 0)) {
+#ifdef WIN32
+      if (recv_result.result_.errno_ != WSAEWOULDBLOCK) {
+#else
+      if (recv_result.result_.errno_ != EAGAIN) {
+#endif
+        cb_.onError(UdpListenerCallbacks::ErrorCode::SyscallError, recv_result.result_.errno_);
+#endif
       }
       // Stop reading.
       return;

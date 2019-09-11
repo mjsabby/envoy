@@ -1,11 +1,24 @@
 #pragma once
 
+#ifdef WIN32
+#include <WinSock2.h>
+
+// <winsock2.h> includes <windows.h>, so undef some interfering symbols.
+#undef TRUE
+#undef DELETE
+#undef ERROR
+#undef GetMessage
+
+#else
 #include <unistd.h>
+#endif
 
 #include <memory>
 #include <string>
 #include <vector>
 
+#include "common/api/os_sys_calls_impl.h"
+#include "envoy/common/platform.h"
 #include "envoy/network/connection.h"
 #include "envoy/network/listen_socket.h"
 
@@ -83,7 +96,7 @@ public:
   NetworkListenSocket(const Address::InstanceConstSharedPtr& address,
                       const Network::Socket::OptionsSharedPtr& options, bool bind_to_port)
       : ListenSocketImpl(address->socket(T::type), address) {
-    RELEASE_ASSERT(io_handle_->fd() != -1, "");
+    RELEASE_ASSERT(SOCKET_VALID(io_handle_->fd()), "");
 
     setPrebindSocketOptions();
 
@@ -108,12 +121,15 @@ using TcpListenSocketPtr = std::unique_ptr<TcpListenSocket>;
 using UdpListenSocket = NetworkListenSocket<NetworkSocketTrait<Address::SocketType::Datagram>>;
 using UdpListenSocketPtr = std::unique_ptr<UdpListenSocket>;
 
+// No such thing as AF_UNIX on Windows
+#ifndef WIN32
 class UdsListenSocket : public ListenSocketImpl {
 public:
   UdsListenSocket(const Address::InstanceConstSharedPtr& address);
   UdsListenSocket(IoHandlePtr&& io_handle, const Address::InstanceConstSharedPtr& address);
   Address::SocketType socketType() const override { return Address::SocketType::Stream; }
 };
+#endif
 
 class ConnectionSocketImpl : public SocketImpl, public ConnectionSocket {
 public:

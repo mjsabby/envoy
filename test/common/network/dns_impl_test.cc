@@ -1,6 +1,9 @@
+#if !defined(WIN32)
 #include <arpa/inet.h>
 #include <arpa/nameser.h>
 #include <arpa/nameser_compat.h>
+
+#endif
 
 #include <list>
 #include <memory>
@@ -31,6 +34,10 @@
 #include "ares.h"
 #include "ares_dns.h"
 #include "gtest/gtest.h"
+
+#if defined(WIN32)
+#include "nameser.h"
+#endif
 
 using testing::_;
 using testing::InSequence;
@@ -370,8 +377,8 @@ public:
   const std::string& asString() const override { return antagonistic_name_; }
   absl::string_view asStringView() const override { return antagonistic_name_; }
   const std::string& logicalName() const override { return antagonistic_name_; }
-  Api::SysCallIntResult bind(int fd) const override { return instance_.bind(fd); }
-  Api::SysCallIntResult connect(int fd) const override { return instance_.connect(fd); }
+  Api::SysCallIntResult bind(SOCKET_FD fd) const override { return instance_.bind(fd); }
+  Api::SysCallIntResult connect(SOCKET_FD fd) const override { return instance_.connect(fd); }
   const Address::Ip* ip() const override { return instance_.ip(); }
   IoHandlePtr socket(Address::SocketType type) const override { return instance_.socket(type); }
   Address::Type type() const override { return instance_.type(); }
@@ -397,6 +404,10 @@ TEST_F(DnsImplConstructor, SupportCustomAddressInstances) {
 }
 
 TEST_F(DnsImplConstructor, BadCustomResolvers) {
+#if defined(WIN32)
+  // Windows doesn't support UDS
+  return;
+#endif
   envoy::api::v2::core::Address pipe_address;
   pipe_address.mutable_pipe()->set_path("foo");
   auto pipe_instance = Network::Utility::protobufAddressToAddress(pipe_address);

@@ -2,8 +2,10 @@
 
 #include <windows.h>
 
-// <windows.h> defines some macros that interfere with our code, so undef them
+// <winsock2.h> includes <windows.h>, so undef some interfering symbols.
+#undef TRUE
 #undef DELETE
+#undef ERROR
 #undef GetMessage
 
 #include <functional>
@@ -24,6 +26,9 @@ public:
 
   // Thread::Thread
   void join() override;
+
+  // Needed for the WIN32 implementation of WatcherImpl. TODO(YAEL) - PR with that implementation
+  HANDLE handle() const { return thread_handle_; }
 
 private:
   std::function<void()> thread_routine_;

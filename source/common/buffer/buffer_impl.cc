@@ -362,14 +362,14 @@ void OwnedImpl::move(Instance& rhs, uint64_t length) {
   }
 }
 
-Api::IoCallUint64Result OwnedImpl::read(Network::IoHandle& io_handle, uint64_t max_length) {
+Api::IoCallUint64Result OwnedImpl::read(Network::IoHandle& fd, uint64_t max_length) {
   if (max_length == 0) {
     return Api::ioCallUint64ResultNoError();
   }
   constexpr uint64_t MaxSlices = 2;
   RawSlice slices[MaxSlices];
   const uint64_t num_slices = reserve(max_length, slices, MaxSlices);
-  Api::IoCallUint64Result result = io_handle.readv(max_length, slices, num_slices);
+  Api::IoCallUint64Result result = fd.readv(max_length, slices, num_slices);
   if (old_impl_) {
     if (!result.ok()) {
       return result;

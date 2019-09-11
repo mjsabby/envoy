@@ -145,6 +145,10 @@ Network::SocketSharedPtr ProdListenerComponentFactory::createListenSocket(
   // For each listener config we share a single socket among all threaded listeners.
   // First we try to get the socket from our parent if applicable.
   if (address->type() == Network::Address::Type::Pipe) {
+// No such thing as AF_UNIX on Windows
+#ifdef WIN32
+    throw EnvoyException("network type pipe not supported on Windows");
+#else
     if (socket_type != Network::Address::SocketType::Stream) {
       // This could be implemented in the future, since Unix domain sockets
       // support SOCK_DGRAM, but there would need to be a way to specify it in
@@ -160,6 +164,7 @@ Network::SocketSharedPtr ProdListenerComponentFactory::createListenSocket(
       return std::make_shared<Network::UdsListenSocket>(std::move(io_handle), address);
     }
     return std::make_shared<Network::UdsListenSocket>(address);
+#endif
   }
 
   const std::string scheme = (socket_type == Network::Address::SocketType::Stream)
@@ -310,7 +315,7 @@ ListenerImpl::ListenerImpl(const envoy::api::v2::Listener& config, const std::st
                    (matcher.transport_protocol().empty() &&
                     (!matcher.server_names().empty() || !matcher.application_protocols().empty()));
           }) &&
-      not std::any_of(config.listener_filters().begin(), config.listener_filters().end(),
+          !std::any_of(config.listener_filters().begin(), config.listener_filters().end(),
                       [](const auto& filter) {
                         return filter.name() ==
                                Extensions::ListenerFilters::ListenerFilterNames::get().TlsInspector;

@@ -1,7 +1,10 @@
 # Windows/Envoy specific Bazel build/test options.
 
+build --workspace_status_command="python bazel/get_workspace_status.py"
 build --define signal_trace=disabled
 build --define hot_restart=disabled
 build --define tcmalloc=disabled
+# TODO: Pivotal (c-ares should now link with fix to rules_foreign_cc)
 # Build GRPC without c-ares support -- otherwise it will not link
-build --define grpc_no_ares=true
+# build --define grpc_no_ares=true
+build --experimental_enable_runfiles

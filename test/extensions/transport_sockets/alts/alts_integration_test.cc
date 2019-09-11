@@ -20,6 +20,14 @@
 #include "grpcpp/impl/codegen/service_type.h"
 #include "gtest/gtest.h"
 
+// grpcpp/grpcpp.h includes <windows.h>, so undef some interfering symbols
+#ifdef WIN32
+#undef TRUE
+#undef DELETE
+#undef ERROR
+#undef GetMessage
+#endif
+
 using ::testing::ReturnRef;
 
 namespace Envoy {

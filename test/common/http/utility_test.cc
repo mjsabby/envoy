@@ -215,13 +215,14 @@ TEST(HttpUtility, appendXff) {
     Utility::appendXff(headers, address);
     EXPECT_EQ("10.0.0.1,127.0.0.1", headers.get_("x-forwarded-for"));
   }
-
+#if !defined(WIN32)
   {
     TestHeaderMapImpl headers{{"x-forwarded-for", "10.0.0.1"}};
     Network::Address::PipeInstance address("/foo");
     Utility::appendXff(headers, address);
     EXPECT_EQ("10.0.0.1", headers.get_("x-forwarded-for"));
   }
+#endif
 }
 
 TEST(HttpUtility, appendVia) {

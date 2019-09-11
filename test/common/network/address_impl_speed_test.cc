@@ -1,6 +1,15 @@
+#ifndef WIN32
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#else
+#include <winsock2.h>
+// <winsock2.h> includes <windows.h>, so undef some interfering symbols.
+#undef TRUE
+#undef DELETE
+#undef ERROR
+#undef GetMessage
+#endif
 
 #include "common/common/fmt.h"
 #include "common/network/address_impl.h"

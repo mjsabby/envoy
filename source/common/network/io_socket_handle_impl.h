@@ -1,5 +1,14 @@
 #pragma once
 
+#ifdef WIN32
+#include <winsock2.h>
+// <winsock2.h> includes <windows.h>, so undef some interfering symbols.
+#undef TRUE
+#undef DELETE
+#undef ERROR
+#undef GetMessage
+#endif
+
 #include "envoy/api/io_error.h"
 #include "envoy/api/os_sys_calls.h"
 #include "envoy/network/io_handle.h"
@@ -14,13 +23,21 @@ namespace Network {
  */
 class IoSocketHandleImpl : public IoHandle, protected Logger::Loggable<Logger::Id::io> {
 public:
+#ifdef WIN32
+  explicit IoSocketHandleImpl(SOCKET socket_descriptor = INVALID_SOCKET)
+      : socket_descriptor_(socket_descriptor) {}
+#else
   explicit IoSocketHandleImpl(int fd = -1) : fd_(fd) {}
-
+#endif
   // Close underlying socket if close() hasn't been call yet.
   ~IoSocketHandleImpl() override;
 
   // TODO(sbelair2)  To be removed when the fd is fully abstracted from clients.
+#ifdef WIN32
+  SOCKET fd() const override { return socket_descriptor_; }
+#else
   int fd() const override { return fd_; }
+#endif
 
   Api::IoCallUint64Result close() override;
 
@@ -42,10 +59,14 @@ public:
                                   uint32_t self_port, RecvMsgOutput& output) override;
 
 private:
+#ifdef WIN32
+  SOCKET socket_descriptor_;
+#else
+  int fd_;
+#endif
+
   // Converts a SysCallSizeResult to IoCallUint64Result.
   Api::IoCallUint64Result sysCallResultToIoCallResult(const Api::SysCallSizeResult& result);
-
-  int fd_;
 };
 
 } // namespace Network

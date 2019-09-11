@@ -230,6 +230,8 @@ def _com_github_eile_tclap():
     _repository_impl(
         name = "com_github_eile_tclap",
         build_file = "@envoy//bazel/external:tclap.BUILD",
+        patch_args = ["-p1"],
+        patches = ["@envoy//bazel:tclap-win64-ull-sizet.patch"],
     )
     native.bind(
         name = "tclap",
@@ -339,7 +341,10 @@ def _io_opentracing_cpp():
         name = "io_opentracing_cpp",
         patch_args = ["-p1"],
         # Workaround for LSAN false positive in https://github.com/envoyproxy/envoy/issues/7647
-        patches = ["@envoy//bazel:io_opentracing_cpp.patch"],
+        patches = [
+            "@envoy//bazel:io_opentracing_cpp.patch",
+            "@envoy//bazel/foreign_cc:opentracing-cpp.patch",
+        ],
     )
     native.bind(
         name = "opentracing",
@@ -624,6 +629,8 @@ def _com_github_grpc_grpc():
             "@envoy//bazel:grpc-protoinfo-3.patch",
             # Pre-integration of https://github.com/grpc/grpc/pull/18950
             "@envoy//bazel:grpc-rename-gettid.patch",
+            # Pivotal patch
+            "@envoy//bazel:grpc_grpc.patch",
         ],
         patch_args = ["-p1"],
     )

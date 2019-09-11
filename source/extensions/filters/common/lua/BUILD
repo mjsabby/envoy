@@ -15,6 +15,7 @@ envoy_cc_library(
     external_deps = [
         "luajit",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         "//include/envoy/thread_local:thread_local_interface",
         "//source/common/common:assert_lib",

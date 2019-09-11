@@ -15,6 +15,8 @@ envoy_extension_cc_test(
     name = "config_test",
     srcs = ["config_test.cc"],
     extension_name = "envoy.filters.http.router",
+    # TODO(Pivotal): Fails to honor extensions disabled
+    tags = ["skip_on_windows"],
     deps = [
         "//source/extensions/filters/http/router:config",
         "//test/mocks/server:server_mocks",

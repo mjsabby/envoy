@@ -6,7 +6,17 @@
 // consumed or referenced directly by other Envoy code. It serves purely as a
 // porting layer for QUICHE.
 
+#ifndef WIN32
 #include <arpa/inet.h>
+#else
+#include <winsock2.h>
+// <winsock2.h> includes <windows.h>, so undef some interfering symbols.
+#undef TRUE
+#undef DELETE
+#undef ERROR
+#undef GetMessage
+#endif
+
 #include <cstring>
 #include <string>
 

@@ -1,6 +1,11 @@
 #include "test/common/http/http2/http2_frame.h"
 
+#ifndef WIN32
 #include <arpa/inet.h>
+#else
+#include <winsock2.h>
+#endif
+
 
 #include <type_traits>
 

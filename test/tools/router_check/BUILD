@@ -2,6 +2,7 @@ licenses(["notice"])  # Apache 2
 
 load(
     "//bazel:envoy_build_system.bzl",
+    "envoy_cc_platform_dep",
     "envoy_cc_test_binary",
     "envoy_cc_test_library",
     "envoy_package",
@@ -13,7 +14,8 @@ envoy_package()
 envoy_cc_test_binary(
     name = "router_check_tool",
     srcs = ["router_check.cc"],
-    deps = [":router_check_main_lib"],
+    tags = ["skip_on_windows"],
+    deps = [":router_check_main_lib"] + envoy_cc_platform_dep("//source/exe:platform_impl_lib"),
 )
 
 envoy_cc_test_library(

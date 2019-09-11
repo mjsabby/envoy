@@ -59,12 +59,14 @@ protected:
   }
 };
 
+#ifndef WIN32
 TEST_F(OriginalSrcTest, onNewConnectionUnixSocketSkips) {
   auto filter = makeDefaultFilter();
   setAddressToReturn("unix://domain.socket");
   EXPECT_CALL(callbacks_.socket_, addOption_(_)).Times(0);
   EXPECT_EQ(filter->onAccept(callbacks_), Network::FilterStatus::Continue);
 }
+#endif
 
 TEST_F(OriginalSrcTest, onNewConnectionIpv4AddressAddsOption) {
   auto filter = makeDefaultFilter();

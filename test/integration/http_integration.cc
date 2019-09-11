@@ -247,7 +247,11 @@ std::string HttpIntegrationTest::waitForAccessLog(const std::string& filename) {
     if (contents.length() > 0) {
       return contents;
     }
+#ifndef WIN32
     usleep(1000);
+#else
+    Sleep(1);
+#endif
   }
   RELEASE_ASSERT(0, "Timed out waiting for access log");
   return "";
@@ -528,8 +532,8 @@ void HttpIntegrationTest::testRouterDownstreamDisconnectBeforeRequestComplete(
 
 void HttpIntegrationTest::testRouterDownstreamDisconnectBeforeResponseComplete(
     ConnectionCreationFunction* create_connection) {
-#ifdef __APPLE__
-  // Skip this test on macOS: we can't detect the early close on macOS, and we
+#if defined(__APPLE__) || defined(WIN32)
+  // Skip this test on OS X + Windows: we can't detect the early close on non-Linux, and we
   // won't clean up the upstream connection until it times out. See #4294.
   if (downstream_protocol_ == Http::CodecClient::Type::HTTP1) {
     return;
