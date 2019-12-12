@@ -15,6 +15,7 @@ envoy_extension_cc_test(
     name = "redis_test",
     srcs = ["redis_test.cc"],
     extension_name = "envoy.health_checkers.redis",
+    tags = ["skip_on_windows"],
     deps = [
         "//source/common/api:api_lib",
         "//source/extensions/health_checkers/redis",
@@ -36,6 +37,7 @@ envoy_extension_cc_test(
     name = "config_test",
     srcs = ["config_test.cc"],
     extension_name = "envoy.health_checkers.redis",
+    tags = ["skip_on_windows"],
     deps = [
         "//source/common/upstream:health_checker_lib",
         "//source/extensions/health_checkers/redis:config",

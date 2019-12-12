@@ -40,13 +40,21 @@ public:
     }));
     // We bind two sockets: one to talk to parent, one to talk to our (hypothetical eventual) child
     EXPECT_CALL(os_sys_calls_, bind(_, _, _)).Times(2);
-
+#ifdef PIVOTAL // TODO: Pivotal Review
+    EXPECT_CALL(options_, statsOptions()).WillRepeatedly(ReturnRef(stats_options_));
+    EXPECT_CALL(os_sys_calls_, socket(_, _, _))
+        .WillRepeatedly(
+            Invoke([this](int domain, int type, int protocol) -> Api::SysCallSocketResult {
+              return os_sys_calls_actual_.socket(domain, type, protocol);
+            }));
+#endif
     // Test we match the correct stat with empty-slots before, after, or both.
     hot_restart_ = std::make_unique<HotRestartImpl>(options_);
     hot_restart_->drainParentListeners();
   }
 
   Api::MockOsSysCalls os_sys_calls_;
+  Api::OsSysCallsImpl os_sys_calls_actual_{};
   TestThreadsafeSingletonInjector<Api::OsSysCallsImpl> os_calls{&os_sys_calls_};
   Api::MockHotRestartOsSysCalls hot_restart_os_sys_calls_;
   TestThreadsafeSingletonInjector<Api::HotRestartOsSysCallsImpl> hot_restart_os_calls{

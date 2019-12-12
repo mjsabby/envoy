@@ -12,6 +12,7 @@ envoy_package()
 
 envoy_cc_test_binary(
     name = "router_check_tool",
+    tags = ["skip_on_windows"],
     deps = [":router_check_main_lib"],
 )
 
@@ -34,6 +35,7 @@ envoy_cc_test_library(
         "//source/common/json:json_loader_lib",
         "//source/common/router:config_lib",
         "//source/common/stats:stats_lib",
+        "//source/exe:platform_impl_lib",
         "//test/mocks/server:server_mocks",
         "//test/test_common:printers_lib",
         "//test/test_common:utility_lib",

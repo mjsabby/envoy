@@ -17,6 +17,25 @@ using bazel::tools::cpp::runfiles::Runfiles;
 // The main entry point (and the rest of this file) should have no logic in it,
 // this allows overriding by site specific versions of main.cc.
 int main(int argc, char** argv) {
+#if defined(WIN32)
+  _set_abort_behavior(0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
+
+  WORD wVersionRequested;
+  WSADATA wsaData;
+  int err;
+
+  /* Use the MAKEWORD(lowbyte, highbyte) macro declared in Windef.h */
+  wVersionRequested = MAKEWORD(2, 2);
+
+  err = WSAStartup(wVersionRequested, &wsaData);
+  if (err != 0) {
+    /* Tell the user that we could not find a usable */
+    /* Winsock DLL. */
+    printf("WSAStartup failed with error: %d\n", err);
+    return 1;
+  }
+#endif
+
 #ifndef __APPLE__
   absl::InitializeSymbolizer(argv[0]);
 #endif

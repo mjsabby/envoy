@@ -4518,6 +4518,8 @@ virtual_hosts:
                EnvoyException);
 }
 
+// TODO: Pivotal - revert when PipeInstance is implemented #16814813
+#ifndef WIN32
 TEST_F(BadHttpRouteConfigurationsTest, BadRouteEntryConfigPrefixAndPath) {
   const std::string yaml = R"EOF(
 virtual_hosts:
@@ -4538,7 +4540,7 @@ virtual_hosts:
       "invalid value oneof field 'path_specifier' is already set. Cannot set '(prefix|path)' for "
       "type oneof");
 }
-
+#endif
 TEST_F(BadHttpRouteConfigurationsTest, BadRouteEntryConfigMissingPathSpecifier) {
   const std::string yaml = R"EOF(
 virtual_hosts:
@@ -4555,6 +4557,8 @@ virtual_hosts:
       EnvoyException, "RouteValidationError.Match: \\[\"value is required\"\\]");
 }
 
+// TODO: Pivotal - revert when PipeInstance is implemented #16814813
+#ifndef WIN32
 TEST_F(BadHttpRouteConfigurationsTest, BadRouteEntryConfigPrefixAndRegex) {
   const std::string yaml = R"EOF(
 virtual_hosts:
@@ -4575,7 +4579,7 @@ virtual_hosts:
       "invalid value oneof field 'path_specifier' is already set. Cannot set '(prefix|regex)' for "
       "type oneof");
 }
-
+#endif
 TEST_F(BadHttpRouteConfigurationsTest, BadRouteEntryConfigNoAction) {
   const std::string yaml = R"EOF(
 virtual_hosts:
@@ -4591,7 +4595,8 @@ virtual_hosts:
       TestConfigImpl(parseRouteConfigurationFromV2Yaml(yaml), factory_context_, true),
       EnvoyException, "caused by field: \"action\", reason: is required");
 }
-
+// TODO: Pivotal - revert when PipeInstance is implemented #16814813
+#ifndef WIN32
 TEST_F(BadHttpRouteConfigurationsTest, BadRouteEntryConfigPathAndRegex) {
   const std::string yaml = R"EOF(
 virtual_hosts:
@@ -4612,7 +4617,7 @@ virtual_hosts:
       "invalid value oneof field 'path_specifier' is already set. Cannot set '(path|regex)' for "
       "type oneof");
 }
-
+#endif
 TEST_F(BadHttpRouteConfigurationsTest, BadRouteEntryConfigPrefixAndPathAndRegex) {
   const std::string yaml = R"EOF(
 virtual_hosts:

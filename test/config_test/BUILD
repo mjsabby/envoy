@@ -9,7 +9,9 @@ load(
 load(
     "//source/extensions:all_extensions.bzl",
     "envoy_all_extensions",
+    "envoy_windows_extensions",
 )
+load("//bazel:repositories.bzl", "PPC_SKIP_TARGETS")
 
 envoy_package()
 
@@ -24,6 +26,8 @@ envoy_cc_test(
         "example_configs_test_setup.sh",
         "//configs:example_configs",
     ],
+    # TODO: This test requires progress on building extensions on Windows;
+    tags = ["skip_on_windows"],
     deps = [
         ":config_test_lib",
         "//test/test_common:environment_lib",
@@ -45,5 +49,9 @@ envoy_cc_test_library(
         "//test/mocks/ssl:ssl_mocks",
         "//test/test_common:threadsafe_singleton_injector_lib",
         "//test/test_common:simulated_time_system_lib",
-    ] + envoy_all_extensions(),
+    ] + select({
+        "//bazel:windows_x86_64": envoy_windows_extensions(),
+        "//bazel:linux_ppc": envoy_all_extensions(PPC_SKIP_TARGETS),
+        "//conditions:default": envoy_all_extensions(),
+    }),
 )

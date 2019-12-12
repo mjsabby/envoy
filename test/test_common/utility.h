@@ -15,6 +15,7 @@
 #include "envoy/type/matcher/string.pb.h"
 #include "envoy/type/percent.pb.h"
 
+#include "common/api/os_sys_calls_impl.h"
 #include "common/buffer/buffer_impl.h"
 #include "common/common/c_smart_ptr.h"
 #include "common/common/thread.h"
@@ -484,6 +485,7 @@ public:
     return matcher;
   }
 
+  static SOCKET_FD duplicateSocket(SOCKET_FD sock);
   /**
    * Checks that passed gauges have a value of 0. Gauges can be omitted from
    * this check by modifying the regex that matches gauge names in the

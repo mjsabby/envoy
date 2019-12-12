@@ -19,6 +19,12 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+#if defined(WIN32)
+#ifndef F_OK
+#define F_OK 0
+#endif
+#endif
+
 using testing::_;
 using testing::NiceMock;
 
@@ -54,7 +60,13 @@ public:
     const std::string temp_path = TestEnvironment::writeStringToFileForTest("eds.json.tmp", json);
     TestUtility::renameFile(temp_path, path_);
     if (run_dispatcher) {
+      // TODO: Pivotal review - We need to revisit this kludge
+      // On Windows, it's not guaranteed that the ReadDirectoryChangesW completion routine has run
+      // even though the file move has completed. So run the dispatcher until we pick up the change
+      // const int attempts = callbacks_.configUpdateAttempts();
+      // while (callbacks_.configUpdateAttempts() < attempts + 1) {
       dispatcher_->run(Event::Dispatcher::RunType::NonBlock);
+      // }
     }
   }
 

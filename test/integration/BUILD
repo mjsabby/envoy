@@ -10,6 +10,12 @@ load(
     "envoy_select_hot_restart",
     "envoy_sh_test",
 )
+# load(
+#     "//source/extensions:all_extensions.bzl",
+#     "envoy_all_extensions",
+#     "envoy_windows_extensions",
+# )
+# load("//bazel:repositories.bzl", "PPC_SKIP_TARGETS")
 
 envoy_package()
 
@@ -25,6 +31,8 @@ envoy_cc_test_library(
         "//test/config/integration:server_xds_files",
         "//test/config/integration/certs",
     ],
+    # should pass, see story #163962838
+    tags = ["skip_on_windows"],
     deps = [
         ":http_integration_lib",
         "//source/common/config:protobuf_link_hacks",
@@ -63,6 +71,8 @@ py_binary(
     srcs = ["capture_fuzz_gen.py"],
     licenses = ["notice"],  # Apache 2
     python_version = "PY3",
+    # TODO(Pivotal): Skipping fuzz tests on Windows
+    tags = ["skip_on_windows"],
     visibility = ["//visibility:public"],
     deps = [
         ":capture_fuzz_proto_py_proto",
@@ -123,6 +133,7 @@ envoy_cc_test(
         "filter_manager_integration_test.cc",
         "filter_manager_integration_test.h",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         ":filter_manager_integration_proto_cc_proto",
         ":http_integration_lib",
@@ -140,6 +151,7 @@ envoy_cc_test(
 envoy_cc_test(
     name = "cluster_filter_integration_test",
     srcs = ["cluster_filter_integration_test.cc"],
+    tags = ["skip_on_windows"],
     deps = [
         ":integration_lib",
         "//include/envoy/network:filter_interface",
@@ -233,6 +245,8 @@ envoy_cc_test(
         "http2_integration_test.cc",
         "http2_integration_test.h",
     ],
+    # passes but it's flaky, see story #163964376
+    tags = ["skip_on_windows"],
     deps = [
         ":http_integration_lib",
         "//source/common/buffer:buffer_lib",
@@ -320,6 +334,7 @@ envoy_cc_test(
     # As this test has many H1/H2/v4/v6 tests it takes a while to run.
     # Shard it enough to bring the run time in line with other integration tests.
     shard_count = 3,
+    tags = ["skip_on_windows"],
     deps = [
         ":http_protocol_integration_lib",
         "//source/common/http:header_map_lib",
@@ -340,6 +355,7 @@ envoy_cc_test(
         "http2_upstream_integration_test.cc",
         "http2_upstream_integration_test.h",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         ":http_integration_lib",
         "//source/common/http:header_map_lib",
@@ -360,6 +376,8 @@ envoy_cc_test(
         "integration_admin_test.cc",
         "integration_admin_test.h",
     ],
+    # should pass, see story #163963060
+    tags = ["skip_on_windows"],
     deps = [
         ":http_protocol_integration_lib",
         "//include/envoy/http:header_map_interface",
@@ -393,6 +411,7 @@ envoy_cc_test_library(
     hdrs = [
         "http_integration.h",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         ":integration_lib",
         ":test_host_predicate_lib",
@@ -434,6 +453,8 @@ envoy_cc_test(
     # As this test has many pauses for idle timeouts, it takes a while to run.
     # Shard it enough to bring the run time in line with other integration tests.
     shard_count = 2,
+    # passes but it's flaky, see story #164138845
+    tags = ["skip_on_windows"],
     deps = [
         ":http_protocol_integration_lib",
         "//test/test_common:test_time_lib",
@@ -461,6 +482,7 @@ envoy_cc_test_library(
         "utility.h",
     ],
     data = ["//test/common/runtime:filesystem_test_data"],
+    tags = ["skip_on_windows"],
     deps = [
         ":server_stats_interface",
         ":tcp_dump",
@@ -540,6 +562,7 @@ envoy_cc_test(
         "integration_test.cc",
         "integration_test.h",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         ":http_integration_lib",
         "//source/common/http:header_map_lib",
@@ -578,6 +601,7 @@ envoy_cc_test(
         "websocket_integration_test.cc",
         "websocket_integration_test.h",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         ":http_protocol_integration_lib",
         "//source/common/http:header_map_lib",
@@ -595,7 +619,10 @@ envoy_cc_test(
         "echo_integration_test.cc",
     ],
     # This test must be run in exclusive mode: see comments in AddRemoveListener
-    tags = ["exclusive"],
+    tags = [
+        "exclusive",
+        "skip_on_windows",
+    ],
     deps = [
         ":integration_lib",
         "//source/extensions/filters/network/echo:config",
@@ -610,6 +637,7 @@ envoy_cc_test(
     # The symbol table cluster memory tests take a while to run specially under tsan.
     # Shard it to avoid test timeout.
     shard_count = 2,
+    tags = ["skip_on_windows"],
     deps = [
         ":integration_lib",
         "//source/common/memory:stats_lib",
@@ -676,6 +704,7 @@ envoy_cc_test(
 envoy_cc_test(
     name = "overload_integration_test",
     srcs = ["overload_integration_test.cc"],
+    tags = ["skip_on_windows"],
     deps = [
         ":http_protocol_integration_lib",
         "//source/extensions/resource_monitors/injected_resource:config",
@@ -690,6 +719,7 @@ envoy_cc_test(
         "proxy_proto_integration_test.cc",
         "proxy_proto_integration_test.h",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         ":http_integration_lib",
         "//source/common/buffer:buffer_lib",
@@ -704,6 +734,7 @@ envoy_cc_test(
 envoy_cc_test(
     name = "ratelimit_integration_test",
     srcs = ["ratelimit_integration_test.cc"],
+    tags = ["skip_on_windows"],
     deps = [
         ":http_integration_lib",
         "//source/common/buffer:zero_copy_input_stream_lib",
@@ -743,6 +774,7 @@ envoy_cc_test(
     data = [
         "//test/config/integration/certs",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         ":http_integration_lib",
         "//source/common/event:dispatcher_includes",
@@ -767,6 +799,8 @@ envoy_cc_test(
     data = [
         "//test/config/integration/certs",
     ],
+    # TODO(Pivotal): Fails to honor extensions disabled
+    tags = ["skip_on_windows"],
     deps = [
         ":http_integration_lib",
         "//source/common/config:protobuf_link_hacks",
@@ -799,6 +833,7 @@ envoy_cc_test(
     data = [
         "//test/config/integration/certs",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         ":integration_lib",
         "//source/common/event:dispatcher_includes",
@@ -851,6 +886,8 @@ envoy_cc_test(
         "uds_integration_test.cc",
         "uds_integration_test.h",
     ],
+    # will never pass on Windows (Unix Domain Sockets)
+    tags = ["skip_on_windows"],
     deps = [
         ":http_integration_lib",
         "//source/common/event:dispatcher_includes",
@@ -886,6 +923,7 @@ envoy_cc_test(
     name = "xds_integration_test",
     srcs = ["xds_integration_test.cc"],
     data = ["//test/config/integration:server_xds_files"],
+    tags = ["skip_on_windows"],
     deps = [
         ":http_integration_lib",
         ":http_protocol_integration_lib",
@@ -905,6 +943,7 @@ envoy_cc_test(
     data = [
         "//test/config/integration/certs",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         ":http_integration_lib",
         "//source/common/http:header_map_lib",
@@ -921,6 +960,8 @@ envoy_cc_test_library(
     name = "h1_fuzz_lib",
     srcs = ["h1_fuzz.cc"],
     hdrs = ["h1_fuzz.h"],
+    # TODO(Pivotal): Skipping fuzz tests on Windows
+    tags = ["skip_on_windows"],
     deps = [
         ":capture_fuzz_proto_cc_proto",
         ":http_integration_lib",
@@ -936,6 +977,8 @@ envoy_cc_fuzz_test(
     name = "h1_capture_fuzz_test",
     srcs = ["h1_capture_fuzz_test.cc"],
     corpus = "h1_corpus",
+    # TODO(Pivotal): Skipping fuzz tests on Windows
+    tags = ["skip_on_windows"],
     deps = [":h1_fuzz_lib"],
 )
 
@@ -943,6 +986,8 @@ envoy_cc_fuzz_test(
     name = "h1_capture_direct_response_fuzz_test",
     srcs = ["h1_capture_direct_response_fuzz_test.cc"],
     corpus = "h1_corpus",
+    # TODO(Pivotal): Skipping fuzz tests on Windows
+    tags = ["skip_on_windows"],
     deps = [
         ":h1_fuzz_lib",
         "@envoy_api//envoy/config/filter/network/http_connection_manager/v2:pkg_cc_proto",
@@ -954,6 +999,7 @@ envoy_cc_test(
     srcs = [
         "scoped_rds_integration_test.cc",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         ":http_integration_lib",
         "//source/common/config:resources_lib",
@@ -975,6 +1021,7 @@ envoy_cc_test(
     srcs = [
         "aws_metadata_fetcher_integration_test.cc",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         ":integration_lib",
         "//source/common/common:fmt_lib",

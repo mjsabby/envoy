@@ -20,6 +20,9 @@ public:
   // Thread::Thread
   void join() override;
 
+  // Needed for the WIN32 implementation of WatcherImpl. TODO(YAEL) - PR with that implementation
+  HANDLE handle() const { return thread_handle_; }
+
 private:
   std::function<void()> thread_routine_;
   HANDLE thread_handle_;
