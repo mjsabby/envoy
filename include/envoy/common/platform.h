@@ -67,6 +67,10 @@ using IOVEC = _WSABUF;
 #define IPV6_RECVPKTINFO IPV6_PKTINFO
 #endif
 
+#ifndef DEV_NULL
+#define DEV_NULL "NUL"
+#endif
+
 #else // POSIX
 
 #include <arpa/inet.h>
@@ -110,5 +114,9 @@ using IOVEC = iovec;
 #define ENVOY_SHUT_RD SHUT_RD
 #define ENVOY_SHUT_WR SHUT_WR
 #define ENVOY_SHUT_RDWR SHUT_RDWR
+
+#ifndef DEV_NULL
+#define DEV_NULL "/dev/null"
+#endif
 
 #endif

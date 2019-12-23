@@ -53,7 +53,7 @@ static_resources:
           - name: envoy.file_access_log
             typed_config:
               "@type": type.googleapis.com/envoy.config.accesslog.v2.FileAccessLog
-              path: /dev/null
+              path: {{ dev_null }}
             filter:
               or_filter:
                 filters:
@@ -156,7 +156,7 @@ layered_runtime:
     - name: admin
       admin_layer: {}
 admin:
-  access_log_path: "/dev/null"
+  access_log_path: {{ dev_null }}
   profile_path: "{{ test_tmpdir }}/envoy.prof"
   address:
     socket_address:

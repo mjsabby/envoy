@@ -39,10 +39,7 @@ namespace Server {
 namespace {
 
 #ifdef WIN32
-std::string devNull = "NUL";
 #define SO_REUSEPORT SO_REUSEADDR
-#else
-std::string devNull = "/dev/null";
 #endif
 
 TEST(ServerInstanceUtil, flushHelper) {
@@ -186,7 +183,7 @@ protected:
         std::make_unique<NiceMock<Runtime::MockRandomGenerator>>(), *thread_local_,
         Thread::threadFactoryForTest(), Filesystem::fileSystemForTest(),
         std::move(process_context_));
-    EXPECT_TRUE(server_->api().fileSystem().fileExists(devNull));
+    EXPECT_TRUE(server_->api().fileSystem().fileExists(DEV_NULL));
   }
 
   void initializeWithHealthCheckParams(const std::string& bootstrap_path, const double timeout,
@@ -205,7 +202,7 @@ protected:
         std::make_unique<NiceMock<Runtime::MockRandomGenerator>>(), *thread_local_,
         Thread::threadFactoryForTest(), Filesystem::fileSystemForTest(), nullptr);
 
-    EXPECT_TRUE(server_->api().fileSystem().fileExists(devNull));
+    EXPECT_TRUE(server_->api().fileSystem().fileExists(DEV_NULL));
   }
 
   Thread::ThreadPtr startTestServer(const std::string& bootstrap_path,

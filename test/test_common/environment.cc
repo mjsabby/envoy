@@ -256,6 +256,10 @@ std::string TestEnvironment::substitute(const std::string& str,
   out_json_string =
       std::regex_replace(out_json_string, so_reuseport_regex, std::to_string(SO_REUSEPORT));
 
+  // Substitute platform specific file paths
+  const std::regex dev_null_regex(R"(\{\{ dev_null \}\})");
+  out_json_string = std::regex_replace(out_json_string, dev_null_regex, DEV_NULL);
+
   return out_json_string;
 }
 

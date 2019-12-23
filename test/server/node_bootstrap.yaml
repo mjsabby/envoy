@@ -6,7 +6,7 @@ node:
     sub_zone: bootstrap_sub_zone
   build_version: should_be_ignored
 admin:
-  access_log_path: /dev/null
+  access_log_path: {{ dev_null }}
   address:
     socket_address:
       address: {{ ntop_ip_loopback_address }}
