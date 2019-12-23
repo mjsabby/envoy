@@ -21,3 +21,4 @@ if ! $(grep -qs "^$SIGNOFF" "$COMMIT_MESSAGE_FILE") ; then
   echo -e "\n$SIGNOFF" >> "$COMMIT_MESSAGE_FILE"
   echo -e "Appended the following signoff to the end of the commit message:\n  $SIGNOFF\n"
 fi
+exec git duet-prepare-commit-msg "$@"
