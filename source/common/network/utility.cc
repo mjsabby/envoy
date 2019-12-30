@@ -37,9 +37,12 @@ Address::InstanceConstSharedPtr Utility::resolveUrl(const std::string& url) {
     return parseInternetAddressAndPort(url.substr(TCP_SCHEME.size()));
   } else if (urlIsUdpScheme(url)) {
     return parseInternetAddressAndPort(url.substr(UDP_SCHEME.size()));
+// No such thing as AF_UNIX on Windows
+#ifndef WIN32
   } else if (urlIsUnixScheme(url)) {
     return Address::InstanceConstSharedPtr{
         new Address::PipeInstance(url.substr(UNIX_SCHEME.size()))};
+#endif
   } else {
     throw EnvoyException(absl::StrCat("unknown protocol scheme: ", url));
   }
@@ -193,9 +196,11 @@ void Utility::throwWithMalformedIp(absl::string_view ip_address) {
 // the default is to return a loopback address of type version. This function may
 // need to be updated in the future. Discussion can be found at Github issue #939.
 Address::InstanceConstSharedPtr Utility::getLocalAddress(const Address::IpVersion version) {
+  Address::InstanceConstSharedPtr ret;
+// See story #162272985
+#ifndef WIN32
   struct ifaddrs* ifaddr;
   struct ifaddrs* ifa;
-  Address::InstanceConstSharedPtr ret;
 
   const int rc = getifaddrs(&ifaddr);
   RELEASE_ASSERT(!rc, "");
@@ -221,6 +226,7 @@ Address::InstanceConstSharedPtr Utility::getLocalAddress(const Address::IpVersio
   if (ifaddr) {
     freeifaddrs(ifaddr);
   }
+#endif
 
   // If the local address is not found above, then return the loopback address by default.
   if (ret == nullptr) {
@@ -242,12 +248,16 @@ bool Utility::isSameIpOrLoopback(const ConnectionSocket& socket) {
   if (remote_address->type() == Address::Type::Pipe || isLoopbackAddress(*remote_address)) {
     return true;
   }
+
+  // TODO(Pivotal) Implement on Windows
+  // See story #162272985
   const auto local_ip = socket.localAddress()->ip();
   const auto remote_ip = remote_address->ip();
   if (remote_ip != nullptr && local_ip != nullptr &&
       remote_ip->addressAsString() == local_ip->addressAsString()) {
     return true;
   }
+
   return false;
 }
 
@@ -339,7 +349,7 @@ Address::InstanceConstSharedPtr Utility::getAddressWithPort(const Address::Insta
   NOT_REACHED_GCOVR_EXCL_LINE;
 }
 
-Address::InstanceConstSharedPtr Utility::getOriginalDst(int fd) {
+Address::InstanceConstSharedPtr Utility::getOriginalDst(SOCKET_FD fd) {
 #ifdef SOL_IP
   sockaddr_storage orig_addr;
   socklen_t addr_len = sizeof(sockaddr_storage);
@@ -455,9 +465,12 @@ Utility::protobufAddressToAddress(const envoy::config::core::v3::Address& proto_
     return Utility::parseInternetAddress(proto_address.socket_address().address(),
                                          proto_address.socket_address().port_value(),
                                          !proto_address.socket_address().ipv4_compat());
+// No such thing as AF_UNIX on Windows
+#ifndef WIN32
   case envoy::config::core::v3::Address::AddressCase::kPipe:
     return std::make_shared<Address::PipeInstance>(proto_address.pipe().path(),
                                                    proto_address.pipe().mode());
+#endif
   default:
     NOT_REACHED_GCOVR_EXCL_LINE;
   }

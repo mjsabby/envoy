@@ -76,7 +76,11 @@ ListenerImpl::ListenerImpl(Event::DispatcherImpl& dispatcher, SocketSharedPtr so
 void ListenerImpl::errorCallback(evconnlistener*, void*) {
   // We should never get an error callback. This can happen if we run out of FDs or memory. In those
   // cases just crash.
+#ifdef WIN32
+  PANIC(fmt::format("listener accept failure: {}", WSAGetLastError()));
+#else
   PANIC(fmt::format("listener accept failure: {}", strerror(errno)));
+#endif
 }
 
 void ListenerImpl::enable() {

@@ -34,6 +34,9 @@ public:
   MOCK_METHOD(void, onConfigUpdateFailed,
               (Envoy::Config::ConfigUpdateFailureReason reason, const EnvoyException* e));
   MOCK_METHOD(std::string, resourceName, (const ProtobufWkt::Any& resource));
+
+private:
+  int config_update_attempts_ = 0;
 };
 
 class MockSubscription : public Subscription {

@@ -71,12 +71,17 @@ public:
     auto mock_socket = std::make_shared<NiceMock<Network::MockConnectionSocket>>();
     sockets_.push_back(mock_socket);
 
+// TODO: Pivotal - revert when PipeInstance is implemented #16814813
+#ifndef WIN32
     if (absl::StartsWith(destination_address, "/")) {
       local_address_ = std::make_shared<Network::Address::PipeInstance>(destination_address);
     } else {
       local_address_ =
           Network::Utility::parseInternetAddress(destination_address, destination_port);
     }
+#else
+    local_address_ = Network::Utility::parseInternetAddress(destination_address, destination_port);
+#endif
     ON_CALL(*mock_socket, localAddress()).WillByDefault(ReturnRef(local_address_));
 
     ON_CALL(*mock_socket, requestedServerName())
@@ -86,11 +91,16 @@ public:
     ON_CALL(*mock_socket, requestedApplicationProtocols())
         .WillByDefault(ReturnRef(application_protocols));
 
+// TODO: Pivotal - revert when PipeInstance is implemented #16814813
+#ifndef WIN32
     if (absl::StartsWith(source_address, "/")) {
       remote_address_ = std::make_shared<Network::Address::PipeInstance>(source_address);
     } else {
       remote_address_ = Network::Utility::parseInternetAddress(source_address, source_port);
     }
+#else
+    remote_address_ = Network::Utility::parseInternetAddress(source_address, source_port);
+#endif
     ON_CALL(*mock_socket, remoteAddress()).WillByDefault(ReturnRef(remote_address_));
     return filter_chain_manager_.findFilterChain(*mock_socket);
   }

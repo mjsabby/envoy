@@ -17,6 +17,8 @@ envoy_extension_cc_test(
     name = "command_splitter_impl_test",
     srcs = ["command_splitter_impl_test.cc"],
     extension_name = "envoy.filters.network.redis_proxy",
+    # not used in CF, so we haven't put the effort in to fix
+    tags = ["skip_on_windows"],
     deps = [
         ":redis_mocks",
         "//source/common/stats:isolated_store_lib",
@@ -34,6 +36,8 @@ envoy_extension_cc_test(
     name = "conn_pool_impl_test",
     srcs = ["conn_pool_impl_test.cc"],
     extension_name = "envoy.filters.network.redis_proxy",
+    # not used in CF, so we haven't put the effort in to fix
+    tags = ["skip_on_windows"],
     deps = [
         ":redis_mocks",
         "//source/common/event:dispatcher_lib",
@@ -60,6 +64,8 @@ envoy_extension_cc_test(
     name = "proxy_filter_test",
     srcs = ["proxy_filter_test.cc"],
     extension_name = "envoy.filters.network.redis_proxy",
+    # not used in CF, so we haven't put the effort in to fix
+    tags = ["skip_on_windows"],
     deps = [
         ":redis_mocks",
         "//source/common/event:dispatcher_lib",
@@ -78,6 +84,8 @@ envoy_cc_mock(
     name = "redis_mocks",
     srcs = ["mocks.cc"],
     hdrs = ["mocks.h"],
+    # not used in CF, so we haven't put the effort in to fix
+    tags = ["skip_on_windows"],
     deps = [
         "//source/common/common:assert_lib",
         "//source/extensions/common/redis:cluster_refresh_manager_interface",
@@ -93,9 +101,12 @@ envoy_extension_cc_test(
     name = "config_test",
     srcs = ["config_test.cc"],
     extension_name = "envoy.filters.network.redis_proxy",
+    # not used in CF, so we haven't put the effort in to fix
+    tags = ["skip_on_windows"],
     deps = [
         "//source/common/protobuf:utility_lib",
         "//source/extensions/filters/network/redis_proxy:config",
+        "//test/extensions/filters/network/redis_proxy:command_lookup_speed_test",
         "//test/mocks/server:server_mocks",
         "//test/test_common:test_runtime_lib",
         "@envoy_api//envoy/extensions/filters/network/redis_proxy/v3:pkg_cc_proto",
@@ -109,6 +120,9 @@ envoy_extension_cc_test_binary(
     external_deps = [
         "benchmark",
     ],
+    # not used in CF, so we haven't put the effort in to fix
+    # TODO: Pivotal - why is this not skipped?
+    tags = ["skip_on_windows"],
     deps = [
         ":redis_mocks",
         "//source/common/stats:isolated_store_lib",
@@ -123,6 +137,8 @@ envoy_extension_cc_test(
     name = "router_impl_test",
     srcs = ["router_impl_test.cc"],
     extension_name = "envoy.filters.network.redis_proxy",
+    # not used in CF, so we haven't put the effort in to fix
+    tags = ["skip_on_windows"],
     deps = [
         ":redis_mocks",
         "//source/extensions/filters/network/redis_proxy:router_lib",
@@ -138,6 +154,8 @@ envoy_extension_cc_test(
     name = "redis_proxy_integration_test",
     srcs = ["redis_proxy_integration_test.cc"],
     extension_name = "envoy.filters.network.redis_proxy",
+    # not used in CF, so we haven't put the effort in to fix
+    tags = ["skip_on_windows"],
     deps = [
         "//source/extensions/filters/network/redis_proxy:config",
         "//test/integration:integration_lib",

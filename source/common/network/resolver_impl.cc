@@ -47,8 +47,11 @@ InstanceConstSharedPtr resolveProtoAddress(const envoy::config::core::v3::Addres
   switch (address.address_case()) {
   case envoy::config::core::v3::Address::AddressCase::kSocketAddress:
     return resolveProtoSocketAddress(address.socket_address());
+// No such thing as AF_UNIX on Windows
+#ifndef WIN32
   case envoy::config::core::v3::Address::AddressCase::kPipe:
     return InstanceConstSharedPtr{new PipeInstance(address.pipe().path())};
+#endif
   default:
     throw EnvoyException("Address must be a socket or pipe: " + address.DebugString());
   }

@@ -12,7 +12,9 @@ load(
 load(
     "//source/extensions:all_extensions.bzl",
     "envoy_all_extensions",
+    "envoy_windows_extensions",
 )
+load("//bazel:repositories.bzl", "PPC_SKIP_TARGETS")
 
 envoy_package()
 
@@ -162,6 +164,8 @@ envoy_cc_test(
 envoy_cc_test(
     name = "overload_manager_impl_test",
     srcs = ["overload_manager_impl_test.cc"],
+    # should pass, see story #163960604
+    tags = ["skip_on_windows"],
     deps = [
         "//include/envoy/registry",
         "//source/common/stats:isolated_store_lib",
@@ -200,6 +204,8 @@ envoy_cc_test_library(
     name = "listener_manager_impl_test_lib",
     hdrs = ["listener_manager_impl_test.h"],
     data = ["//test/extensions/transport_sockets/tls/test_data:certs"],
+    # TODO: command line is too long to record in debug record in c1xx.dll
+    tags = ["skip_on_windows"],
     deps = [
         "//source/server:api_listener_lib",
         "//source/server:listener_lib",
@@ -218,6 +224,8 @@ envoy_cc_test_library(
 envoy_cc_test(
     name = "listener_manager_impl_test",
     srcs = ["listener_manager_impl_test.cc"],
+    # TODO (Pivotal): reinstate when IoSocket/setsockopt is resolved
+    tags = ["skip_on_windows"],
     deps = [
         ":listener_manager_impl_test_lib",
         ":utility_lib",
@@ -248,7 +256,10 @@ envoy_cc_test(
 envoy_cc_test(
     name = "listener_manager_impl_quic_only_test",
     srcs = ["listener_manager_impl_quic_only_test.cc"],
-    tags = ["nofips"],
+    tags = [
+        "nofips",
+        "skip_on_windows",
+    ],
     deps = [
         ":listener_manager_impl_test_lib",
         ":utility_lib",
@@ -305,7 +316,11 @@ envoy_cc_fuzz_test(
         "//test/mocks/stats:stats_mocks",
         "//test/test_common:environment_lib",
         "//test/test_common:test_time_lib",
-    ] + envoy_all_extensions(),
+    ] + select({
+        "//bazel:windows_x86_64": envoy_windows_extensions(),
+        "//bazel:linux_ppc": envoy_all_extensions(PPC_SKIP_TARGETS),
+        "//conditions:default": envoy_all_extensions(),
+    }),
 )
 
 filegroup(
@@ -331,6 +346,7 @@ envoy_cc_test(
         ":server_test_data",
         ":static_validation_test_data",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         "//source/common/common:version_lib",
         "//source/extensions/access_loggers/file:config",

@@ -5,6 +5,7 @@
 
 #include "envoy/common/platform.h"
 
+#include "common/api/os_sys_calls_impl.h"
 #include "common/common/assert.h"
 #include "common/common/fmt.h"
 #include "common/network/address_impl.h"
@@ -30,29 +31,36 @@ Address::InstanceConstSharedPtr findOrCheckFreePort(Address::InstanceConstShared
   // However, because we're going to use the address while checking if it is available, we'll need
   // to set REUSEADDR on listener sockets created by tests using an address validated by this means.
   Api::SysCallIntResult result = addr_port->bind(io_handle->fd());
-  int err;
   const char* failing_fn = nullptr;
   if (result.rc_ != 0) {
-    err = result.errno_;
     failing_fn = "bind";
   } else if (type == Address::SocketType::Stream) {
     // Try listening on the port also, if the type is TCP.
-    if (::listen(io_handle->fd(), 1) != 0) {
-      err = errno;
+    auto& os_sys_calls = Api::OsSysCallsSingleton::get();
+    result = os_sys_calls.listen(io_handle->fd(), 1);
+    if (result.rc_ != 0) {
       failing_fn = "listen";
     }
   }
   if (failing_fn != nullptr) {
-    if (err == EADDRINUSE) {
+#ifdef WIN32
+    if (result.errno_ == WSAEADDRINUSE) {
+#else
+    if (result.errno_ == EADDRINUSE) {
+#endif
       // The port is already in use. Perfectly normal.
       return nullptr;
-    } else if (err == EACCES) {
+#ifdef WIN32
+    } else if (result.errno_ == WSAEACCES) {
+#else
+    } else if (result.errno_ == EACCES) {
+#endif
       // A privileged port, and we don't have privileges. Might want to log this.
       return nullptr;
     }
     // Unexpected failure.
     ADD_FAILURE() << failing_fn << " failed for '" << addr_port->asString()
-                  << "' with error: " << strerror(err) << " (" << err << ")";
+                  << "' with error: " << strerror(result.errno_) << " (" << result.errno_ << ")";
     return nullptr;
   }
   // If the port we bind is zero, then the OS will pick a free port for us (assuming there are

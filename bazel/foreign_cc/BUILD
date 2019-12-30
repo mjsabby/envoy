@@ -22,11 +22,13 @@ configure_make(
         "//bazel:debug_tcmalloc": ["libtcmalloc_debug.a"],
         "//conditions:default": ["libtcmalloc_and_profiler.a"],
     }),
+    tags = ["skip_on_windows"],
 )
 
 # Workaround for https://github.com/bazelbuild/rules_foreign_cc/issues/227
 cc_library(
     name = "gperftools",
+    tags = ["skip_on_windows"],
     deps = [
         "gperftools_build",
     ],
@@ -47,6 +49,7 @@ configure_make(
     static_libraries = [
         "libluajit-5.1.a",
     ],
+    tags = ["skip_on_windows"],
 )
 
 envoy_cmake_external(
@@ -136,6 +139,8 @@ envoy_cmake_external(
         ],
         "//conditions:default": [
             "libevent.a",
+            "libevent_core.a",
+            "libevent_extra.a",
             "libevent_pthreads.a",
         ],
     }),

@@ -19,6 +19,10 @@
 #include "absl/base/optimization.h"
 #include "absl/synchronization/mutex.h"
 
+#ifdef WIN32
+// undef conflicting symbols on Windows
+#undef ERROR
+#endif
 // This implementation is only used by Quiche code, use macros provided by
 // assert.h and logger.h in Envoy code instead. See QUIC platform API
 // dependency model described in
@@ -146,6 +150,8 @@ private:
 
 class NullLogStream : public std::ostream {
 public:
+  NullLogStream() : std::ostream(NULL) {}
+
   NullLogStream& stream() { return *this; }
 };
 

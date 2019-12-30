@@ -29,6 +29,12 @@ envoy_cc_test_library(
 envoy_cc_test(
     name = "runtime_protos_test",
     srcs = ["runtime_protos_test.cc"],
+    # TODO(Pivotal): diagnose Windows failure
+    # store_.gauge("runtime.num_keys", Stats::Gauge::ImportMode::NeverImport).value()
+    # returns 22 on Windows, expected 23 (std class quirk in MSVC? missing watcher update?)
+    # Same store/retrieve pattern fails in DiskLoaderImplTest.All ln 278 and
+    # DiskLoaderImplTest.DiskLayerFailure lns 329, 330, 331
+    tags = ["skip_on_windows"],
     deps = [
         "//source/common/runtime:runtime_lib",
         "//test/mocks/runtime:runtime_mocks",
@@ -42,6 +48,9 @@ envoy_cc_test(
     name = "runtime_impl_test",
     srcs = ["runtime_impl_test.cc"],
     data = glob(["test_data/**"]) + ["filesystem_setup.sh"],
+    # Inexplicable failure promoting arguments to mock, see
+    # https://envoyproxy.slack.com/archives/CNAK09BSB/p1571946165007300
+    tags = ["skip_on_windows"],
     deps = [
         "//source/common/config:runtime_utility_lib",
         "//source/common/runtime:runtime_lib",

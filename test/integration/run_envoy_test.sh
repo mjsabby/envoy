@@ -17,7 +17,7 @@ function expect_fail_with_error() {
 
 
 start_test Launching envoy with a bogus command line flag.
-expect_fail_with_error "PARSE ERROR: Argument: --bogus-flag" --bogus-flag
+expect_fail_with_error "Couldn't find match for argument" --bogus-flag
 
 start_test Launching envoy without --config-path or --config-yaml fails.
 expect_fail_with_error \

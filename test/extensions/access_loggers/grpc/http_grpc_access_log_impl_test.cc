@@ -134,6 +134,7 @@ public:
 };
 
 // Test HTTP log marshaling.
+#if !defined(WIN32)
 TEST_F(HttpGrpcAccessLogTest, Marshalling) {
   InSequence s;
 
@@ -618,6 +619,7 @@ response: {}
     access_log_->log(nullptr, nullptr, nullptr, stream_info);
   }
 }
+#endif
 
 // Test HTTP log marshaling with additional headers.
 TEST_F(HttpGrpcAccessLogTest, MarshallingAdditionalHeaders) {
