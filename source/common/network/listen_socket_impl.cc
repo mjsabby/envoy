@@ -19,7 +19,7 @@ namespace Network {
 
 void ListenSocketImpl::doBind() {
   const Api::SysCallIntResult result = local_address_->bind(io_handle_->fd());
-  if (result.rc_ == -1) {
+  if (SOCKET_FAILURE(result.rc_)) {
     close();
     throw SocketBindException(
         fmt::format("cannot bind '{}': {}", local_address_->asString(), strerror(result.errno_)),
@@ -52,17 +52,25 @@ template <>
 void NetworkListenSocket<
     NetworkSocketTrait<Address::SocketType::Stream>>::setPrebindSocketOptions() {
 
+  // On Windows, setting SO_REUSEADDR will allow the socket to bind to an address
+  // in use by another socket regardless of whether that socket is actively listening.
+  // This is in contrast to Linux where the bind will fail if the socket is actively
+  // listening but succeed otherwise.
+#ifndef WIN32
   int on = 1;
   auto& os_syscalls = Api::OsSysCallsSingleton::get();
   Api::SysCallIntResult status =
       os_syscalls.setsockopt(io_handle_->fd(), SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
   RELEASE_ASSERT(status.rc_ != -1, "failed to set SO_REUSEADDR socket option");
+#endif
 }
 
 template <>
 void NetworkListenSocket<
     NetworkSocketTrait<Address::SocketType::Datagram>>::setPrebindSocketOptions() {}
 
+// No such thing as AF_UNIX on Windows
+#ifndef WIN32
 UdsListenSocket::UdsListenSocket(const Address::InstanceConstSharedPtr& address)
     : ListenSocketImpl(address->socket(Address::SocketType::Stream), address) {
   RELEASE_ASSERT(io_handle_->fd() != -1, "");
@@ -72,6 +80,7 @@ UdsListenSocket::UdsListenSocket(const Address::InstanceConstSharedPtr& address)
 UdsListenSocket::UdsListenSocket(IoHandlePtr&& io_handle,
                                  const Address::InstanceConstSharedPtr& address)
     : ListenSocketImpl(std::move(io_handle), address) {}
+#endif
 
 } // namespace Network
 } // namespace Envoy

@@ -38,6 +38,13 @@ namespace Envoy {
 namespace Server {
 namespace {
 
+#ifdef WIN32
+std::string devNull = "NUL";
+#define SO_REUSEPORT SO_REUSEADDR
+#else
+std::string devNull = "/dev/null";
+#endif
+
 TEST(ServerInstanceUtil, flushHelper) {
   InSequence s;
 
@@ -85,10 +92,12 @@ public:
   RunHelperTest() {
     InSequence s;
 
+#ifndef WIN32
     sigterm_ = new Event::MockSignalEvent(&dispatcher_);
     sigint_ = new Event::MockSignalEvent(&dispatcher_);
     sigusr1_ = new Event::MockSignalEvent(&dispatcher_);
     sighup_ = new Event::MockSignalEvent(&dispatcher_);
+#endif
     EXPECT_CALL(overload_manager_, start());
     EXPECT_CALL(cm_, setInitializedCb(_)).WillOnce(SaveArg<0>(&cm_init_callback_));
     ON_CALL(server_, shutdown()).WillByDefault(Assign(&shutdown_, true));
@@ -108,10 +117,12 @@ public:
   ReadyWatcher start_workers_;
   std::unique_ptr<RunHelper> helper_;
   std::function<void()> cm_init_callback_;
+#ifndef WIN32
   Event::MockSignalEvent* sigterm_;
   Event::MockSignalEvent* sigint_;
   Event::MockSignalEvent* sigusr1_;
   Event::MockSignalEvent* sighup_;
+#endif
   bool shutdown_ = false;
 };
 
@@ -120,13 +131,18 @@ TEST_F(RunHelperTest, Normal) {
   cm_init_callback_();
 }
 
+// no signals on Windows
+#ifndef WIN32
 TEST_F(RunHelperTest, ShutdownBeforeCmInitialize) {
   EXPECT_CALL(start_workers_, ready()).Times(0);
   sigterm_->callback_();
   EXPECT_CALL(server_, isShutdown()).WillOnce(Return(shutdown_));
   cm_init_callback_();
 }
+#endif
 
+// no signals on Windows
+#ifndef WIN32
 TEST_F(RunHelperTest, ShutdownBeforeInitManagerInit) {
   EXPECT_CALL(start_workers_, ready()).Times(0);
   Init::ExpectableTargetImpl target;
@@ -137,6 +153,7 @@ TEST_F(RunHelperTest, ShutdownBeforeInitManagerInit) {
   EXPECT_CALL(server_, isShutdown()).WillOnce(Return(shutdown_));
   target.ready();
 }
+#endif
 
 class InitializingInitManager : public Init::ManagerImpl {
 public:
@@ -169,7 +186,7 @@ protected:
         std::make_unique<NiceMock<Runtime::MockRandomGenerator>>(), *thread_local_,
         Thread::threadFactoryForTest(), Filesystem::fileSystemForTest(),
         std::move(process_context_));
-    EXPECT_TRUE(server_->api().fileSystem().fileExists("/dev/null"));
+    EXPECT_TRUE(server_->api().fileSystem().fileExists(devNull));
   }
 
   void initializeWithHealthCheckParams(const std::string& bootstrap_path, const double timeout,
@@ -188,7 +205,7 @@ protected:
         std::make_unique<NiceMock<Runtime::MockRandomGenerator>>(), *thread_local_,
         Thread::threadFactoryForTest(), Filesystem::fileSystemForTest(), nullptr);
 
-    EXPECT_TRUE(server_->api().fileSystem().fileExists("/dev/null"));
+    EXPECT_TRUE(server_->api().fileSystem().fileExists(devNull));
   }
 
   Thread::ThreadPtr startTestServer(const std::string& bootstrap_path,

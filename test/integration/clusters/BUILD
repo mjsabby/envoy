@@ -15,6 +15,7 @@ envoy_cc_test_library(
         "custom_static_cluster.cc",
         "custom_static_cluster.h",
     ],
+    tags = ["skip_on_windows"],
     deps = [
         ":cluster_factory_config_proto_cc_proto",
         "//include/envoy/api:api_interface",

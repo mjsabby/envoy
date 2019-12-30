@@ -65,7 +65,7 @@ public:
                    bool bind_to_port)
       : ListenerImpl(dispatcher, std::move(socket), cb, bind_to_port) {}
 
-  MOCK_METHOD1(getLocalAddress, Address::InstanceConstSharedPtr(int fd));
+  MOCK_METHOD1(getLocalAddress, Address::InstanceConstSharedPtr(SOCKET_FD fd));
 };
 
 using ListenerImplTest = ListenerImplTestBase;
@@ -197,8 +197,9 @@ TEST_P(ListenerImplTest, WildcardListenerIpv4Compat) {
   client_connection->connect();
 
   EXPECT_CALL(listener, getLocalAddress(_))
-      .WillOnce(Invoke(
-          [](int fd) -> Address::InstanceConstSharedPtr { return Address::addressFromFd(fd); }));
+      .WillOnce(Invoke([](SOCKET_FD fd) -> Address::InstanceConstSharedPtr {
+        return Address::addressFromFd(fd);
+      }));
 
   EXPECT_CALL(listener_callbacks, onAccept_(_))
       .WillOnce(Invoke([&](Network::ConnectionSocketPtr& socket) -> void {
@@ -227,9 +228,18 @@ TEST_P(ListenerImplTest, DisableAndEnableListener) {
   // When listener is disabled, the timer should fire before any connection is accepted.
   listener.disable();
 
-  ClientConnectionPtr client_connection =
-      dispatcher_->createClientConnection(socket->localAddress(), Address::InstanceConstSharedPtr(),
-                                          Network::Test::createRawBufferSocket(), nullptr);
+  Network::Address::InstanceConstSharedPtr remote;
+#ifdef WIN32
+  // MUST NOT connect to 0.0.0.0, that is not an endpoint
+  const uint32_t port = socket->localAddress()->ip()->port();
+  remote = Utility::resolveUrl(
+      fmt::format("tcp://{}:{}", Network::Test::getLoopbackAddressUrlString(GetParam()), port));
+#else
+  remote = socket->localAddress();
+#endif
+
+  ClientConnectionPtr client_connection = dispatcher_->createClientConnection(
+      remote, Address::InstanceConstSharedPtr(), Network::Test::createRawBufferSocket(), nullptr);
   client_connection->addConnectionCallbacks(connection_callbacks);
   client_connection->connect();
 
@@ -245,8 +255,9 @@ TEST_P(ListenerImplTest, DisableAndEnableListener) {
   listener.enable();
 
   EXPECT_CALL(listener, getLocalAddress(_))
-      .WillOnce(Invoke(
-          [](int fd) -> Address::InstanceConstSharedPtr { return Address::addressFromFd(fd); }));
+      .WillOnce(Invoke([](SOCKET_FD fd) -> Address::InstanceConstSharedPtr {
+        return Address::addressFromFd(fd);
+      }));
   EXPECT_CALL(listener_callbacks, onAccept_(_)).WillOnce(Invoke([&](ConnectionSocketPtr&) -> void {
     client_connection->close(ConnectionCloseType::NoFlush);
   }));

@@ -73,11 +73,19 @@ TEST_P(ValidationServerTest, NoopLifecycleNotifier) {
 // all the example configs) but can't until light validation is implemented, mocking out access to
 // the filesystem for TLS certs, etc. In the meantime, these are the example configs that work
 // as-is.
+// TODO(windows): Windows is presently missing an implementation for /dev/stdout
+#ifndef WIN32
 INSTANTIATE_TEST_SUITE_P(ValidConfigs, ValidationServerTest,
                          ::testing::Values("front-proxy_front-envoy.yaml",
                                            "google_com_proxy.v2.yaml",
                                            "grpc-bridge_server_envoy-proxy.yaml",
                                            "front-proxy_service-envoy.yaml"));
+#else
+INSTANTIATE_TEST_SUITE_P(ValidConfigs, ValidationServerTest,
+                         ::testing::Values("front-proxy_front-envoy.yaml",
+                                           "google_com_proxy.v2.yaml",
+                                           "front-proxy_service-envoy.yaml"));
+#endif
 
 // Just make sure that all configs can be ingested without a crash. Processing of config files
 // may not be successful, but there should be no crash.

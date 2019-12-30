@@ -35,6 +35,14 @@ if ($LASTEXITCODE -ne 0) {
 	exit $LASTEXITCODE
 }
 
+$extBazelDeps = "c:\_eb\tmp"
+
+$env:EXT_BUILD_DEPS=$extBazelDeps
+setx EXT_BUILD_DEPS $extBazelDeps > $nul
+if ($LASTEXITCODE -ne 0) {
+	exit $LASTEXITCODE
+}
+
 $env:PATH ="$env:PATH;c:\tools\msys64\usr\bin;c:\make\bin;c:\Program Files\CMake\bin;C:\Python27;c:\programdata\chocolatey\bin;C:\Program Files\Git\bin"
 setx PATH $env:PATH > $nul
 if ($LASTEXITCODE -ne 0) {

@@ -30,13 +30,19 @@ Network::FilterStatus Filter::onAccept(Network::ListenerFilterCallbacks& cb) {
   ENVOY_LOG(debug, "proxy_protocol: New connection accepted");
   Network::ConnectionSocket& socket = cb.socket();
   ASSERT(file_event_.get() == nullptr);
+// libevent only supports level trigger on Windows
+#ifdef WIN32
+  const auto trigger_type = Event::FileTriggerType::Level;
+#else
+  const auto trigger_type = Event::FileTriggerType::Edge;
+#endif
   file_event_ = cb.dispatcher().createFileEvent(
       socket.ioHandle().fd(),
       [this](uint32_t events) {
         ASSERT(events == Event::FileReadyType::Read);
         onRead();
       },
-      Event::FileTriggerType::Edge, Event::FileReadyType::Read);
+      trigger_type, Event::FileReadyType::Read);
   cb_ = &cb;
   return Network::FilterStatus::StopIteration;
 }

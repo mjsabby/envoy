@@ -109,6 +109,7 @@ def envoy_cc_fuzz_test(
         # No fuzzing on macOS.
         deps = select({
             "@envoy//bazel:apple": [repository + "//test:dummy_main"],
+            "@envoy//bazel:windows_x86_64": [repository + "//test:dummy_main"],
             "//conditions:default": [
                 ":" + test_lib_name,
                 repository + "//test/fuzz:main",

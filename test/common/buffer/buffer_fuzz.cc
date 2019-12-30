@@ -336,6 +336,7 @@ uint32_t bufferAction(Context& ctxt, char insert_value, uint32_t max_alloc, Buff
     }
     break;
   }
+#ifndef WIN32
   case test::common::buffer::Action::kRead: {
     const uint32_t max_length = clampSize(action.read(), max_alloc);
     allocated += max_length;
@@ -414,6 +415,7 @@ uint32_t bufferAction(Context& ctxt, char insert_value, uint32_t max_alloc, Buff
                 (data.find(action.starts_with()) == 0));
     break;
   }
+#endif
   default:
     // Maybe nothing is set?
     break;

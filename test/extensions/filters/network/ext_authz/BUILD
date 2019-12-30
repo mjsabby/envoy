@@ -15,6 +15,8 @@ envoy_extension_cc_test(
     name = "ext_authz_test",
     srcs = ["ext_authz_test.cc"],
     extension_name = "envoy.filters.network.ext_authz",
+    # not used in CF, so we haven't put the effort in to fix
+    tags = ["skip_on_windows"],
     deps = [
         "//source/common/buffer:buffer_lib",
         "//source/common/event:dispatcher_lib",
@@ -36,6 +38,8 @@ envoy_extension_cc_test(
     name = "config_test",
     srcs = ["config_test.cc"],
     extension_name = "envoy.filters.network.ext_authz",
+    # not used in CF, so we haven't put the effort in to fix
+    tags = ["skip_on_windows"],
     deps = [
         "//source/extensions/filters/network/ext_authz:config",
         "//test/mocks/server:server_mocks",
