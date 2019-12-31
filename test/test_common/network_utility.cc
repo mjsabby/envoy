@@ -37,7 +37,7 @@ Address::InstanceConstSharedPtr findOrCheckFreePort(Address::InstanceConstShared
   } else if (type == Address::SocketType::Stream) {
     // Try listening on the port also, if the type is TCP.
     auto& os_sys_calls = Api::OsSysCallsSingleton::get();
-    result = os_sys_calls.listen(io_handle->fd(), 1);
+    result = os_sys_calls.listen(*io_handle, 1);
     if (result.rc_ != 0) {
       failing_fn = "listen";
     }

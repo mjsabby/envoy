@@ -32,40 +32,40 @@ TEST_P(OsSysCallsImplTest, SocketPair) {
   const int family = ip_version == Network::Address::IpVersion::v4 ? AF_INET : AF_INET6;
 
   OsSysCallsImpl os_sys_calls{};
-  SOCKET_FD socks[2];
-  SysCallIntResult r1 = os_sys_calls.socketpair(family, SOCK_STREAM, IPPROTO_TCP, socks);
+  Network::IoHandle *handles[2];
+  SysCallIntResult r1 = os_sys_calls.socketpair(family, SOCK_STREAM, IPPROTO_TCP, handles);
   EXPECT_EQ(r1.rc_, 0);
-  EXPECT_TRUE(SOCKET_VALID(socks[0]));
-  EXPECT_TRUE(SOCKET_VALID(socks[1]));
+  EXPECT_TRUE(SOCKET_VALID(handles[0]->fd()));
+  EXPECT_TRUE(SOCKET_VALID(handles[1]->fd()));
 
   sockaddr_storage sa;
   socklen_t sa_len = sizeof(sa);
-  r1 = os_sys_calls.getsockname(socks[0], reinterpret_cast<sockaddr*>(&sa), &sa_len);
+  r1 = os_sys_calls.getsockname(*handles[0], reinterpret_cast<sockaddr*>(&sa), &sa_len);
   EXPECT_EQ(r1.rc_, 0);
   EXPECT_EQ(sa.ss_family, family);
 
-  r1 = os_sys_calls.getsockname(socks[1], reinterpret_cast<sockaddr*>(&sa), &sa_len);
+  r1 = os_sys_calls.getsockname(*handles[1], reinterpret_cast<sockaddr*>(&sa), &sa_len);
   EXPECT_EQ(r1.rc_, 0);
   EXPECT_EQ(sa.ss_family, family);
 
   int send = 1;
   int recv = 0;
-  SysCallSizeResult r2 = os_sys_calls.write(socks[0], &send, sizeof(send));
+  SysCallSizeResult r2 = os_sys_calls.write(*handles[0], &send, sizeof(send));
   EXPECT_EQ(r2.rc_, sizeof(send));
-  r2 = os_sys_calls.recv(socks[1], &recv, sizeof(recv), 0);
+  r2 = os_sys_calls.recv(*handles[1], &recv, sizeof(recv), 0);
   EXPECT_EQ(r2.rc_, sizeof(send));
   EXPECT_EQ(recv, 1);
 
   send = 2;
-  r2 = os_sys_calls.write(socks[1], &send, sizeof(send));
+  r2 = os_sys_calls.write(*handles[1], &send, sizeof(send));
   EXPECT_EQ(r2.rc_, sizeof(send));
-  r2 = os_sys_calls.recv(socks[0], &recv, sizeof(recv), 0);
+  r2 = os_sys_calls.recv(*handles[0], &recv, sizeof(recv), 0);
   EXPECT_EQ(r2.rc_, sizeof(send));
   EXPECT_EQ(recv, 2);
 
 #ifdef WIN32
-  EXPECT_EQ(::closesocket(socks[0]), 0);
-  EXPECT_EQ(::closesocket(socks[1]), 0);
+  EXPECT_EQ(::closesocket(handles[0]->fd()), 0);
+  EXPECT_EQ(::closesocket(handles[1]->fd()), 0);
 #endif
 }
 

@@ -4,6 +4,7 @@
 #include <string>
 
 #include "envoy/common/platform.h"
+#include "envoy/network/io_handle.h"
 
 namespace Envoy {
 namespace Api {
@@ -29,6 +30,7 @@ using SysCallPtrResult = SysCallResult<void*>;
 using SysCallStringResult = SysCallResult<std::string>;
 using SysCallBoolResult = SysCallResult<bool>;
 using SysCallSocketResult = SysCallResult<SOCKET_FD>;
+using SysCallIoHandleResult = SysCallResult<Network::IoHandle&>;
 
 } // namespace Api
 } // namespace Envoy

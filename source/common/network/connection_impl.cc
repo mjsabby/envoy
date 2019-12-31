@@ -211,7 +211,7 @@ void ConnectionImpl::closeSocket(ConnectionEvent close_type) {
   // This is needed to make the tests in test/extensions/transport_sockets/tls/ssl_socket_test.cc
   // pass. Needs more evaluation to decide if we want to PR.
   auto& os_syscalls = Api::OsSysCallsSingleton::get();
-  os_syscalls.shutdown(ioHandle().fd(), ENVOY_SHUT_WR);
+  os_syscalls.shutdown(ioHandle(), ENVOY_SHUT_WR);
 
   socket_->close();
 
@@ -235,7 +235,7 @@ void ConnectionImpl::noDelay(bool enable) {
   socklen_t len = sizeof(addr);
 
   Api::SysCallIntResult result =
-      os_sys_calls_.getsockname(ioHandle().fd(), reinterpret_cast<struct sockaddr*>(&addr), &len);
+      os_sys_calls_.getsockname(ioHandle(), reinterpret_cast<struct sockaddr*>(&addr), &len);
 
   RELEASE_ASSERT(result.rc_ == 0, "");
 
@@ -245,7 +245,7 @@ void ConnectionImpl::noDelay(bool enable) {
 
   // Set NODELAY
   int new_value = enable;
-  result = os_sys_calls_.setsockopt(ioHandle().fd(), IPPROTO_TCP, TCP_NODELAY, &new_value,
+  result = os_sys_calls_.setsockopt(ioHandle(), IPPROTO_TCP, TCP_NODELAY, &new_value,
                                     sizeof(new_value));
 #if defined(__APPLE__)
   if (SOCKET_FAILURE(result.rc_) && result.errno_ == EINVAL) {
@@ -554,7 +554,7 @@ ConnectionImpl::unixSocketPeerCredentials() const {
 #else
   struct ucred ucred;
   socklen_t ucred_size = sizeof(ucred);
-  int rc = getsockopt(ioHandle().fd(), SOL_SOCKET, SO_PEERCRED, &ucred, &ucred_size);
+  int rc = getsockopt(ioHandle(), SOL_SOCKET, SO_PEERCRED, &ucred, &ucred_size);
   if (rc == -1) {
     return absl::nullopt;
   }
@@ -570,7 +570,7 @@ void ConnectionImpl::onWriteReady() {
     int error;
     socklen_t error_size = sizeof(error);
     int rc =
-        os_sys_calls_.getsockopt(ioHandle().fd(), SOL_SOCKET, SO_ERROR, &error, &error_size).rc_;
+        os_sys_calls_.getsockopt(ioHandle(), SOL_SOCKET, SO_ERROR, &error, &error_size).rc_;
     ASSERT(0 == rc);
 
     if (error == 0) {

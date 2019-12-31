@@ -51,12 +51,12 @@ std::string friendlyNameFromAbstractPath(absl::string_view path) {
 // Check if an IP family is supported on this machine.
 bool ipFamilySupported(int domain) {
   Api::OsSysCalls& os_sys_calls = Api::OsSysCallsSingleton::get();
-  const Api::SysCallSocketResult result = os_sys_calls.socket(domain, SOCK_STREAM, 0);
-  if (SOCKET_VALID(result.rc_)) {
+  const Api::SysCallIoHandleResult result = os_sys_calls.socket(domain, SOCK_STREAM, 0);
+  if (SOCKET_VALID(result.rc_.fd())) {
     RELEASE_ASSERT(os_sys_calls.close(result.rc_).rc_ == 0,
-                   absl::StrCat("Fail to close fd: response code ", result.rc_));
+                   absl::StrCat("Fail to close fd: response code ", result.rc_.fd()));
   }
-  return SOCKET_VALID(result.rc_);
+  return SOCKET_VALID(result.rc_.fd());
 }
 
 Address::InstanceConstSharedPtr addressFromSockAddr(const sockaddr_storage& ss, socklen_t ss_len,

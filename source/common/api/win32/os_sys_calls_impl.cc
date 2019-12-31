@@ -7,12 +7,13 @@
 
 #include "common/api/os_sys_calls_impl.h"
 #include "common/common/assert.h"
+#include "common/network/io_socket_handle_impl.h"
 
 namespace Envoy {
 namespace Api {
 
-SysCallIntResult OsSysCallsImpl::bind(SOCKET_FD sockfd, const sockaddr* addr, socklen_t addrlen) {
-  const int rc = ::bind(sockfd, addr, addrlen);
+SysCallIntResult OsSysCallsImpl::bind(Network::IoHandle& handle, const sockaddr* addr, socklen_t addrlen) {
+  const int rc = ::bind(handle.fd(), addr, addrlen);
   return {rc, ::WSAGetLastError()};
 }
 
@@ -21,37 +22,37 @@ SysCallIntResult OsSysCallsImpl::chmod(const std::string& path, mode_t mode) {
   return {rc, errno};
 }
 
-SysCallIntResult OsSysCallsImpl::ioctl(SOCKET_FD sockfd, unsigned long int request, void* argp) {
-  const int rc = ::ioctlsocket(sockfd, request, static_cast<u_long*>(argp));
+SysCallIntResult OsSysCallsImpl::ioctl(Network::IoHandle& handle, unsigned long int request, void* argp) {
+  const int rc = ::ioctlsocket(handle.fd(), request, static_cast<u_long*>(argp));
   return {rc, ::WSAGetLastError()};
 }
 
-SysCallIntResult OsSysCallsImpl::close(SOCKET_FD fd) {
-  const int rc = ::closesocket(fd);
+SysCallIntResult OsSysCallsImpl::close(Network::IoHandle& handle) {
+  const int rc = ::closesocket(handle.fd());
   return {rc, ::WSAGetLastError()};
 }
 
-SysCallSizeResult OsSysCallsImpl::writev(SOCKET_FD fd, IOVEC* iovec, int num_iovec) {
+SysCallSizeResult OsSysCallsImpl::writev(Network::IoHandle& handle, IOVEC* iovec, int num_iovec) {
   DWORD bytes_sent;
-  const int rc = ::WSASend(fd, iovec, num_iovec, &bytes_sent, 0, nullptr, nullptr);
+  const int rc = ::WSASend(handle.fd(), iovec, num_iovec, &bytes_sent, 0, nullptr, nullptr);
   if (SOCKET_FAILURE(rc)) {
     return {-1, ::WSAGetLastError()};
   }
   return {bytes_sent, 0};
 }
 
-SysCallSizeResult OsSysCallsImpl::readv(SOCKET_FD fd, IOVEC* iovec, int num_iovec) {
+SysCallSizeResult OsSysCallsImpl::readv(Network::IoHandle& handle, IOVEC* iovec, int num_iovec) {
   DWORD bytes_received;
   DWORD flags = 0;
-  const int rc = ::WSARecv(fd, iovec, num_iovec, &bytes_received, &flags, nullptr, nullptr);
+  const int rc = ::WSARecv(handle.fd(), iovec, num_iovec, &bytes_received, &flags, nullptr, nullptr);
   if (SOCKET_FAILURE(rc)) {
     return {-1, ::WSAGetLastError()};
   }
   return {bytes_received, 0};
 }
 
-SysCallSizeResult OsSysCallsImpl::recv(SOCKET_FD socket, void* buffer, size_t length, int flags) {
-  const ssize_t rc = ::recv(socket, static_cast<char*>(buffer), length, flags);
+SysCallSizeResult OsSysCallsImpl::recv(Network::IoHandle& handle, void* buffer, size_t length, int flags) {
+  const ssize_t rc = ::recv(handle.fd(), static_cast<char*>(buffer), length, flags);
   return {rc, ::WSAGetLastError()};
 }
 
@@ -78,7 +79,7 @@ LPFN_WSARECVMSG GetWSARecvMsgFunctionPointer() {
   return lpfnWSARecvMsg;
 }
 
-SysCallSizeResult OsSysCallsImpl::recvmsg(SOCKET_FD sockfd, LPWSAMSG msg, int flags) {
+SysCallSizeResult OsSysCallsImpl::recvmsg(Network::IoHandle& handle, LPWSAMSG msg, int flags) {
   // msg->dwFlags = flags; TODO Pivotal - Should we implement that?
   static LPFN_WSARECVMSG WSARecvMsg = NULL;
   DWORD bytesRecieved;
@@ -86,7 +87,7 @@ SysCallSizeResult OsSysCallsImpl::recvmsg(SOCKET_FD sockfd, LPWSAMSG msg, int fl
     PANIC("WSARecvMsg has not been implemented by this socket provider");
   }
   // if overlapped and/or completion routines are supported adjust the arguments accordingly
-  const int rc = WSARecvMsg(sockfd, msg, &bytesRecieved, nullptr, nullptr);
+  const int rc = WSARecvMsg(handle.fd(), msg, &bytesRecieved, nullptr, nullptr);
   if (rc == SOCKET_ERROR) {
     bytesRecieved = -1;
   }
@@ -108,71 +109,72 @@ SysCallIntResult OsSysCallsImpl::stat(const char* pathname, struct stat* buf) {
   return {rc, errno};
 }
 
-SysCallIntResult OsSysCallsImpl::setsockopt(SOCKET_FD sockfd, int level, int optname,
+SysCallIntResult OsSysCallsImpl::setsockopt(Network::IoHandle& handle, int level, int optname,
                                             const void* optval, socklen_t optlen) {
-  const int rc = ::setsockopt(sockfd, level, optname, static_cast<const char*>(optval), optlen);
+  const int rc = ::setsockopt(handle.fd(), level, optname, static_cast<const char*>(optval), optlen);
   return {rc, ::WSAGetLastError()};
 }
 
-SysCallIntResult OsSysCallsImpl::getsockopt(SOCKET_FD sockfd, int level, int optname, void* optval,
+SysCallIntResult OsSysCallsImpl::getsockopt(Network::IoHandle& handle, int level, int optname, void* optval,
                                             socklen_t* optlen) {
-  const int rc = ::getsockopt(sockfd, level, optname, static_cast<char*>(optval), optlen);
+  const int rc = ::getsockopt(handle.fd(), level, optname, static_cast<char*>(optval), optlen);
   return {rc, ::WSAGetLastError()};
 }
 
-SysCallSocketResult OsSysCallsImpl::socket(int domain, int type, int protocol) {
-  const SOCKET_FD rc = ::socket(domain, type, protocol);
-  return {rc, ::WSAGetLastError()};
+SysCallIoHandleResult OsSysCallsImpl::socket(int domain, int type, int protocol) {
+  const SOCKET socket = ::socket(domain, type, protocol);
+  Network::IoSocketHandleImpl rc_(socket);
+  return {rc_, ::WSAGetLastError()};
 }
 
-SysCallSizeResult OsSysCallsImpl::sendmsg(SOCKET_FD sockfd, const LPWSAMSG msg, int flags) {
+SysCallSizeResult OsSysCallsImpl::sendmsg(Network::IoHandle& handle, const LPWSAMSG msg, int flags) {
   DWORD bytesRecieved;
   // if overlapped and/or completion routines are supported adjust the arguments accordingly
-  const int rc = ::WSASendMsg(sockfd, msg, flags, &bytesRecieved, nullptr, nullptr);
+  const int rc = ::WSASendMsg(handle.fd(), msg, flags, &bytesRecieved, nullptr, nullptr);
   if (rc == SOCKET_ERROR) {
     bytesRecieved = -1;
   }
   return {bytesRecieved, ::WSAGetLastError()};
 }
 
-SysCallIntResult OsSysCallsImpl::getsockname(SOCKET_FD sockfd, sockaddr* name, socklen_t* namelen) {
-  const int rc = ::getsockname(sockfd, name, namelen);
+SysCallIntResult OsSysCallsImpl::getsockname(Network::IoHandle& handle, sockaddr* name, socklen_t* namelen) {
+  const int rc = ::getsockname(handle.fd(), name, namelen);
   return {rc, ::WSAGetLastError()};
 }
 
 // TODO(windows): added for porting source/common/network/address_impl.cc
-SysCallIntResult OsSysCallsImpl::getpeername(SOCKET_FD sockfd, sockaddr* name, socklen_t* namelen) {
-  const int rc = ::getpeername(sockfd, name, namelen);
+SysCallIntResult OsSysCallsImpl::getpeername(Network::IoHandle& handle, sockaddr* name, socklen_t* namelen) {
+  const int rc = ::getpeername(handle.fd(), name, namelen);
   return {rc, ::WSAGetLastError()};
 }
 
-SysCallIntResult OsSysCallsImpl::setsocketblocking(SOCKET_FD sockfd, bool blocking) {
+SysCallIntResult OsSysCallsImpl::setsocketblocking(Network::IoHandle& handle, bool blocking) {
   u_long iMode = blocking ? 0 : 1;
-  const int rc = ::ioctlsocket(sockfd, FIONBIO, &iMode);
+  const int rc = ::ioctlsocket(handle.fd(), FIONBIO, &iMode);
   return {rc, ::WSAGetLastError()};
 }
 
-SysCallIntResult OsSysCallsImpl::connect(SOCKET_FD sockfd, const sockaddr* addr,
+SysCallIntResult OsSysCallsImpl::connect(Network::IoHandle& handle, const sockaddr* addr,
                                          socklen_t addrlen) {
-  const int rc = ::connect(sockfd, addr, addrlen);
+  const int rc = ::connect(handle.fd(), addr, addrlen);
   return {rc, ::WSAGetLastError()};
 }
 
 // TODO(windows): added for porting source/common/network/raw_buffer_socket.cc
-SysCallIntResult OsSysCallsImpl::shutdown(SOCKET_FD sockfd, int how) {
-  const int rc = ::shutdown(sockfd, how);
+SysCallIntResult OsSysCallsImpl::shutdown(Network::IoHandle& handle, int how) {
+  const int rc = ::shutdown(handle.fd(), how);
   return {rc, ::WSAGetLastError()};
 }
 
 // TODO(windows): added for porting source/common/filesystem/win32/watcher_impl.cc
-SysCallIntResult OsSysCallsImpl::socketpair(int domain, int type, int protocol, SOCKET_FD sv[2]) {
-  if (sv == nullptr) {
+SysCallIntResult OsSysCallsImpl::socketpair(int domain, int type, int protocol, Network::IoHandle *handles[2]) {
+  if (handles == nullptr) {
     return {SOCKET_ERROR, WSAEINVAL};
   }
 
   sv[0] = sv[1] = INVALID_SOCKET;
 
-  SysCallSocketResult socket_result = socket(domain, type, protocol);
+  SysCallIoHandleResult socket_result = socket(domain, type, protocol);
   if (socket_result.rc_ == INVALID_SOCKET) {
     return {SOCKET_ERROR, socket_result.errno_};
   }
@@ -251,13 +253,13 @@ SysCallIntResult OsSysCallsImpl::socketpair(int domain, int type, int protocol, 
 }
 
 // TODO(windows): added for porting test/test_common/network_utility.cc
-SysCallIntResult OsSysCallsImpl::listen(SOCKET_FD sockfd, int backlog) {
-  const int rc = ::listen(sockfd, backlog);
+SysCallIntResult OsSysCallsImpl::listen(Network::IoHandle& handle, int backlog) {
+  const int rc = ::listen(handle.fd(), backlog);
   return {rc, ::WSAGetLastError()};
 }
 
-SysCallSizeResult OsSysCallsImpl::write(SOCKET_FD sockfd, const void* buffer, size_t length) {
-  const ssize_t rc = ::send(sockfd, static_cast<const char*>(buffer), length, 0);
+SysCallSizeResult OsSysCallsImpl::write(Network::IoHandle& handle, const void* buffer, size_t length) {
+  const ssize_t rc = ::send(handle.fd(), static_cast<const char*>(buffer), length, 0);
   return {rc, ::WSAGetLastError()};
 }
 

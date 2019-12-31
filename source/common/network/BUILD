@@ -9,17 +9,30 @@ load(
 envoy_package()
 
 envoy_cc_library(
+    name = "io_socket_handle_lib",
+    srcs = [
+        "io_socket_handle_impl.cc",
+            ],
+    hdrs = [
+        "io_socket_handle_impl.h",
+            ],
+    deps = [
+            ":io_socket_error_lib",
+        "//source/common/api:os_sys_calls_lib",
+            ],
+)
+
+envoy_cc_library(
     name = "address_lib",
     srcs = [
         "address_impl.cc",
-        "io_socket_handle_impl.cc",
     ],
     hdrs = [
         "address_impl.h",
-        "io_socket_handle_impl.h",
     ],
     deps = [
         ":io_socket_error_lib",
+        ":io_socket_handle_lib",
         "//include/envoy/buffer:buffer_interface",
         "//include/envoy/network:address_interface",
         "//include/envoy/network:io_handle_interface",

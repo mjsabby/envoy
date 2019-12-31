@@ -44,7 +44,9 @@ envoy_cc_library(
     }),
     deps = [
         "//include/envoy/api:os_sys_calls_interface",
+        "//include/envoy/network:io_handle_interface",
         "//source/common/singleton:threadsafe_singleton",
+        "//source/common/network:io_socket_handle_lib",
     ] + select({
         "//bazel:windows_x86_64": ["//source/common/common:assert_lib"],
         "//conditions:default": [],

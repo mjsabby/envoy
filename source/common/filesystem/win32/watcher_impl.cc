@@ -17,19 +17,19 @@ namespace Filesystem {
 
 WatcherImpl::WatcherImpl(Event::Dispatcher& dispatcher)
     : os_sys_calls_(Api::OsSysCallsSingleton::get()) {
-  SOCKET_FD socks[2];
-  Api::SysCallIntResult result = os_sys_calls_.socketpair(AF_INET, SOCK_STREAM, IPPROTO_TCP, socks);
+      Network::IoHandle *handles[2];
+  Api::SysCallIntResult result = os_sys_calls_.socketpair(AF_INET, SOCK_STREAM, IPPROTO_TCP, handles);
   ASSERT(result.rc_ == 0);
 
-  event_read_ = socks[0];
-  event_write_ = socks[1];
-  result = os_sys_calls_.setsocketblocking(event_read_, false);
+  event_read_ = handles[0];
+  event_write_ = handles[1];
+  result = os_sys_calls_.setsocketblocking(*event_read_, false);
   ASSERT(result.rc_ == 0);
-  result = os_sys_calls_.setsocketblocking(event_write_, false);
+  result = os_sys_calls_.setsocketblocking(*event_write_, false);
   ASSERT(result.rc_ == 0);
 
   directory_event_ = dispatcher.createFileEvent(
-      event_read_,
+      event_read_->fd(),
       [this](uint32_t events) -> void {
         ASSERT(events == Event::FileReadyType::Read);
         onDirectoryEvent();
@@ -53,8 +53,8 @@ WatcherImpl::~WatcherImpl() {
     ::CloseHandle(entry.second->op_.hEvent);
   }
   ::CloseHandle(thread_exit_event_);
-  ::closesocket(event_read_);
-  ::closesocket(event_write_);
+  ::closesocket(event_read_->fd());
+  ::closesocket(event_write_->fd());
 }
 
 void WatcherImpl::addWatch(const std::string& path, uint32_t events, OnChangedCb cb) {

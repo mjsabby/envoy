@@ -69,7 +69,7 @@ Api::IoCallUint64Result IoSocketHandleImpl::readv(uint64_t max_length, Buffer::R
   ASSERT(num_bytes_to_read <= max_length);
   auto& os_syscalls = Api::OsSysCallsSingleton::get();
   const Api::SysCallSizeResult result =
-      os_syscalls.readv(fd(), iov.begin(), static_cast<int>(num_slices_to_read));
+      os_syscalls.readv(*this, iov.begin(), static_cast<int>(num_slices_to_read));
   return sysCallResultToIoCallResult(result);
 }
 
@@ -88,7 +88,7 @@ Api::IoCallUint64Result IoSocketHandleImpl::writev(const Buffer::RawSlice* slice
     return Api::ioCallUint64ResultNoError();
   }
   auto& os_syscalls = Api::OsSysCallsSingleton::get();
-  const Api::SysCallSizeResult result = os_syscalls.writev(fd(), iov.begin(), num_slices_to_write);
+  const Api::SysCallSizeResult result = os_syscalls.writev(*this, iov.begin(), num_slices_to_write);
   return sysCallResultToIoCallResult(result);
 }
 
@@ -123,7 +123,7 @@ Api::IoCallUint64Result IoSocketHandleImpl::sendmsg(const Buffer::RawSlice* slic
   message.dwFlags = 0;
 
   auto& os_syscalls = Api::OsSysCallsSingleton::get();
-  result = os_syscalls.sendmsg(socket_descriptor_, &message, flags);
+  result = os_syscalls.sendmsg(*this, &message, flags);
 #else
   struct msghdr message;
   message.msg_name = reinterpret_cast<void*>(sock_addr);
@@ -282,7 +282,7 @@ Api::IoCallUint64Result IoSocketHandleImpl::recvmsg(Buffer::RawSlice* slices,
   hdr.Control.len = cmsg_space;
 
   auto& os_syscalls = Api::OsSysCallsSingleton::get();
-  const Api::SysCallSizeResult result = os_syscalls.recvmsg(socket_descriptor_, &hdr, 0);
+  const Api::SysCallSizeResult result = os_syscalls.recvmsg(*this, &hdr, 0);
 #else
   sockaddr_storage peer_addr;
   msghdr hdr;

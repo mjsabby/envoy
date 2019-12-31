@@ -56,8 +56,8 @@ private:
 
   std::unordered_map<std::wstring, DirectoryWatchPtr> callback_map_;
   Event::FileEventPtr directory_event_;
-  SOCKET_FD event_write_;
-  SOCKET_FD event_read_;
+  Network::IoHandle *event_write_;
+  Network::IoHandle *event_read_;
   Thread::ThreadPtr watch_thread_;
   Thread::ThreadFactoryImplWin32 thread_factory_;
   HANDLE thread_exit_event_;
