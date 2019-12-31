@@ -28,7 +28,7 @@ public:
    * TODO(danzh) move it to IoSocketHandle after replacing the calls to it with
    * calls to IoHandle API's everywhere.
    */
-  virtual int fd() const PURE;
+  virtual SOCKET_FD fd() const PURE;
 
   /**
    * Clean up IoHandle resources

@@ -32,7 +32,12 @@ UdpListenerImpl::UdpListenerImpl(Event::DispatcherImpl& dispatcher, SocketShared
     : BaseListenerImpl(dispatcher, std::move(socket)), cb_(cb), time_source_(time_source) {
   file_event_ = dispatcher_.createFileEvent(
       socket_->ioHandle().fd(), [this](uint32_t events) -> void { onSocketEvent(events); },
+// libevent only supports level trigger on Windows
+#ifdef WIN32
+      Event::FileTriggerType::Level, Event::FileReadyType::Read | Event::FileReadyType::Write);
+#else
       Event::FileTriggerType::Edge, Event::FileReadyType::Read | Event::FileReadyType::Write);
+#endif
 
   ASSERT(file_event_);
 
@@ -72,6 +77,7 @@ void UdpListenerImpl::handleReadCallback() {
   const Api::IoErrorPtr result = Utility::readPacketsFromSocket(
       socket_->ioHandle(), *socket_->localAddress(), *this, time_source_, packets_dropped_);
   // TODO(mattklein123): Handle no error when we limit the number of packets read.
+  // TODO(Pivotal): Ensure this captures EWOULDBLOCK
   if (result->getErrorCode() != Api::IoError::IoErrorCode::Again) {
     // TODO(mattklein123): When rate limited logging is implemented log this at error level
     // on a periodic basis.

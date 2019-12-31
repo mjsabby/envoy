@@ -15,6 +15,8 @@ envoy_sh_test(
         ":configs",
         "//test/tools/router_check:router_check_tool",
     ],
+    # TODO: This route_tests.sh script invocation does not work on Windows
+    tags = ["skip_on_windows"],
 )
 
 filegroup(

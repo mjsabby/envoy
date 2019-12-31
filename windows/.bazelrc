@@ -5,15 +5,27 @@ build --define hot_restart=disabled
 build --define tcmalloc=disabled
 build --workspace_status_command="bash bazel/get_workspace_status"
 
-# Required to work around quiche build defect
-# Unguarded gcc pragmas are not recognized by MSVC
-build --copt="/wd4068"
-
 # Should not be required after upstream fix, see issue;
 # https://github.com/bazelbuild/rules_foreign_cc/issues/301
-build --copt="-DCARES_STATICLIB"
+# build --copt="-DCARES_STATICLIB"
 build --copt="-DNGHTTP2_STATICLIB"
-build --copt="-DCURL_STATICLIB"
+# build --copt="-DCURL_STATICLIB"
+
+# Required to work around quiche build defect
+# Unguarded gcc pragmas are not recognized by MSVC
+build:msvc-cl --copt="/wd4068"
+# Allows 'nodiscard' function return values to be discarded
+build:msvc-cl --copt="/wd4834"
+# Allows inline functions to be undefined
+build:msvc-cl --copt="/wd4506"
+build:msvc-cl --copt="-D_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING"
+
+# Required to work around clang build defects
+# Conflicting definitions of _WIN32_WINNT
+# Overriding __TIME__ etc is problematic
+build:clang-cl --copt="-Wno-macro-redefined"
+build:clang-cl --copt="-Wno-builtin-macro-redefined"
+build:clang-cl --action_env=USE_CLANG_CL=1
 
 build --experimental_enable_runfiles
 build --features=compiler_param_file

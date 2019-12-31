@@ -42,9 +42,13 @@ public:
 
   // A convenience function to invoke on write() which fails the write with EAGAIN.
   Api::IoCallUint64Result failWrite(Network::IoHandle&) {
+#ifndef WIN32
+    Network::IoSocketError* err = Network::IoSocketError::getIoSocketEagainInstance();
+#else
+    Network::IoSocketError* err = new Network::IoSocketError(WSAEWOULDBLOCK);
+#endif
     return Api::IoCallUint64Result(
-        /*rc=*/0,
-        Api::IoErrorPtr(Network::IoSocketError::getIoSocketEagainInstance(), [](Api::IoError*) {}));
+        /*rc=*/0, Api::IoErrorPtr(err, [](Api::IoError*) {}));
   }
 
   int bytes_written() const { return bytes_written_; }

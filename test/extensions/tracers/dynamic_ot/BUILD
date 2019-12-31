@@ -20,6 +20,8 @@ envoy_extension_cc_test(
         "@io_opentracing_cpp//mocktracer:libmocktracer_plugin.so",
     ],
     extension_name = "envoy.tracers.dynamic_ot",
+    # not used in CF, so we haven't put the effort in to fix
+    tags = ["skip_on_windows"],
     deps = [
         "//source/common/http:header_map_lib",
         "//source/extensions/tracers/dynamic_ot:dynamic_opentracing_driver_lib",
@@ -37,6 +39,8 @@ envoy_extension_cc_test(
         "@io_opentracing_cpp//mocktracer:libmocktracer_plugin.so",
     ],
     extension_name = "envoy.tracers.dynamic_ot",
+    # not used in CF, so we haven't put the effort in to fix
+    tags = ["skip_on_windows"],
     deps = [
         "//source/extensions/tracers/dynamic_ot:config",
         "//test/mocks/server:server_mocks",

@@ -36,6 +36,14 @@ using ssize_t = ptrdiff_t;
 
 typedef unsigned int sa_family_t;
 
+// Following Cygwin's porting example (may not be comprehensive)
+#define SO_REUSEPORT SO_REUSEADDR
+
+// Solve for rfc2292 (need to address rfc3542?)
+#ifndef IPV6_RECVPKTINFO
+#define IPV6_RECVPKTINFO IPV6_PKTINFO
+#endif
+
 #else // POSIX
 
 #include <arpa/inet.h>
@@ -46,9 +54,10 @@ typedef unsigned int sa_family_t;
 #include <sys/ioctl.h>
 #include <sys/mman.h> // for mode_t
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <sys/uio.h> // for iovec
 #include <sys/un.h>
-#include <sys/stat.h>
+#include <sys/wait.h>
 #include <fcntl.h>
 #include <unistd.h>
 

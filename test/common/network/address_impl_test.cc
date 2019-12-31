@@ -36,12 +36,6 @@ bool addressesEqual(const InstanceConstSharedPtr& a, const Instance& b) {
   }
 }
 
-void makeFdBlocking(int fd) {
-  const int flags = ::fcntl(fd, F_GETFL, 0);
-  ASSERT_GE(flags, 0);
-  ASSERT_EQ(::fcntl(fd, F_SETFL, flags & (~O_NONBLOCK)), 0);
-}
-
 void testSocketBindAndConnect(Network::Address::IpVersion ip_version, bool v6only) {
   auto addr_port = Network::Utility::parseInternetAddressAndPort(
       fmt::format("{}:0", Network::Test::getAnyAddressUrlString(ip_version)), v6only);
@@ -56,14 +50,17 @@ void testSocketBindAndConnect(Network::Address::IpVersion ip_version, bool v6onl
   // Create a socket on which we'll listen for connections from clients.
   IoHandlePtr io_handle = addr_port->socket(SocketType::Stream);
   ASSERT_GE(io_handle->fd(), 0) << addr_port->asString();
+  auto& os_sys_calls = Api::OsSysCallsSingleton::get();
 
   // Check that IPv6 sockets accept IPv6 connections only.
   if (addr_port->ip()->version() == IpVersion::v6) {
     int socket_v6only = 0;
     socklen_t size_int = sizeof(socket_v6only);
-    ASSERT_GE(::getsockopt(io_handle->fd(), IPPROTO_IPV6, IPV6_V6ONLY, &socket_v6only, &size_int),
+    ASSERT_GE(os_sys_calls
+                  .getsockopt(io_handle->fd(), IPPROTO_IPV6, IPV6_V6ONLY, &socket_v6only, &size_int)
+                  .rc_,
               0);
-    EXPECT_EQ(v6only, socket_v6only);
+    EXPECT_EQ(v6only, socket_v6only != 0);
   }
 
   // Bind the socket to the desired address and port.
@@ -73,9 +70,9 @@ void testSocketBindAndConnect(Network::Address::IpVersion ip_version, bool v6onl
 
   // Do a bare listen syscall. Not bothering to accept connections as that would
   // require another thread.
-  ASSERT_EQ(::listen(io_handle->fd(), 128), 0);
+  ASSERT_EQ(os_sys_calls.listen(io_handle->fd(), 128).rc_, 0);
 
-  auto client_connect = [](Address::InstanceConstSharedPtr addr_port) {
+  auto client_connect = [&os_sys_calls](Address::InstanceConstSharedPtr addr_port) {
     // Create a client socket and connect to the server.
     IoHandlePtr client_handle = addr_port->socket(SocketType::Stream);
     ASSERT_GE(client_handle->fd(), 0) << addr_port->asString();
@@ -84,15 +81,30 @@ void testSocketBindAndConnect(Network::Address::IpVersion ip_version, bool v6onl
     // operation of ::connect(), so connect returns with errno==EWOULDBLOCK before the tcp
     // handshake can complete. For testing convenience, re-enable blocking on the socket
     // so that connect will wait for the handshake to complete.
-    makeFdBlocking(client_handle->fd());
+    Api::SysCallIntResult result = os_sys_calls.setsocketblocking(client_handle->fd(), true);
+    ASSERT_EQ(result.rc_, 0) << addr_port->asString() << "\nerror: " << strerror(result.errno_)
+                             << "\nerrno: " << result.errno_;
 
     // Connect to the server.
-    const Api::SysCallIntResult result = addr_port->connect(client_handle->fd());
+    result = addr_port->connect(client_handle->fd());
     ASSERT_EQ(result.rc_, 0) << addr_port->asString() << "\nerror: " << strerror(result.errno_)
                              << "\nerrno: " << result.errno_;
   };
 
+#ifdef WIN32
+  // On Windows, client/outbound connections cannot be made to the "any" interface.
+  // It will error with EADDRNOTAVAIL, see
+  // https://docs.microsoft.com/en-us/windows/desktop/api/winsock2/nf-winsock2-connect
+  // So make the client connection to local host
+  auto client_addr_port = Network::Utility::parseInternetAddressAndPort(
+      fmt::format("{}:{}", Network::Test::getLoopbackAddressUrlString(ip_version),
+                  addr_port->ip()->port()),
+      v6only);
+  ASSERT_NE(client_addr_port, nullptr);
+  client_connect(client_addr_port);
+#else
   client_connect(addr_port);
+#endif
 
   if (!v6only) {
     ASSERT_EQ(IpVersion::v6, addr_port->ip()->version());
@@ -312,6 +324,7 @@ TEST(Ipv6InstanceTest, BadAddress) {
   EXPECT_THROW(Ipv6Instance("bar", 1), EnvoyException);
 }
 
+#if !defined(WIN32)
 TEST(PipeInstanceTest, Basic) {
   PipeInstance address("/foo");
   EXPECT_EQ("/foo", address.asString());
@@ -432,6 +445,7 @@ TEST(PipeInstanceTest, UnlinksExistingFile) {
   bind_uds_socket(path);
   bind_uds_socket(path); // after closing, second bind to the same path should succeed.
 }
+#endif
 
 TEST(AddressFromSockAddrDeathTest, IPv4) {
   sockaddr_storage ss;
@@ -476,6 +490,7 @@ TEST(AddressFromSockAddrDeathTest, IPv6) {
             addressFromSockAddr(ss, sizeof(sockaddr_in6), true)->asString());
 }
 
+#if !defined(WIN32)
 TEST(AddressFromSockAddrDeathTest, Pipe) {
   sockaddr_storage ss;
   auto& sun = reinterpret_cast<sockaddr_un&>(ss);
@@ -500,10 +515,15 @@ TEST(AddressFromSockAddrDeathTest, Pipe) {
   EXPECT_THROW(addressFromSockAddr(ss, ss_len), EnvoyException);
 #endif
 }
+#endif
 
 // Test comparisons between all the different (known) test classes.
 struct TestCase {
+#if !defined(WIN32)
   enum InstanceType { Ipv4, Ipv6, Pipe };
+#else
+  enum InstanceType { Ipv4, Ipv6 };
+#endif
 
   TestCase() = default;
   TestCase(enum InstanceType type, const std::string& address, uint32_t port)
@@ -534,9 +554,11 @@ protected:
     case TestCase::Ipv6:
       return std::make_shared<Ipv6Instance>(test_case.address_, test_case.port_);
       break;
+#if !defined(WIN32)
     case TestCase::Pipe:
       return std::make_shared<PipeInstance>(test_case.address_);
       break;
+#endif
     }
     return nullptr;
   }
@@ -557,8 +579,12 @@ TEST_P(MixedAddressTest, Equality) {
 struct TestCase test_cases[] = {
     {TestCase::Ipv4, "1.2.3.4", 1},         {TestCase::Ipv4, "1.2.3.4", 2},
     {TestCase::Ipv4, "1.2.3.5", 1},         {TestCase::Ipv6, "01:023::00ef", 1},
+#if !defined(WIN32)
     {TestCase::Ipv6, "01:023::00ef", 2},    {TestCase::Ipv6, "01:023::00ed", 1},
     {TestCase::Pipe, "/path/to/pipe/1", 0}, {TestCase::Pipe, "/path/to/pipe/2", 0}};
+#else
+    {TestCase::Ipv6, "01:023::00ef", 2}, {TestCase::Ipv6, "01:023::00ed", 1}};
+#endif
 
 INSTANTIATE_TEST_SUITE_P(AddressCrossProduct, MixedAddressTest,
                          ::testing::Combine(::testing::ValuesIn(test_cases),

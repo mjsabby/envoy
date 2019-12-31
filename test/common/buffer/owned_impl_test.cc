@@ -533,6 +533,7 @@ TEST_F(OwnedImplTest, PrependEmpty) {
 // Regression test for oss-fuzz issues
 // https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=14466, empty commit
 // following a reserve resulted in a corrupted libevent internal state.
+#ifndef WIN32
 TEST_F(OwnedImplTest, ReserveZeroCommit) {
   BufferFragmentImpl frag("", 0, nullptr);
   Buffer::OwnedImpl buf;
@@ -562,6 +563,7 @@ TEST_F(OwnedImplTest, ReserveZeroCommit) {
   ASSERT_EQ(previous_length, buf.search(data.data(), rc, previous_length));
   EXPECT_EQ("bbbbb", buf.toString().substr(0, 5));
 }
+#endif
 
 TEST(OverflowDetectingUInt64, Arithmetic) {
   Logger::StderrSinkDelegate stderr_sink(Logger::Registry::getSink()); // For coverage build.

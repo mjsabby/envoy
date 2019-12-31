@@ -34,7 +34,11 @@ TEST_P(NetworkUtilityTest, DISABLED_ValidateBindFreeLoopbackPort) {
   const size_t kLimit = 50;
   for (size_t n = 0; n < kLimit; ++n) {
     auto addr_fd = Network::Test::bindFreeLoopbackPort(version_, Address::SocketType::Stream);
-    close(addr_fd.second);
+#ifdef WIN32
+    ::closesocket(addr_fd.second);
+#else
+    ::close(addr_fd.second);
+#endif
     auto addr = addr_fd.first->asString();
     auto search = seen.find(addr);
     if (search != seen.end()) {

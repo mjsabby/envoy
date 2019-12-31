@@ -139,7 +139,7 @@ public:
    * @return a Api::SysCallIntResult with rc_ = 0 for success and rc_ = -1 for failure. If the call
    *   is successful, errno_ shouldn't be used.
    */
-  virtual Api::SysCallIntResult bind(int fd) const PURE;
+  virtual Api::SysCallIntResult bind(SOCKET_FD fd) const PURE;
 
   /**
    * Connect a socket to this address. The socket should have been created with a call to socket()
@@ -148,7 +148,7 @@ public:
    * @return a Api::SysCallIntResult with rc_ = 0 for success and rc_ = -1 for failure. If the call
    *   is successful, errno_ shouldn't be used.
    */
-  virtual Api::SysCallIntResult connect(int fd) const PURE;
+  virtual Api::SysCallIntResult connect(SOCKET_FD fd) const PURE;
 
   /**
    * @return the IP address information IFF type() == Type::Ip, otherwise nullptr.

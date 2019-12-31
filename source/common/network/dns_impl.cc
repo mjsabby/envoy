@@ -66,7 +66,7 @@ DnsResolverImpl::~DnsResolverImpl() {
 }
 
 void DnsResolverImpl::initializeChannel(ares_options* options, int optmask) {
-  options->sock_state_cb = [](void* arg, int fd, int read, int write) {
+  options->sock_state_cb = [](void* arg, ares_socket_t fd, int read, int write) {
     static_cast<DnsResolverImpl*>(arg)->onAresSocketStateChange(fd, read, write);
   };
   options->sock_state_cb_data = this;

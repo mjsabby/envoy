@@ -26,11 +26,12 @@ namespace Common {
 namespace Statsd {
 
 Writer::Writer(Network::Address::InstanceConstSharedPtr address)
-    : io_handle_(address->socket(Network::Address::SocketType::Datagram)) {
-  ASSERT(io_handle_->fd() != -1);
+    : io_handle_(address->socket(Network::Address::SocketType::Datagram)),
+      os_sys_calls_(Api::OsSysCallsSingleton::get()) {
+  ASSERT(io_handle_->isOpen());
 
   const Api::SysCallIntResult result = address->connect(io_handle_->fd());
-  ASSERT(result.rc_ != -1);
+  ASSERT(!SOCKET_FAILURE(result.rc_));
 }
 
 Writer::~Writer() {
@@ -40,7 +41,8 @@ Writer::~Writer() {
 }
 
 void Writer::write(const std::string& message) {
-  ::send(io_handle_->fd(), message.c_str(), message.size(), MSG_DONTWAIT);
+  // sockets returned from address->socket are already non-blocking
+  os_sys_calls_.write(io_handle_->fd(), message.c_str(), message.size());
 }
 
 UdpStatsdSink::UdpStatsdSink(ThreadLocal::SlotAllocator& tls,

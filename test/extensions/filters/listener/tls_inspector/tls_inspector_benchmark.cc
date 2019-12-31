@@ -1,5 +1,6 @@
 #include <vector>
 
+#include "common/api/os_sys_calls_impl.h"
 #include "common/network/io_socket_handle_impl.h"
 #include "common/network/listen_socket_impl.h"
 
@@ -43,7 +44,7 @@ class FastMockFileEvent : public Event::FileEvent {
 
 class FastMockDispatcher : public Event::MockDispatcher {
 public:
-  Event::FileEventPtr createFileEvent(int, Event::FileReadyCb cb, Event::FileTriggerType,
+  Event::FileEventPtr createFileEvent(SOCKET_FD, Event::FileReadyCb cb, Event::FileTriggerType,
                                       uint32_t) override {
     file_event_callback_ = cb;
     return std::make_unique<FastMockFileEvent>();
@@ -56,7 +57,7 @@ class FastMockOsSysCalls : public Api::MockOsSysCalls {
 public:
   FastMockOsSysCalls(const std::vector<uint8_t>& client_hello) : client_hello_(client_hello) {}
 
-  Api::SysCallSizeResult recv(int, void* buffer, size_t length, int) override {
+  Api::SysCallSizeResult recv(SOCKET_FD, void* buffer, size_t length, int) override {
     RELEASE_ASSERT(length >= client_hello_.size(), "");
     memcpy(buffer, client_hello_.data(), client_hello_.size());
     return Api::SysCallSizeResult{ssize_t(client_hello_.size()), 0};

@@ -1069,6 +1069,8 @@ TEST(HostImplTest, HealthFlags) {
 // domain socket host and a health check config with non-zero port.
 // This is a regression test for oss-fuzz issue
 // https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=11095
+#ifndef WIN32
+// TODO (Pivotal): Pipes not supported on Windows
 TEST(HostImplTest, HealthPipeAddress) {
   EXPECT_THROW_WITH_MESSAGE(
       {
@@ -1081,7 +1083,7 @@ TEST(HostImplTest, HealthPipeAddress) {
       },
       EnvoyException, "Invalid host configuration: non-zero port for non-IP address");
 }
-
+#endif
 class StaticClusterImplTest : public testing::Test, public UpstreamImplTestBase {};
 
 TEST_F(StaticClusterImplTest, InitialHosts) {

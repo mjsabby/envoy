@@ -553,9 +553,17 @@ drain_type: default
 
   ListenerHandle* listener_foo = expectListenerCreate(false, true);
 
-  ON_CALL(os_sys_calls, socket(AF_INET, _, 0)).WillByDefault(Return(Api::SysCallIntResult{5, 0}));
-  ON_CALL(os_sys_calls, socket(AF_INET6, _, 0)).WillByDefault(Return(Api::SysCallIntResult{-1, 0}));
+  ON_CALL(os_sys_calls, socket(AF_INET, _, 0))
+      .WillByDefault(Return(Api::SysCallSocketResult{5, 0}));
+#if !defined(WIN32)
+  ON_CALL(os_sys_calls, socket(AF_INET6, _, 0))
+      .WillByDefault(Return(Api::SysCallSocketResult{-1, 0}));
   ON_CALL(os_sys_calls, close(_)).WillByDefault(Return(Api::SysCallIntResult{0, 0}));
+#else
+  ON_CALL(os_sys_calls, socket(AF_INET6, _, 0))
+      .WillByDefault(Return(Api::SysCallSocketResult{INVALID_SOCKET, 0}));
+  ON_CALL(os_sys_calls, close(_)).WillByDefault(Return(Api::SysCallIntResult{0, 0}));
+#endif
 
   EXPECT_CALL(listener_factory_, createListenSocket(_, _, _, {true}));
 
@@ -586,9 +594,17 @@ drain_type: default
 
   ListenerHandle* listener_foo = expectListenerCreate(false, true);
 
-  ON_CALL(os_sys_calls, socket(AF_INET, _, 0)).WillByDefault(Return(Api::SysCallIntResult{-1, 0}));
-  ON_CALL(os_sys_calls, socket(AF_INET6, _, 0)).WillByDefault(Return(Api::SysCallIntResult{5, 0}));
+  ON_CALL(os_sys_calls, socket(AF_INET6, _, 0))
+      .WillByDefault(Return(Api::SysCallSocketResult{5, 0}));
+#if !defined(WIN32)
+  ON_CALL(os_sys_calls, socket(AF_INET, _, 0))
+      .WillByDefault(Return(Api::SysCallSocketResult{-1, 0}));
   ON_CALL(os_sys_calls, close(_)).WillByDefault(Return(Api::SysCallIntResult{0, 0}));
+#else
+  ON_CALL(os_sys_calls, socket(AF_INET, _, 0))
+      .WillByDefault(Return(Api::SysCallSocketResult{INVALID_SOCKET, 0}));
+  ON_CALL(os_sys_calls, close(_)).WillByDefault(Return(Api::SysCallIntResult{0, 0}));
+#endif
 
   EXPECT_CALL(listener_factory_, createListenSocket(_, _, _, {true}));
 
@@ -1721,9 +1737,11 @@ TEST_F(ListenerManagerImplWithRealFiltersTest, SingleFilterChainWithDestinationP
   EXPECT_EQ(server_names.size(), 1);
   EXPECT_EQ(server_names.front(), "server1.example.com");
 
+#if !defined(WIN32)
   // UDS client - no match.
   filter_chain = findFilterChain(0, "/tmp/test.sock", "", "tls", {}, "/tmp/test.sock", 111);
   EXPECT_EQ(filter_chain, nullptr);
+#endif
 }
 
 TEST_F(ListenerManagerImplWithRealFiltersTest, SingleFilterChainWithDestinationIPMatch) {
@@ -1767,9 +1785,11 @@ TEST_F(ListenerManagerImplWithRealFiltersTest, SingleFilterChainWithDestinationI
   EXPECT_EQ(server_names.size(), 1);
   EXPECT_EQ(server_names.front(), "server1.example.com");
 
+#if !defined(WIN32)
   // UDS client - no match.
   filter_chain = findFilterChain(0, "/tmp/test.sock", "", "tls", {}, "/tmp/test.sock", 111);
   EXPECT_EQ(filter_chain, nullptr);
+#endif
 }
 
 TEST_F(ListenerManagerImplWithRealFiltersTest, SingleFilterChainWithServerNamesMatch) {
@@ -1947,6 +1967,7 @@ TEST_F(ListenerManagerImplWithRealFiltersTest, SingleFilterChainWithSourceTypeMa
   EXPECT_EQ(server_names.size(), 1);
   EXPECT_EQ(server_names.front(), "server1.example.com");
 
+#if !defined(WIN32)
   // LOCAL UDS client with "http/1.1" ALPN - using 1st filter chain.
   filter_chain =
       findFilterChain(0, "/tmp/test.sock", "", "tls", {"h2", "http/1.1"}, "/tmp/test.sock", 111);
@@ -1957,6 +1978,7 @@ TEST_F(ListenerManagerImplWithRealFiltersTest, SingleFilterChainWithSourceTypeMa
   server_names = ssl_socket->ssl()->dnsSansLocalCertificate();
   EXPECT_EQ(server_names.size(), 1);
   EXPECT_EQ(server_names.front(), "server1.example.com");
+#endif
 }
 
 // Verify source IP matches.
@@ -2259,6 +2281,7 @@ TEST_F(ListenerManagerImplWithRealFiltersTest, MultipleFilterChainsWithDestinati
   EXPECT_EQ(server_names.size(), 2);
   EXPECT_EQ(server_names.front(), "*.example.com");
 
+#ifndef WIN32
   // UDS client - using 1st filter chain.
   filter_chain = findFilterChain(0, "/tmp/test.sock", "", "tls", {}, "127.0.0.1", 111);
   ASSERT_NE(filter_chain, nullptr);
@@ -2267,6 +2290,7 @@ TEST_F(ListenerManagerImplWithRealFiltersTest, MultipleFilterChainsWithDestinati
   ssl_socket = dynamic_cast<Extensions::TransportSockets::Tls::SslSocket*>(transport_socket.get());
   uri = ssl_socket->ssl()->uriSanLocalCertificate();
   EXPECT_EQ(uri[0], "spiffe://lyft.com/test-team");
+#endif
 }
 
 TEST_F(ListenerManagerImplWithRealFiltersTest, MultipleFilterChainsWithDestinationIPMatch) {
@@ -2345,6 +2369,7 @@ TEST_F(ListenerManagerImplWithRealFiltersTest, MultipleFilterChainsWithDestinati
   EXPECT_EQ(server_names.size(), 2);
   EXPECT_EQ(server_names.front(), "*.example.com");
 
+#ifndef WIN32
   // UDS client - using 1st filter chain.
   filter_chain = findFilterChain(0, "/tmp/test.sock", "", "tls", {}, "/tmp/test.sock", 111);
   ASSERT_NE(filter_chain, nullptr);
@@ -2353,6 +2378,7 @@ TEST_F(ListenerManagerImplWithRealFiltersTest, MultipleFilterChainsWithDestinati
   ssl_socket = dynamic_cast<Extensions::TransportSockets::Tls::SslSocket*>(transport_socket.get());
   uri = ssl_socket->ssl()->uriSanLocalCertificate();
   EXPECT_EQ(uri[0], "spiffe://lyft.com/test-team");
+#endif
 }
 
 TEST_F(ListenerManagerImplWithRealFiltersTest, MultipleFilterChainsWithServerNamesMatch) {
