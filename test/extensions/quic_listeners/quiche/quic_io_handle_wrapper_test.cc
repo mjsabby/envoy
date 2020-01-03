@@ -39,7 +39,7 @@ TEST_F(QuicIoHandleWrapperTest, Close) {
 }
 
 TEST_F(QuicIoHandleWrapperTest, DelegateIoHandleCalls) {
-  int fd = socket_.ioHandle().fd();
+  int64_t fd = socket_.ioHandle().fd();
   char data[5];
   Buffer::RawSlice slice{data, 5};
   EXPECT_CALL(os_sys_calls_, readv(fd, _, 1)).WillOnce(Return(Api::SysCallSizeResult{5u, 0}));

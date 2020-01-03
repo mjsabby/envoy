@@ -53,32 +53,32 @@ public:
   ~MockOsSysCalls() override;
 
   // Api::OsSysCalls
-  SysCallIntResult setsockopt(int sockfd, int level, int optname, const void* optval,
+  SysCallIntResult setsockopt(int64_t sockfd, int level, int optname, const void* optval,
                               socklen_t optlen) override;
-  SysCallIntResult getsockopt(int sockfd, int level, int optname, void* optval,
+  SysCallIntResult getsockopt(int64_t sockfd, int level, int optname, void* optval,
                               socklen_t* optlen) override;
 
-  MOCK_METHOD3(bind, SysCallIntResult(int sockfd, const sockaddr* addr, socklen_t addrlen));
-  MOCK_METHOD3(ioctl, SysCallIntResult(int sockfd, unsigned long int request, void* argp));
-  MOCK_METHOD1(close, SysCallIntResult(int));
-  MOCK_METHOD3(writev, SysCallSizeResult(int, const iovec*, int));
-  MOCK_METHOD3(sendmsg, SysCallSizeResult(int fd, const msghdr* message, int flags));
-  MOCK_METHOD3(readv, SysCallSizeResult(int, const iovec*, int));
-  MOCK_METHOD4(recv, SysCallSizeResult(int socket, void* buffer, size_t length, int flags));
-  MOCK_METHOD3(recvmsg, SysCallSizeResult(int socket, struct msghdr* msg, int flags));
-  MOCK_METHOD2(ftruncate, SysCallIntResult(int fd, off_t length));
-  MOCK_METHOD6(mmap, SysCallPtrResult(void* addr, size_t length, int prot, int flags, int fd,
+  MOCK_METHOD3(bind, SysCallIntResult(int64_t sockfd, const sockaddr* addr, socklen_t addrlen));
+  MOCK_METHOD3(ioctl, SysCallIntResult(int64_t sockfd, unsigned long int request, void* argp));
+  MOCK_METHOD1(close, SysCallIntResult(int64_t));
+  MOCK_METHOD3(writev, SysCallSizeResult(int64_t, const iovec*, int));
+  MOCK_METHOD3(sendmsg, SysCallSizeResult(int64_t fd, const msghdr* message, int flags));
+  MOCK_METHOD3(readv, SysCallSizeResult(int64_t, const iovec*, int));
+  MOCK_METHOD4(recv, SysCallSizeResult(int64_t socket, void* buffer, size_t length, int flags));
+  MOCK_METHOD3(recvmsg, SysCallSizeResult(int64_t socket, struct msghdr* msg, int flags));
+  MOCK_METHOD2(ftruncate, SysCallIntResult(int64_t fd, off_t length));
+  MOCK_METHOD6(mmap, SysCallPtrResult(void* addr, size_t length, int prot, int flags, int64_t fd,
                                       off_t offset));
   MOCK_METHOD2(stat, SysCallIntResult(const char* name, struct stat* stat));
   MOCK_METHOD2(chmod, SysCallIntResult(const std::string& name, mode_t mode));
   MOCK_METHOD5(setsockopt_,
-               int(int sockfd, int level, int optname, const void* optval, socklen_t optlen));
+               int(int64_t sockfd, int level, int optname, const void* optval, socklen_t optlen));
   MOCK_METHOD5(getsockopt_,
-               int(int sockfd, int level, int optname, void* optval, socklen_t* optlen));
+               int(int64_t sockfd, int level, int optname, void* optval, socklen_t* optlen));
   MOCK_METHOD3(socket, SysCallIntResult(int domain, int type, int protocol));
 
   // Map from (sockfd,level,optname) to boolean socket option.
-  using SockOptKey = std::tuple<int, int, int>;
+  using SockOptKey = std::tuple<int64_t, int, int>;
   std::map<SockOptKey, bool> boolsockopts_;
 };
 

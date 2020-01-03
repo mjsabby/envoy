@@ -15,13 +15,13 @@ namespace Network {
  */
 class IoSocketHandleImpl : public IoHandle, protected Logger::Loggable<Logger::Id::io> {
 public:
-  explicit IoSocketHandleImpl(int fd = -1) : fd_(fd) {}
+  explicit IoSocketHandleImpl(int64_t fd = -1) : fd_(fd) {}
 
   // Close underlying socket if close() hasn't been call yet.
   ~IoSocketHandleImpl() override;
 
   // TODO(sbelair2)  To be removed when the fd is fully abstracted from clients.
-  int fd() const override { return fd_; }
+  int64_t fd() const override { return fd_; }
 
   Api::IoCallUint64Result close() override;
 
@@ -43,7 +43,7 @@ private:
   // Converts a SysCallSizeResult to IoCallUint64Result.
   Api::IoCallUint64Result sysCallResultToIoCallResult(const Api::SysCallSizeResult& result);
 
-  int fd_;
+  int64_t fd_;
 };
 
 } // namespace Network

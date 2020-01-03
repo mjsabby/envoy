@@ -99,7 +99,7 @@ Address::InstanceConstSharedPtr addressFromSockAddr(const sockaddr_storage& ss, 
   NOT_REACHED_GCOVR_EXCL_LINE;
 }
 
-InstanceConstSharedPtr addressFromFd(int fd) {
+InstanceConstSharedPtr addressFromFd(int64_t fd) {
   sockaddr_storage ss;
   socklen_t ss_len = sizeof ss;
   int rc = ::getsockname(fd, reinterpret_cast<sockaddr*>(&ss), &ss_len);
@@ -115,7 +115,7 @@ InstanceConstSharedPtr addressFromFd(int fd) {
   return addressFromSockAddr(ss, ss_len, rc == 0 && socket_v6only);
 }
 
-InstanceConstSharedPtr peerAddressFromFd(int fd) {
+InstanceConstSharedPtr peerAddressFromFd(int64_t fd) {
   sockaddr_storage ss;
   socklen_t ss_len = sizeof ss;
   const int rc = ::getpeername(fd, reinterpret_cast<sockaddr*>(&ss), &ss_len);
@@ -224,12 +224,12 @@ bool Ipv4Instance::operator==(const Instance& rhs) const {
           (ip_.port() == rhs_casted->ip_.port()));
 }
 
-Api::SysCallIntResult Ipv4Instance::bind(int fd) const {
+Api::SysCallIntResult Ipv4Instance::bind(int64_t fd) const {
   auto& os_syscalls = Api::OsSysCallsSingleton::get();
   return os_syscalls.bind(fd, sockAddr(), sockAddrLen());
 }
 
-Api::SysCallIntResult Ipv4Instance::connect(int fd) const {
+Api::SysCallIntResult Ipv4Instance::connect(int64_t fd) const {
   const int rc = ::connect(fd, sockAddr(), sockAddrLen());
   return {rc, errno};
 }
@@ -313,12 +313,12 @@ bool Ipv6Instance::operator==(const Instance& rhs) const {
           (ip_.port() == rhs_casted->ip_.port()));
 }
 
-Api::SysCallIntResult Ipv6Instance::bind(int fd) const {
+Api::SysCallIntResult Ipv6Instance::bind(int64_t fd) const {
   auto& os_syscalls = Api::OsSysCallsSingleton::get();
   return os_syscalls.bind(fd, sockAddr(), sockAddrLen());
 }
 
-Api::SysCallIntResult Ipv6Instance::connect(int fd) const {
+Api::SysCallIntResult Ipv6Instance::connect(int64_t fd) const {
   const int rc = ::connect(fd, sockAddr(), sockAddrLen());
   return {rc, errno};
 }
@@ -397,7 +397,7 @@ PipeInstance::PipeInstance(const std::string& pipe_path, mode_t mode) : Instance
 
 bool PipeInstance::operator==(const Instance& rhs) const { return asString() == rhs.asString(); }
 
-Api::SysCallIntResult PipeInstance::bind(int fd) const {
+Api::SysCallIntResult PipeInstance::bind(int64_t fd) const {
   if (!abstract_namespace_) {
     // Try to unlink an existing filesystem object at the requested path. Ignore
     // errors -- it's fine if the path doesn't exist, and if it exists but can't
@@ -415,7 +415,7 @@ Api::SysCallIntResult PipeInstance::bind(int fd) const {
   return bind_result;
 }
 
-Api::SysCallIntResult PipeInstance::connect(int fd) const {
+Api::SysCallIntResult PipeInstance::connect(int64_t fd) const {
   const int rc = ::connect(fd, sockAddr(), sockAddrLen());
   return {rc, errno};
 }

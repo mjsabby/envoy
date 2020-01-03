@@ -6,7 +6,6 @@
 #include <string>
 
 #include "envoy/api/os_sys_calls_common.h"
-#include "envoy/common/platform.h"
 #include "envoy/common/pure.h"
 
 namespace Envoy {
@@ -19,7 +18,7 @@ public:
   /**
    * @see bind (man 2 bind)
    */
-  virtual SysCallIntResult bind(int sockfd, const sockaddr* addr, socklen_t addrlen) PURE;
+  virtual SysCallIntResult bind(int64_t sockfd, const sockaddr* addr, socklen_t addrlen) PURE;
 
   /**
    * @see chmod (man 2 chmod)
@@ -29,43 +28,43 @@ public:
   /**
    * @see ioctl (man 2 ioctl)
    */
-  virtual SysCallIntResult ioctl(int sockfd, unsigned long int request, void* argp) PURE;
+  virtual SysCallIntResult ioctl(int64_t sockfd, unsigned long int request, void* argp) PURE;
 
   /**
    * @see writev (man 2 writev)
    */
-  virtual SysCallSizeResult writev(int fd, const iovec* iovec, int num_iovec) PURE;
+  virtual SysCallSizeResult writev(int64_t fd, const iovec* iovec, int num_iovec) PURE;
 
   /**
    * @see readv (man 2 readv)
    */
-  virtual SysCallSizeResult readv(int fd, const iovec* iovec, int num_iovec) PURE;
+  virtual SysCallSizeResult readv(int64_t fd, const iovec* iovec, int num_iovec) PURE;
 
   /**
    * @see recv (man 2 recv)
    */
-  virtual SysCallSizeResult recv(int socket, void* buffer, size_t length, int flags) PURE;
+  virtual SysCallSizeResult recv(int64_t socket, void* buffer, size_t length, int flags) PURE;
 
   /**
    * @see recvmsg (man 2 recvmsg)
    */
-  virtual SysCallSizeResult recvmsg(int sockfd, struct msghdr* msg, int flags) PURE;
+  virtual SysCallSizeResult recvmsg(int64_t sockfd, struct msghdr* msg, int flags) PURE;
 
   /**
    * Release all resources allocated for fd.
    * @return zero on success, -1 returned otherwise.
    */
-  virtual SysCallIntResult close(int fd) PURE;
+  virtual SysCallIntResult close(int64_t fd) PURE;
 
   /**
    * @see man 2 ftruncate
    */
-  virtual SysCallIntResult ftruncate(int fd, off_t length) PURE;
+  virtual SysCallIntResult ftruncate(int64_t fd, off_t length) PURE;
 
   /**
    * @see man 2 mmap
    */
-  virtual SysCallPtrResult mmap(void* addr, size_t length, int prot, int flags, int fd,
+  virtual SysCallPtrResult mmap(void* addr, size_t length, int prot, int flags, int64_t fd,
                                 off_t offset) PURE;
 
   /**
@@ -76,13 +75,13 @@ public:
   /**
    * @see man 2 setsockopt
    */
-  virtual SysCallIntResult setsockopt(int sockfd, int level, int optname, const void* optval,
+  virtual SysCallIntResult setsockopt(int64_t sockfd, int level, int optname, const void* optval,
                                       socklen_t optlen) PURE;
 
   /**
    * @see man 2 getsockopt
    */
-  virtual SysCallIntResult getsockopt(int sockfd, int level, int optname, void* optval,
+  virtual SysCallIntResult getsockopt(int64_t sockfd, int level, int optname, void* optval,
                                       socklen_t* optlen) PURE;
 
   /**
@@ -93,12 +92,12 @@ public:
   /**
    * @see man 2 sendmsg
    */
-  virtual SysCallSizeResult sendmsg(int fd, const msghdr* message, int flags) PURE;
+  virtual SysCallSizeResult sendmsg(int64_t fd, const msghdr* message, int flags) PURE;
 
   /**
    * @see man 2 getsockname
    */
-  virtual SysCallIntResult getsockname(int sockfd, sockaddr* addr, socklen_t* addrlen) PURE;
+  virtual SysCallIntResult getsockname(int64_t sockfd, sockaddr* addr, socklen_t* addrlen) PURE;
 };
 
 using OsSysCallsPtr = std::unique_ptr<OsSysCalls>;

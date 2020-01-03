@@ -2965,7 +2965,7 @@ public:
       }
       EXPECT_CALL(os_sys_calls,
                   setsockopt_(_, name_val.first.level(), name_val.first.option(), _, sizeof(int)))
-          .WillOnce(Invoke([&name_val](int, int, int, const void* optval, socklen_t) -> int {
+          .WillOnce(Invoke([&name_val](int64_t, int, int, const void* optval, socklen_t) -> int {
             EXPECT_EQ(name_val.second, *static_cast<const int*>(optval));
             return 0;
           }));
@@ -3243,7 +3243,7 @@ public:
             }));
     EXPECT_CALL(os_sys_calls, setsockopt_(_, ENVOY_SOCKET_SO_KEEPALIVE.level(),
                                           ENVOY_SOCKET_SO_KEEPALIVE.option(), _, sizeof(int)))
-        .WillOnce(Invoke([](int, int, int, const void* optval, socklen_t) -> int {
+        .WillOnce(Invoke([](int64_t, int, int, const void* optval, socklen_t) -> int {
           EXPECT_EQ(1, *static_cast<const int*>(optval));
           return 0;
         }));
@@ -3251,7 +3251,7 @@ public:
       EXPECT_CALL(os_sys_calls, setsockopt_(_, ENVOY_SOCKET_TCP_KEEPCNT.level(),
                                             ENVOY_SOCKET_TCP_KEEPCNT.option(), _, sizeof(int)))
           .WillOnce(
-              Invoke([&keepalive_probes](int, int, int, const void* optval, socklen_t) -> int {
+              Invoke([&keepalive_probes](int64_t, int, int, const void* optval, socklen_t) -> int {
                 EXPECT_EQ(keepalive_probes.value(), *static_cast<const int*>(optval));
                 return 0;
               }));
@@ -3259,7 +3259,7 @@ public:
     if (keepalive_time.has_value()) {
       EXPECT_CALL(os_sys_calls, setsockopt_(_, ENVOY_SOCKET_TCP_KEEPIDLE.level(),
                                             ENVOY_SOCKET_TCP_KEEPIDLE.option(), _, sizeof(int)))
-          .WillOnce(Invoke([&keepalive_time](int, int, int, const void* optval, socklen_t) -> int {
+          .WillOnce(Invoke([&keepalive_time](int64_t, int, int, const void* optval, socklen_t) -> int {
             EXPECT_EQ(keepalive_time.value(), *static_cast<const int*>(optval));
             return 0;
           }));
@@ -3268,7 +3268,7 @@ public:
       EXPECT_CALL(os_sys_calls, setsockopt_(_, ENVOY_SOCKET_TCP_KEEPINTVL.level(),
                                             ENVOY_SOCKET_TCP_KEEPINTVL.option(), _, sizeof(int)))
           .WillOnce(
-              Invoke([&keepalive_interval](int, int, int, const void* optval, socklen_t) -> int {
+              Invoke([&keepalive_interval](int64_t, int, int, const void* optval, socklen_t) -> int {
                 EXPECT_EQ(keepalive_interval.value(), *static_cast<const int*>(optval));
                 return 0;
               }));
