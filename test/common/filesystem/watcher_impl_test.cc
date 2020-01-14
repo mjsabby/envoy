@@ -106,6 +106,7 @@ TEST_F(WatcherImplTest, Modify) {
   dispatcher_->run(Event::Dispatcher::RunType::NonBlock);
 
   file << "text" << std::flush;
+  file.close();
   EXPECT_CALL(callback, called(Watcher::Events::Modified));
   dispatcher_->run(Event::Dispatcher::RunType::NonBlock);
 }
@@ -143,7 +144,11 @@ TEST_F(WatcherImplTest, ParentDirectoryRemoved) {
 TEST_F(WatcherImplTest, RootDirectoryPath) {
   Filesystem::WatcherPtr watcher = dispatcher_->createFilesystemWatcher();
 
+#ifndef WIN32
   EXPECT_NO_THROW(watcher->addWatch("/", Watcher::Events::MovedTo, [&](uint32_t) -> void {}));
+#else
+  EXPECT_NO_THROW(watcher->addWatch("c:\\", Watcher::Events::MovedTo, [&](uint32_t) -> void {}));
+#endif
 }
 
 } // namespace Filesystem

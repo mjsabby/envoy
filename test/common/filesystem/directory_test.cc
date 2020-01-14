@@ -14,10 +14,6 @@
 namespace Envoy {
 namespace Filesystem {
 
-// we are using this class to clean up all the files we create,
-// as it looks like some versions of libstdc++ have a bug in
-// std::experimental::filesystem::remove_all where it fails with nested directories:
-// https://gcc.gnu.org/bugzilla/show_bug.cgi?id=71313
 class DirectoryTest : public testing::Test {
 public:
   DirectoryTest() : dir_path_(TestEnvironment::temporaryPath("envoy_test")) {

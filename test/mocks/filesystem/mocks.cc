@@ -1,7 +1,7 @@
-#include "test/mocks/filesystem/mocks.h"
-
 #include "common/common/assert.h"
 #include "common/common/lock_guard.h"
+
+#include "test/mocks/filesystem/mocks.h"
 
 namespace Envoy {
 namespace Filesystem {

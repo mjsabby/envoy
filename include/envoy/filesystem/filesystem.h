@@ -89,6 +89,20 @@ public:
   virtual bool directoryExists(const std::string& path) PURE;
 
   /**
+   *  @param path The path of the Directory
+   *  @return bool true if the directory exists or creation succeeded
+   *  @tip trailing slash will be ignored
+   */
+  virtual bool createDirectory(const std::string& path) PURE;
+
+  /**
+   *  @param path The path of the Directory
+   *  @return bool true if the path does not exist or removal succeeded
+   *  @tip trailing slash will be ignored
+   */
+  virtual bool removeDirectory(const std::string& path) PURE;
+
+  /**
    * @return ssize_t the size in bytes of the specified file, or -1 if the file size
    *                 cannot be determined for any reason, including without limitation
    *                 the non-existence of the file.
@@ -101,6 +115,12 @@ public:
    * Be aware, this is not most highly performing file reading method.
    */
   virtual std::string fileReadToEnd(const std::string& path) PURE;
+
+  /**
+   * @path full file path on input which is truncated to the path
+   * @name the resulting file name component from the input path
+   */
+  virtual void splitFileName(std::string& path, std::string& name) PURE;
 
   /**
    * Determine if the path is on a list of paths Envoy will refuse to access. This
@@ -130,10 +150,6 @@ struct DirectoryEntry {
   }
 };
 
-/**
- * Abstraction for listing a directory.
- * TODO(sesmith177): replace with std::filesystem::directory_iterator once we move to C++17
- */
 class DirectoryIteratorImpl;
 class DirectoryIterator {
 public:

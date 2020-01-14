@@ -1,5 +1,6 @@
 #include <dirent.h>
 #include <fcntl.h>
+#include <limits.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -14,6 +15,7 @@
 #include "common/common/assert.h"
 #include "common/common/fmt.h"
 #include "common/common/logger.h"
+#include "common/filesystem/directory.h"
 #include "common/filesystem/filesystem_impl.h"
 
 #include "absl/strings/match.h"
@@ -72,6 +74,52 @@ bool InstanceImplPosix::fileExists(const std::string& path) {
   return input_file.is_open();
 }
 
+// TODO(Pivotal): make recursive al la mkdir -p
+bool InstanceImplPosix::createDirectory(const std::string& path) {
+  if (::mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IRWXO) == 0 || errno == EISDIR)
+    return true;
+  if (errno == EEXIST)
+    if (directoryExists(path))
+      return true;
+  return false;
+}
+
+bool InstanceImplPosix::removeDirectory(const std::string& path) {
+  struct stat stbuf;
+  if (::stat(path.c_str(), &stbuf) != 0)
+    return true;
+  if (!S_ISDIR(stbuf.st_mode))
+    return false;
+
+  Directory directory(path);
+  std::string entry_name;
+  entry_name.reserve(path.size() + NAME_MAX + 2);
+  entry_name.append(path);
+  entry_name.append("/");
+  size_t fileidx = entry_name.size();
+  for (const DirectoryEntry& entry : directory) {
+    entry_name.resize(fileidx);
+    entry_name.append(entry.name_);
+    switch (entry.type_) {
+    case FileType::Regular:
+      if (::unlink(entry_name.c_str()) == 0 || errno == ENOENT)
+        continue;
+      return false;
+    case FileType::Directory:
+      if (entry.name_ != "." && entry.name_ != "..") {
+        if (!removeDirectory(entry_name))
+          return false;
+      }
+      break;
+    default:
+      break;
+    }
+  }
+  if (::rmdir(path.c_str()) == 0 || errno == ENOENT)
+    return true;
+  return false;
+}
+
 bool InstanceImplPosix::directoryExists(const std::string& path) {
   DIR* const dir = ::opendir(path.c_str());
   const bool dir_exists = nullptr != dir;
@@ -108,6 +156,20 @@ std::string InstanceImplPosix::fileReadToEnd(const std::string& path) {
   return file_string.str();
 }
 
+void InstanceImplPosix::splitFileName(std::string& path, std::string& name) {
+  size_t last_slash = path.rfind('/');
+  if (last_slash == std::string::npos) {
+    throw EnvoyException(fmt::format("invalid file path {}", path));
+  }
+
+  name.clear();
+  name.append(path.substr(last_slash + 1, std::string::npos));
+
+  // Retain entire single '/' root path
+  // truncate all other trailing slashes
+  path.resize(last_slash + (last_slash == 0));
+}
+
 bool InstanceImplPosix::illegalPath(const std::string& path) {
   // Special case, allow /dev/fd/* access here so that config can be passed in a
   // file descriptor from a bootstrap script via exec. The reason we do this
@@ -141,7 +203,6 @@ bool InstanceImplPosix::illegalPath(const std::string& path) {
 }
 
 Api::SysCallStringResult InstanceImplPosix::canonicalPath(const std::string& path) {
-  // TODO(htuch): When we are using C++17, switch to std::filesystem::canonical.
   char* resolved_path = ::realpath(path.c_str(), nullptr);
   if (resolved_path == nullptr) {
     return {std::string(), errno};

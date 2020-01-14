@@ -35,8 +35,11 @@ public:
   FilePtr createFile(const std::string& path) override;
   bool fileExists(const std::string& path) override;
   bool directoryExists(const std::string& path) override;
+  bool createDirectory(const std::string& path) override;
+  bool removeDirectory(const std::string& path) override;
   ssize_t fileSize(const std::string& path) override;
   std::string fileReadToEnd(const std::string& path) override;
+  void splitFileName(std::string& path, std::string& name) override;
   bool illegalPath(const std::string& path) override;
 };
 

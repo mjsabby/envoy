@@ -1,6 +1,6 @@
-#include "common/filesystem/file_shared_impl.h"
-
 #include <cstring>
+
+#include "common/filesystem/file_shared_impl.h"
 
 namespace Envoy {
 namespace Filesystem {

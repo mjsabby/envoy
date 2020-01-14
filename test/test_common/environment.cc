@@ -1,14 +1,5 @@
 #include "test/test_common/environment.h"
 
-// TODO(asraa): Remove <experimental/filesystem> and rely only on <filesystem> when Envoy requires
-// Clang >= 9.
-#if defined(_LIBCPP_VERSION) && !defined(__APPLE__)
-#include <filesystem>
-#elif defined __has_include
-#if __has_include(<experimental/filesystem>) && !defined(__APPLE__)
-#include <experimental/filesystem>
-#endif
-#endif
 #include <fstream>
 #include <iostream>
 #include <regex>
@@ -17,18 +8,21 @@
 #include <unordered_map>
 #include <vector>
 
+#include "envoy/common/platform.h"
+
 #include "common/common/assert.h"
 #include "common/common/compiler_requirements.h"
 #include "common/common/logger.h"
 #include "common/common/macros.h"
 #include "common/common/utility.h"
-#include "envoy/common/platform.h"
 
 #include "server/options_impl.h"
 
+#include "test/test_common/file_system_for_test.h"
 #include "test/test_common/network_utility.h"
 
 #include "absl/strings/match.h"
+#include "absl/strings/str_split.h"
 #include "gtest/gtest.h"
 #include "spdlog/spdlog.h"
 
@@ -43,11 +37,7 @@ std::string makeTempDir(std::string basename_template) {
   char* dirname = ::_mktemp(&name_template[0]);
   RELEASE_ASSERT(dirname != nullptr, fmt::format("failed to create tempdir from template: {} {}",
                                                  name_template, strerror(errno)));
-#if defined(_LIBCPP_VERSION) && _LIBCPP_VERSION >= 9000 && !defined(__APPLE__)
-  std::__fs::filesystem::create_directories(dirname);
-#elif defined __cpp_lib_experimental_filesystem && !defined(__APPLE__)
-  std::experimental::filesystem::create_directories(dirname);
-#endif
+  TestEnvironment::createPath(dirname);
 #else
   std::string name_template = "/tmp/" + basename_template;
   char* dirname = ::mkdtemp(&name_template[0]);
@@ -69,13 +59,16 @@ std::string getOrCreateUnixDomainSocketDirectory() {
 }
 
 std::string getTemporaryDirectory() {
+  std::string temp_dir;
   if (std::getenv("TEST_TMPDIR")) {
-    return TestEnvironment::getCheckedEnvVar("TEST_TMPDIR");
+    temp_dir = TestEnvironment::getCheckedEnvVar("TEST_TMPDIR");
+  } else if (std::getenv("TMPDIR")) {
+    temp_dir = TestEnvironment::getCheckedEnvVar("TMPDIR");
+  } else {
+    return makeTempDir("envoy_test_tmp.XXXXXX");
   }
-  if (std::getenv("TMPDIR")) {
-    return TestEnvironment::getCheckedEnvVar("TMPDIR");
-  }
-  return makeTempDir("envoy_test_tmp.XXXXXX");
+  TestEnvironment::createPath(temp_dir);
+  return temp_dir;
 }
 
 // Allow initializeOptions() to remember CLI args for getOptions().
@@ -85,50 +78,17 @@ char** argv_;
 } // namespace
 
 void TestEnvironment::createPath(const std::string& path) {
-#if defined(_LIBCPP_VERSION) && _LIBCPP_VERSION >= 9000 && !defined(__APPLE__)
-  // We don't want to rely on mkdir etc. if we can avoid it, since it might not
-  // exist in some environments such as ClusterFuzz.
-  std::__fs::filesystem::create_directories(std::__fs::filesystem::path(path));
-#elif defined __cpp_lib_experimental_filesystem
-  std::experimental::filesystem::create_directories(std::experimental::filesystem::path(path));
-#else
-  // No support on this system for std::filesystem or std::experimental::filesystem.
-  RELEASE_ASSERT(::system(("mkdir -p " + path).c_str()) == 0, "");
-#endif
-}
-
-void TestEnvironment::createParentPath(const std::string& path) {
-#if defined(_LIBCPP_VERSION) && _LIBCPP_VERSION >= 9000 && !defined(__APPLE__)
-  // We don't want to rely on mkdir etc. if we can avoid it, since it might not
-  // exist in some environments such as ClusterFuzz.
-  std::__fs::filesystem::create_directories(std::__fs::filesystem::path(path).parent_path());
-#elif defined __cpp_lib_experimental_filesystem && !defined(__APPLE__)
-  std::experimental::filesystem::create_directories(
-      std::experimental::filesystem::path(path).parent_path());
-#else
-  // No support on this system for std::filesystem or std::experimental::filesystem.
-  RELEASE_ASSERT(::system(("mkdir -p $(dirname " + path + ")").c_str()) == 0, "");
-#endif
+  RELEASE_ASSERT(Filesystem::fileSystemForTest().createDirectory(path),
+                 absl::StrCat("failed to create: ", path));
 }
 
 void TestEnvironment::removePath(const std::string& path) {
-  RELEASE_ASSERT(absl::StartsWith(path, TestEnvironment::temporaryDirectory()), "");
-#if defined(_LIBCPP_VERSION) && _LIBCPP_VERSION >= 9000 && !defined(__APPLE__)
-  // We don't want to rely on mkdir etc. if we can avoid it, since it might not
-  // exist in some environments such as ClusterFuzz.
-  if (!std::__fs::filesystem::exists(path)) {
+  Filesystem::Instance& file_system_ = Filesystem::fileSystemForTest();
+  RELEASE_ASSERT(absl::StartsWith(path, TestEnvironment::temporaryDirectory()),
+                 "cowardly refusing to remove test directory not in temp path");
+  if (!file_system_.directoryExists(path))
     return;
-  }
-  std::__fs::filesystem::remove_all(std::__fs::filesystem::path(path));
-#elif defined __cpp_lib_experimental_filesystem && !defined(__APPLE__)
-  if (!std::experimental::filesystem::exists(path)) {
-    return;
-  }
-  std::experimental::filesystem::remove_all(std::experimental::filesystem::path(path));
-#else
-  // No support on this system for std::filesystem or std::experimental::filesystem.
-  RELEASE_ASSERT(::system(("rm -rf " + path).c_str()) == 0, "");
-#endif
+  RELEASE_ASSERT(file_system_.removeDirectory(path), absl::StrCat("failed to remove: ", path));
 }
 
 absl::optional<std::string> TestEnvironment::getOptionalEnvVar(const std::string& var) {
@@ -297,9 +257,12 @@ std::string TestEnvironment::temporaryFileSubstitute(const std::string& path,
   out_json_string = substitute(out_json_string, version);
 
   const std::string extension = absl::EndsWith(path, ".yaml") ? ".yaml" : ".json";
+  std::string parent(path);
+  std::string name;
+  Filesystem::fileSystemForTest().splitFileName(parent, name);
+
   const std::string out_json_path =
-      TestEnvironment::temporaryPath(path + ".with.ports" + extension);
-  createParentPath(out_json_path);
+      TestEnvironment::temporaryPath(name + ".with.ports" + extension);
   {
     std::ofstream out_json_file(out_json_path);
     out_json_file << out_json_string;
@@ -332,7 +295,6 @@ std::string TestEnvironment::writeStringToFileForTest(const std::string& filenam
                                                       bool fully_qualified_path) {
   const std::string out_path =
       fully_qualified_path ? filename : TestEnvironment::temporaryPath(filename);
-  createParentPath(out_path);
   unlink(out_path.c_str());
   {
     std::ofstream out_file(out_path, std::ios_base::binary);
@@ -359,6 +321,7 @@ void TestEnvironment::setEnvVar(const std::string& name, const std::string& valu
   ASSERT_EQ(0, rc);
 #endif
 }
+
 void TestEnvironment::unsetEnvVar(const std::string& name) {
 #ifdef WIN32
   const int rc = ::_putenv_s(name.c_str(), "");
