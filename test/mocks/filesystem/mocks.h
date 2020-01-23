@@ -61,11 +61,7 @@ public:
   MockWatcher();
   ~MockWatcher() override;
 
-<<<<<<< HEAD
-  MOCK_METHOD(void, addWatch, (const std::string&, uint32_t, OnChangedCb));
-=======
-  MOCK_METHOD3(addWatch, void(absl::string_view, uint32_t, OnChangedCb));
->>>>>>> Adjustments based on PR review (requested by mattklein123)
+  MOCK_METHOD(void, addWatch, (absl::string_view, uint32_t, OnChangedCb));
 };
 
 } // namespace Filesystem
