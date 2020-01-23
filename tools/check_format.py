@@ -163,6 +163,42 @@ UNOWNED_EXTENSIONS = {
 }
 # yapf: enable
 
+# checker/line_xform returns an error if it exists
+# evaluateLines aggregates errors and returns the list
+
+def evaluateLines(path, line_xform, write=True):
+  errors = []
+  format_flag = True
+  output_lines = []
+
+  def formatError(line_number, error_message):
+    return "%s:%d: %s" % (path, line_number + 1, error_message)
+
+  for line_number, line in enumerate(readLines(path)):
+    if line.find("// clang-format off") != -1:
+      if not format_flag:
+        errors.append(formatError("clang-format foo"))
+      format_flag = False
+    if line.find("// clang-format on") != -1:
+      if format_flag:
+        errors.append(formatError("foo"))
+      format_flag = True
+    if format_flag:
+      xformed_line, error = line_xform(line, line_number)
+      if error:
+        errors.append(formatError(error))
+      output_lines.append(xformed_line)
+    else:
+      output_lines.append(line)
+
+  if not format_flag and error_message is None:
+    error_message = "%s:%d: %s" % (path, line_number + 1, "clang-format remains off")
+  # We used to use fileinput in the older Python 2.7 script, but this doesn't do
+  # inplace mode and UTF-8 in Python 3, so doing it the manual way.
+  if write:
+    pathlib.Path(path).write_text('\n'.join(output_lines), encoding='utf-8')
+
+  return errors
 
 # Map a line transformation function across each line of a file,
 # writing the result lines as requested.
